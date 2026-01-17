@@ -31,7 +31,8 @@ namespace ErEditor.Infrastructure
         // Must only contain entries that exist in retrievedIdMap
         protected List<TObject> updated = new();
         protected List<TObject> deleted = new();
-        protected List<TObject> created = new();
+
+        protected Dictionary<TObject, IDbEntry?> created = new(); // these entries will be used to get ids when flushing
 
         protected ObserverBase observerLogic;
 
@@ -45,6 +46,10 @@ namespace ErEditor.Infrastructure
             get { return updated.AsReadOnly(); }
         }
         public ReadOnlyCollection<TObject> Created
+        {
+            get { return created.Keys.ToList().AsReadOnly(); }
+        }
+        public ReadOnlyDictionary<TObject, IDbEntry?> CreatedDbEntries
         {
             get { return created.AsReadOnly(); }
         }
@@ -81,7 +86,7 @@ namespace ErEditor.Infrastructure
             {
                 return EntityState.Unchanged;
             }
-            if (created.Contains(entry))
+            if (created.ContainsKey(entry))
             {
                 return EntityState.Added;
             }
@@ -118,25 +123,7 @@ namespace ErEditor.Infrastructure
             return true;
         }
 
-        protected Dictionary<TObject, List<int?>> foreignKeys = new();
-        public void AddForeignKey(TObject entry, List<int?> foreignKey)
-        {
-            ConsoleLog.Log($"------------------------------------------------------ {this}");
-            if (!foreignKeys.ContainsKey(entry))
-            {
-                ConsoleLog.Log($"------------------------------------------------------ {foreignKey}");
-                foreignKeys.Add(entry, foreignKey);
-            }
-        }
-        public List<int?>? FindForeignKey(TObject entry)
-        {
-            if (foreignKeys.ContainsKey(entry))
-            {
-                return foreignKeys[entry];
-            }
-            return null;
-        }
-        public bool AddCreated(TObject entry)
+        public bool AddCreated(TObject entry, IDbEntry? dbentry = null)
         {
             if (this.deleted.Contains(entry))
             {
@@ -146,7 +133,7 @@ namespace ErEditor.Infrastructure
             {
                 updated.Remove(entry);
             }
-            if (this.created.Contains(entry))
+            if (this.created.ContainsKey(entry))
             {
                 return false;
             }
@@ -156,12 +143,19 @@ namespace ErEditor.Infrastructure
                 return false;
             }
             ConsoleLog.Log($"Adding new {entry} to the created list.", this, "INFO");
-            created.Add(entry);
+            created.Add(entry, dbentry);
             return true;
+        }
+        public void AddCreatedDbEntry(TObject entry, IDbEntry dbentry)
+        {
+            if (created.ContainsKey(entry))
+            {
+                created[entry] = dbentry;
+            }
         }
         public bool AddUpdated(TObject entry)
         {
-            if (this.deleted.Contains(entry) || this.created.Contains(entry) || this.updated.Contains(entry))
+            if (this.deleted.Contains(entry) || this.created.ContainsKey(entry) || this.updated.Contains(entry))
             {
                 return false;
             }
@@ -180,7 +174,7 @@ namespace ErEditor.Infrastructure
             {
                 updated.Remove(entry);
             }
-            if (this.created.Contains(entry))
+            if (this.created.ContainsKey(entry))
             {
                 created.Remove(entry);
                 return false;
@@ -221,32 +215,20 @@ namespace ErEditor.Infrastructure
             }
             return objectList;
         }
-        /*
-        public TDbEntry CreateDbEntry<TDbEntry>(TObjEntry objEntry, Func<TObjEntry, TDbEntry> mapFunc) where TDbEntry: IDbEntry
-        {
-            TDbEntry dbEntry = mapFunc(objEntry);
-            int? id = this.FindInRetrieved(objEntry);
-            if (id != null)
-            {
-                dbEntry.Id = (int)id;
-            }
-            return dbEntry;
-        }*/
 
-        public void Flush(Dictionary<TObject, int> createdIds)
+        public void Flush()
         {
             foreach (var entry in deleted)
             {
                 this.RemoveRetrieved(entry);
             }
-            foreach (var entryKeyPair in createdIds)
+            foreach (var entryKeyPair in created)
             {
-                if (created.Contains(entryKeyPair.Key))
+                if (entryKeyPair.Value != null)
                 {
-                    this.AddRetrieved(entryKeyPair.Value, entryKeyPair.Key);
+                    this.AddRetrieved(entryKeyPair.Value.Id, entryKeyPair.Key);
                 }
             }
-
             created.Clear();
             updated.Clear();
             deleted.Clear();
@@ -267,7 +249,7 @@ namespace ErEditor.Infrastructure
                 res += $"\t{entry.ToString()}\n";
             }
             res += "\nCreated:\n";
-            foreach (var entry in created)
+            foreach (var entry in created.Keys)
             {
                 res += $"\t{entry.ToString()}\n";
             }

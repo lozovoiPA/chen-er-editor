@@ -1,5 +1,4 @@
-﻿using ErEditor.DbSchemaClasses;
-using ErEditor.Infrastructure;
+﻿using ErEditor.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +32,7 @@ namespace ErEditor.ErSchemaClasses
     }
 
     public abstract class ErElementWithAttributesWatcher<TErElement> : ErElementWatcher<TErElement>,
-        IVisitor<ObjectAddedToCompositeObject<ErAttribute, ErElementWithAttributes>>
+        IVisitor<ObjectAddedNotification<ErAttribute, ErElementWithAttributes>>
         
         where TErElement : ErElementWithAttributes
     {
@@ -53,18 +52,12 @@ namespace ErEditor.ErSchemaClasses
                 return;
             }
         }
-        public virtual void Visit(ObjectAddedToCompositeObject<ErAttribute, ErElementWithAttributes> notif)
+        public virtual void Visit(ObjectAddedNotification<ErAttribute, ErElementWithAttributes> notif)
         {
             ConsoleLog.Log($"New attribute was added to the element", this, "INFO");
-            notif.Object.Subscribe(observerLogic);
-            observableLogic.Notify(notif);
+            notif.Object.Subscribe(this);
 
-            /*
-            var castObj = notif.CompositeObject as TErElement;
-            if(castObj != null)
-            {
-                observableLogic.Notify(new ObjectUpdatedNotification<TErElement>(castObj));
-            }*/
+            observableLogic.Notify(new ObjectAddedNotification<ErAttribute, ErElementWithAttributes>(notif.Object, notif.AddedTo));
         }
     }
     public class ErEntitySetWatcher : ErElementWithAttributesWatcher<ErEntitySet>

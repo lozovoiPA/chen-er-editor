@@ -7,10 +7,6 @@
       "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\dbschemaclasses\\erschemaregistry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\erschemaclasses\\erschemafilemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\erschemaclasses\\erschemafilemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\infrastructure\\registry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\infrastructure\\registry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -19,20 +15,8 @@
       "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\erschemaclasses\\erschemamemorywatchers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\dbschemaclasses\\registrymemorywatcher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\dbschemaclasses\\registrymemorywatcher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\dbschemaclasses\\dbschema.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\dbschemaclasses\\dbschema.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\infrastructure\\registrywithforeignkeyconstraints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\infrastructure\\registrywithforeignkeyconstraints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\dbschemaclasses\\erschemadbmapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\dbschemaclasses\\erschemadbmapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\erschemaclasses\\erschemaelements.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\erschemaclasses\\erschemaelements.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -42,84 +26,45 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "RegistryWithForeignKeyConstraints.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\Infrastructure\\RegistryWithForeignKeyConstraints.cs",
-              "RelativeDocumentMoniker": "ErEditor\\Infrastructure\\RegistryWithForeignKeyConstraints.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\Infrastructure\\RegistryWithForeignKeyConstraints.cs",
-              "RelativeToolTip": "ErEditor\\Infrastructure\\RegistryWithForeignKeyConstraints.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T16:00:15.863Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "ErSchemaMemoryWatchers.cs",
               "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaMemoryWatchers.cs",
               "RelativeDocumentMoniker": "ErEditor\\ErSchemaClasses\\ErSchemaMemoryWatchers.cs",
               "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaMemoryWatchers.cs",
               "RelativeToolTip": "ErEditor\\ErSchemaClasses\\ErSchemaMemoryWatchers.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAiwDwAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAACcAAAAAAAAAAAAgwDsAAACAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T15:43:46.92Z",
+              "WhenOpened": "2026-01-17T09:10:05.263Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "RegistryMemoryWatcher.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\RegistryMemoryWatcher.cs",
-              "RelativeDocumentMoniker": "ErEditor\\DbSchemaClasses\\RegistryMemoryWatcher.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\RegistryMemoryWatcher.cs",
-              "RelativeToolTip": "ErEditor\\DbSchemaClasses\\RegistryMemoryWatcher.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 3,
+              "Title": "ErSchemaElements.cs",
+              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaElements.cs",
+              "RelativeDocumentMoniker": "ErEditor\\ErSchemaClasses\\ErSchemaElements.cs",
+              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaElements.cs",
+              "RelativeToolTip": "ErEditor\\ErSchemaClasses\\ErSchemaElements.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAAAFAAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T15:43:42.684Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Registry.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\Infrastructure\\Registry.cs",
-              "RelativeDocumentMoniker": "ErEditor\\Infrastructure\\Registry.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\Infrastructure\\Registry.cs",
-              "RelativeToolTip": "ErEditor\\Infrastructure\\Registry.cs",
-              "ViewState": "AgIAAAwBAAAAAAAAAAAwwH8AAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T14:03:01.302Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "DbSchema.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\DbSchema.cs",
-              "RelativeDocumentMoniker": "ErEditor\\DbSchemaClasses\\DbSchema.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\DbSchema.cs",
-              "RelativeToolTip": "ErEditor\\DbSchemaClasses\\DbSchema.cs",
-              "ViewState": "AgIAADQAAAAAAAAAAAAAAFwAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T13:43:15.205Z",
+              "WhenOpened": "2026-01-17T07:12:51.39Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "ErSchemaFileManager.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaFileManager.cs",
-              "RelativeDocumentMoniker": "ErEditor\\ErSchemaClasses\\ErSchemaFileManager.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaFileManager.cs",
-              "RelativeToolTip": "ErEditor\\ErSchemaClasses\\ErSchemaFileManager.cs",
-              "ViewState": "AgIAADIAAAAAAAAAAAAIwEQAAABIAAAAAAAAAA==",
+              "Title": "Registry.cs",
+              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\Infrastructure\\Registry.cs",
+              "RelativeDocumentMoniker": "ErEditor\\Infrastructure\\Registry.cs",
+              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\Infrastructure\\Registry.cs",
+              "RelativeToolTip": "ErEditor\\Infrastructure\\Registry.cs",
+              "ViewState": "AgIAAOkAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T13:34:49.802Z",
+              "WhenOpened": "2026-01-17T04:44:05.385Z",
               "EditorCaption": ""
             },
             {
@@ -130,22 +75,9 @@
               "RelativeDocumentMoniker": "ErEditor\\DbSchemaClasses\\ErSchemaRegistry.cs",
               "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\ErSchemaRegistry.cs",
               "RelativeToolTip": "ErEditor\\DbSchemaClasses\\ErSchemaRegistry.cs",
-              "ViewState": "AgIAAH4BAAAAAAAAAAAiwJEBAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAHkBAAAAAAAAAAAAAI8BAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-16T11:01:39.953Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "ErSchemaDbMapper.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\ErSchemaDbMapper.cs",
-              "RelativeDocumentMoniker": "ErEditor\\DbSchemaClasses\\ErSchemaDbMapper.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\ErSchemaDbMapper.cs",
-              "RelativeToolTip": "ErEditor\\DbSchemaClasses\\ErSchemaDbMapper.cs",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAAC8AAAAgAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T10:21:34.174Z",
               "EditorCaption": ""
             }
           ]

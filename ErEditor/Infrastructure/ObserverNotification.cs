@@ -75,15 +75,15 @@ namespace ErEditor.Infrastructure
         public override void Accept(IVisitor visitor) { visitor.Visit(this); }
     }
 
-    public class ObjectAddedToCompositeObject<TObject, TCompositeObject> : Notification
+    public class ObjectAddedNotification<TObject, TAddedTo> : Notification
     {
         public readonly TObject Object;
-        public readonly TCompositeObject CompositeObject;
+        public readonly TAddedTo AddedTo;
 
-        public ObjectAddedToCompositeObject(TObject @object, TCompositeObject compositeObject)
+        public ObjectAddedNotification(TObject @object, TAddedTo addedTo)
         {
             Object = @object;
-            CompositeObject = compositeObject;
+            AddedTo = addedTo;
         }
 
         public override void Accept(IVisitor visitor) { visitor.Visit(this); }

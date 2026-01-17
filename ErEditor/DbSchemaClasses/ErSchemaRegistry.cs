@@ -13,7 +13,8 @@ using System.Windows.Media.Media3D;
 namespace ErEditor.DbSchemaClasses
 {
     public class ErSchemaRegistry : IObserver, 
-        IVisitor<ObjectAddedToCompositeObject<ErAttribute, ErElementWithAttributes>>
+        IVisitor<ObjectAddedNotification<ErAttribute, ErElementWithAttributes>>,
+        IVisitor<ObjectAddedNotification<ErRole, ErRelationshipSet>>
     {
         public readonly ErSchema Schema;
 
@@ -26,16 +27,10 @@ namespace ErEditor.DbSchemaClasses
         public readonly Registry<ErMapping> MappingRegistry = new();
         public readonly Registry<DiagramPrimitive> PrimitiveRegistry = new();
 
-        private Dictionary<ErEntitySet, DbEntitySet> entitySetsNotRetrieved = new();
-        private Dictionary<ErRelationshipSet, DbRelationshipSet> relationshipSetsNotRetrieved = new();
-        private Dictionary<ErValueSet, DbValueSet> valueSetsNotRetrieved = new();
-        private Dictionary<ErDiagram, DbDiagram> diagramsNotRetrieved = new();
-        private Dictionary<ErAttribute, DbAttribute> attributesNotRetrieved = new();
-        private Dictionary<ErRole, DbRole> rolesNotRetrieved = new();
-        private Dictionary<ErMapping, DbMapping> mappingsNotRetrieved = new();
-        private Dictionary<DiagramPrimitive, DbPrimitive> primitivesNotRetrieved = new();
-
         public ObserverBase observerLogic;
+
+        private Dictionary<ErAttribute, ErElementWithAttributes> attributeForeignKeys = new();
+        private Dictionary<ErRole, ErRelationshipSet> roleForeignKeys = new();
 
         public ErSchemaRegistry(ErSchema schema)
         {
@@ -86,7 +81,14 @@ namespace ErEditor.DbSchemaClasses
                     var attr = CreateAttributeOnSchema(relationshipSet, el);
                     return attr;
                 });
-            //MapDbSetToErSet(dbRs.EntitySets.ToList(), relationshipSet.roles, MapToRole);
+
+            var roles = this.RoleRegistry.RetrieveDbEntryList(
+                dbRs.Roles.ToList(),
+                el =>
+                {
+                    var role = CreateRoleOnSchema(relationshipSet, el);
+                    return role;
+                });
             return relationshipSet;
         }
         private ErValueSet CreateValueSetOnSchema(DbValueSet dbVs)
@@ -107,7 +109,8 @@ namespace ErEditor.DbSchemaClasses
             attr.allowedValues = dbAttr.AllowedValues;
             attr.isKey = dbAttr.IsKey;
 
-            AttributeRegistry.AddForeignKey(attr, [dbAttr.ErElementWithAttributesId]);
+            attributeForeignKeys.Add(attr, element);
+            //AttributeRegistry.AddForeignKey(attr, [dbAttr.ErElementWithAttributesId]);
 
             foreach (DbValueSet dbVs in dbAttr.ValueSets)
             {
@@ -115,6 +118,197 @@ namespace ErEditor.DbSchemaClasses
                 attr.valueSets.Add(vs);
             }
             return attr;
+        }
+        private ErRole CreateRoleOnSchema(ErRelationshipSet rs, DbRole dbRole)
+        {   
+            ErRole role = rs.AddRole(dbRole.Name ?? string.Empty);
+            role.isKey = dbRole.IsKeyEntitySet;
+            role.isIdDependency = dbRole.IsIdDependant;
+
+            roleForeignKeys.Add(role, rs);
+            //RoleRegistry.AddForeignKey(role, [dbRole.EntitySetId, dbRole.RelationshipSetId]);
+
+            var es = EntitySetRegistry.RetrieveDbEntry(dbRole.EntitySet, CreateEntitySetOnSchema);
+            role.entitySet = es;
+            
+            return role;
+        }
+
+        private int TryToAssignId<TObject>(TObject el, Registry<TObject> registry)
+            where TObject : notnull
+        {
+            return registry.FindId(el) ?? default;
+        }
+        // Старые попытки как-то хранить ограничения внешних ключей... Ничего не понимаю, как их адекватно поддерживать.
+        // Пока использую методы выше целиком для маппинга всего вместе. 
+        public DbEntitySet MakeDbEntitySet(ErEntitySet es)
+        {
+            DbEntitySet dbEs = new DbEntitySet(es.Name == "" ? null : es.Name);
+            dbEs.Id = TryToAssignId(es, EntitySetRegistry);
+
+            return dbEs;
+        }
+        public DbRelationshipSet MakeDbRelationshipSet(ErRelationshipSet rs)
+        {
+            DbRelationshipSet dbRs = new(rs.Name == "" ? null : rs.Name);
+            dbRs.Id = TryToAssignId(rs, RelationshipSetRegistry);
+
+            return dbRs;
+        }
+        public DbValueSet MakeDbValueSet(ErValueSet vs)
+        {
+            DbValueSet dbVs = new(vs.Name == "" ? null : vs.Name);
+            dbVs.Id = TryToAssignId(vs, ValueSetRegistry);
+
+            return dbVs;
+        }
+        public DbDiagram MakeDbDiagram(ErDiagram dgr)
+        {
+            DbDiagram dbDgr = new DbDiagram(dgr.Name == "" ? null : dgr.Name);
+            dbDgr.Id = TryToAssignId(dgr, DiagramRegistry);
+
+            return dbDgr;
+        }
+
+        private DbAttribute? MakeDbAttribute(ErAttribute attr)
+        {
+            DbAttribute dbAttr = new DbAttribute(attr.Name == "" ? null : attr.Name);
+
+            int? id = null;
+            DbErElementWithAttributes? dbEl = null;
+            if (!this.attributeForeignKeys.ContainsKey(attr))
+            {
+                ConsoleLog.Log("Attribute foreign key entity couldn't be found in the foreign keys. Entity will not be saved in the database.");
+                return null;
+            }
+            var el = attributeForeignKeys[attr];
+            ErEntitySet? es = el as ErEntitySet;
+            if(es != null)
+            {
+                id = EntitySetRegistry.FindId(es);
+                if(id == null)
+                {
+                    if (!EntitySetRegistry.CreatedDbEntries.ContainsKey(es))
+                    {
+                        ConsoleLog.Log("Attribute foreign key entity couldn't be found in the registry. Entity will not be saved in the database.");
+                        return null;
+                    }
+                    dbEl = (DbErElementWithAttributes?)EntitySetRegistry.CreatedDbEntries[es];
+                }
+            }
+            else
+            {
+                ErRelationshipSet? rs = el as ErRelationshipSet;
+                if(rs != null)
+                {
+                    id = RelationshipSetRegistry.FindId(rs);
+                    if (id == null)
+                    {
+                        if (!RelationshipSetRegistry.CreatedDbEntries.ContainsKey(rs))
+                        {
+                            ConsoleLog.Log("Attribute foreign key entity couldn't be found in the registry. Entity will not be saved in the database.");
+                            return null;
+                        }
+                        dbEl = (DbErElementWithAttributes?)RelationshipSetRegistry.CreatedDbEntries[rs];
+                    }
+                }
+            }
+
+            if(id != null)
+            {
+                dbAttr.ErElementWithAttributesId = (int)id;
+            }
+            else if(dbEl != null)
+            {
+                dbAttr.ErElementWithAttributes = dbEl;
+            }
+            else
+            {
+                ConsoleLog.Log("Attribute foreign key ID couldn't be found. Entity will not be saved in the database.");
+                return null;
+            }
+            dbAttr.MinValue = attr.minValue;
+            dbAttr.MaxValue = attr.maxValue;
+            dbAttr.AllowedValues = attr.allowedValues;
+
+            dbAttr.Id = TryToAssignId(attr, AttributeRegistry);
+
+            return dbAttr;
+        }
+        private DbRole? MakeDbRole(ErRole role)
+        {
+            var es = role.entitySet;
+            if (es == null)
+            {
+                ConsoleLog.Log("Role doesn't have an entity set assigned to it. It will not be saved in the database.");
+                return null;
+            }
+
+            DbRole dbRole = new DbRole(role.Name == "" ? null : role.Name);
+
+            int? esId = null, rsId = null;
+            DbEntitySet? dbEs = null; DbRelationshipSet? dbRs = null; 
+            if (!this.roleForeignKeys.ContainsKey(role))
+            {
+                ConsoleLog.Log("Role foreign key entity couldn't be found in the foreign keys. Entity will not be saved in the database.");
+                return null;
+            }
+            var rs = roleForeignKeys[role];
+            rsId = RelationshipSetRegistry.FindId(rs);
+            if (rsId == null)
+            {
+                if (!RelationshipSetRegistry.CreatedDbEntries.ContainsKey(rs))
+                {
+                    ConsoleLog.Log("Role foreign key relationship set couldn't be found in the registry. Entity will not be saved in the database.");
+                    return null;
+                }
+                dbRs = (DbRelationshipSet?)RelationshipSetRegistry.CreatedDbEntries[rs];
+            }
+
+            esId = EntitySetRegistry.FindId(es);
+            if(esId == null)
+            {
+                if (!EntitySetRegistry.CreatedDbEntries.ContainsKey(es))
+                {
+                    ConsoleLog.Log("Role foreign key entity set couldn't be found in the registry. Entity will not be saved in the database.");
+                    return null;
+                }
+                dbEs = (DbEntitySet?)EntitySetRegistry.CreatedDbEntries[es];
+            }
+
+            if (rsId != null)
+            {
+                dbRole.RelationshipSetId = (int)rsId;
+            }
+            else if (dbRs != null)
+            {
+                dbRole.RelationshipSet = dbRs;
+            }
+            else
+            {
+                ConsoleLog.Log("Role foreign key ID couldn't be found. Entity will not be saved in the database.");
+                return null;
+            }
+
+            if (esId != null)
+            {
+                dbRole.EntitySetId = (int)esId;
+            }
+            else if (dbEs != null)
+            {
+                dbRole.EntitySet = dbEs;
+            }
+            else
+            {
+                ConsoleLog.Log("Role foreign key ID couldn't be found. Entity will not be saved in the database.");
+                return null;
+            }
+
+            dbRole.IsIdDependant = role.isIdDependency;
+            dbRole.IsKeyEntitySet = role.isKey;
+
+            dbRole.Id = TryToAssignId(role, RoleRegistry);
+            return dbRole;
         }
 
         public void GetSchemaFromDb(DbSchema dbSchema)
@@ -128,6 +322,53 @@ namespace ErEditor.DbSchemaClasses
 
             ObserveOn();
         }
+
+        private List<IDbEntry> MakeCreatedDbEntriesList<TObject, TDbEntry>(Registry<TObject> registry, Func<TObject, TDbEntry?> mapFunc)
+            where TObject : notnull
+            where TDbEntry : IDbEntry
+        {
+            List<IDbEntry> created = new();
+            foreach (var el in registry.Created)
+            {
+                var dbEl = mapFunc(el);
+                if (dbEl != null)
+                {
+                    registry.AddCreatedDbEntry(el, dbEl);
+                    created.Add(dbEl);
+                }
+            }
+            return created;
+        }
+        private List<IDbEntry> MakeUpdatedDbEntriesList<TObject, TDbEntry>(Registry<TObject> registry, Func<TObject, TDbEntry?> mapFunc)
+            where TObject : notnull
+            where TDbEntry : IDbEntry
+        {
+            List<IDbEntry> updated = new();
+            foreach (var el in registry.Updated)
+            {
+                var dbEl = mapFunc(el);
+                if (dbEl != null)
+                {
+                    updated.Add(dbEl);
+                }
+            }
+            return updated;
+        }
+        private List<IDbEntry> MakeDeletedDbEntriesList<TObject, TDbEntry>(Registry<TObject> registry, Func<TObject, TDbEntry?> mapFunc)
+            where TObject : notnull
+            where TDbEntry : IDbEntry
+        {
+            List<IDbEntry> deleted = new();
+            foreach (var el in registry.Deleted)
+            {
+                var dbEl = mapFunc(el);
+                if (dbEl != null)
+                {
+                    deleted.Add(dbEl);
+                }
+            }
+            return deleted;
+        }
         public DbSchemaChanges MakeChangedDbEntries()
         {
             DbSchemaChanges changes = new();
@@ -135,91 +376,24 @@ namespace ErEditor.DbSchemaClasses
             List<IDbEntry> created = new();
             List<IDbEntry> updated = new();
             List<IDbEntry> deleted = new();
-            foreach (var el in EntitySetRegistry.Created)
-            {
-                created.Add(MakeDbEntitySet(el));
-            }
-            foreach (var el in RelationshipSetRegistry.Created)
-            {
-                created.Add(MakeDbRelationshipSet(el));
-            }
-            foreach (var el in ValueSetRegistry.Created)
-            {
-                created.Add(MakeDbValueSet(el));
-            }
-            foreach (var el in DiagramRegistry.Created)
-            {
-                created.Add(MakeDbDiagram(el));
-            }
-            foreach (var el in AttributeRegistry.Created)
-            {
-                var attr = MakeDbAttribute(el);
-                if(attr != null)
-                {
-                    created.Add(attr);
-                }
-            }
 
-            foreach (var el in EntitySetRegistry.Updated)
-            {
-                /*
-                var dbEl = MakeUpdatedDbEntitySet(el);
-                updated.Add(dbEl);
+            created.AddRange(MakeCreatedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
+            created.AddRange(MakeCreatedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
+            created.AddRange(MakeCreatedDbEntriesList(ValueSetRegistry, MakeDbValueSet));
+            created.AddRange(MakeCreatedDbEntriesList(DiagramRegistry, MakeDbDiagram));
+            created.AddRange(MakeCreatedDbEntriesList(AttributeRegistry, MakeDbAttribute));
 
-                foreach(var dbAttr in dbEl.Attributes)
-                {
-                    if(dbAttr.State == EntityState.Deleted)
-                    {
-                        deleted.Add(dbAttr);
-                    }
-                }*/
-                updated.Add(MakeDbEntitySet(el));
-            }
-            foreach (var el in RelationshipSetRegistry.Updated)
-            {
-                updated.Add(MakeDbRelationshipSet(el));
-            }
-            foreach (var el in ValueSetRegistry.Updated)
-            {
-                updated.Add(MakeDbValueSet(el));
-            }
-            foreach (var el in DiagramRegistry.Updated)
-            {
-                updated.Add(MakeDbDiagram(el));
-            }
-            foreach (var el in AttributeRegistry.Updated)
-            {
-                var attr = MakeDbAttribute(el);
-                if (attr != null)
-                {
-                    updated.Add(attr);
-                }
-            }
+            updated.AddRange(MakeUpdatedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
+            updated.AddRange(MakeUpdatedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
+            updated.AddRange(MakeUpdatedDbEntriesList(ValueSetRegistry, MakeDbValueSet));
+            updated.AddRange(MakeUpdatedDbEntriesList(DiagramRegistry, MakeDbDiagram));
+            updated.AddRange(MakeUpdatedDbEntriesList(AttributeRegistry, MakeDbAttribute));
 
-            foreach (var el in EntitySetRegistry.Deleted)
-            {
-                deleted.Add(MakeDbEntitySet(el));
-            }
-            foreach (var el in RelationshipSetRegistry.Deleted)
-            {
-                deleted.Add(MakeDbRelationshipSet(el));
-            }
-            foreach (var el in ValueSetRegistry.Deleted)
-            {
-                deleted.Add(MakeDbValueSet(el));
-            }
-            foreach (var el in DiagramRegistry.Deleted)
-            {
-                deleted.Add(MakeDbDiagram(el));
-            }
-            foreach (var el in AttributeRegistry.Deleted)
-            {
-                var attr = MakeDbAttribute(el);
-                if (attr != null)
-                {
-                    deleted.Add(attr);
-                }
-            }
+            deleted.AddRange(MakeDeletedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
+            deleted.AddRange(MakeDeletedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
+            deleted.AddRange(MakeDeletedDbEntriesList(ValueSetRegistry, MakeDbValueSet));
+            deleted.AddRange(MakeDeletedDbEntriesList(DiagramRegistry, MakeDbDiagram));
+            deleted.AddRange(MakeDeletedDbEntriesList(AttributeRegistry, MakeDbAttribute));
 
             changes.AddCreatedRange(created);
             changes.AddUpdatedRange(updated);
@@ -260,186 +434,31 @@ namespace ErEditor.DbSchemaClasses
             Schema.DiagramWatcher.Subscribe(PrimitiveRegistry);
         }
 
-        private void TryToGetId<TElement, TDbEntry>(Registry<TElement> registry,
-            Dictionary<TElement, TDbEntry> notRetrievedSet, TElement el, TDbEntry dbEl)
-            where TElement : notnull
-            where TDbEntry : IDbEntry
-        {
-            int? id = registry.FindId(el);
-            if (id != null)
-            {
-                dbEl.Id = (int)id;
-            }
-            else
-            {
-                notRetrievedSet.Add(el, dbEl);
-            }
-        }
-        // Это создание объектов Db из объектов в памяти. У них может не быть айдишников, как и у вложенных объектов, это просто маппинг.
-        public DbEntitySet MakeDbEntitySet(ErEntitySet es)
-        {
-            DbEntitySet dbEs = new DbEntitySet(es.Name == "" ? null : es.Name);
-            TryToGetId(EntitySetRegistry, entitySetsNotRetrieved, es, dbEs);
-
-            /*
-            foreach (var attr in es.attributes)
-            {
-                var dbAttr = MakeDbAttribute(dbEs, attr);
-                dbEs.Attributes.Add(dbAttr);
-            }*/
-            return dbEs;
-        }
-        /*
-        public DbEntitySet MakeUpdatedDbEntitySet(ErEntitySet es)
-        {
-            DbEntitySet dbEs = new DbEntitySet(es.Name == "" ? null : es.Name);
-            TryToGetId(EntitySetRegistry, entitySetsNotRetrieved, es, dbEs);
-
-            foreach (var attr in es.attributes)
-            {
-                var attrState = AttributeRegistry.GetState(attr);
-                if(attrState != null && attrState != EntityState.Unchanged)
-                {
-                    var dbAttr = MakeDbAttribute(dbEs, attr);
-                    dbAttr.State = (EntityState)attrState;
-
-                    dbEs.Attributes.Add(dbAttr);
-                }
-            }
-            return dbEs;
-        }*/
-        public DbRelationshipSet MakeDbRelationshipSet(ErRelationshipSet rs)
-        {
-            DbRelationshipSet dbRs = new(rs.Name == "" ? null : rs.Name);
-            TryToGetId(RelationshipSetRegistry, relationshipSetsNotRetrieved, rs, dbRs);
-
-            /*
-            foreach (var attr in rs.attributes)
-            {
-                var dbAttr = MakeDbAttribute(dbRs, attr);
-                dbRs.Attributes.Add(dbAttr);
-            }
-            /*
-            foreach (var item in rs.roles)
-            {
-                var dbrole = MapFromRole(item);
-                dbRs.EntitySets.Add(dbrole);
-                dbcontext.SaveChanges();
-                roleIdMap[dbrole.Id] = item;
-            }*/
-            return dbRs;
-        }
-        /*
-        public DbRelationshipSet MakeUpdatedDbRelationshipSet(ErRelationshipSet rs)
-        {
-            DbRelationshipSet dbRs = new(rs.Name == "" ? null : rs.Name);
-            TryToGetId(RelationshipSetRegistry, relationshipSetsNotRetrieved, rs, dbRs);
-
-            foreach (var attr in rs.attributes)
-            {
-                var attrState = AttributeRegistry.GetState(attr);
-                if (attrState != null && attrState != EntityState.Unchanged)
-                {
-                    var dbAttr = MakeDbAttribute(dbRs, attr);
-                    dbAttr.State = (EntityState)attrState;
-
-                    dbRs.Attributes.Add(dbAttr);
-                }
-            }
-            /*
-            foreach (var item in rs.roles)
-            {
-                var dbrole = MapFromRole(item);
-                dbRs.EntitySets.Add(dbrole);
-                dbcontext.SaveChanges();
-                roleIdMap[dbrole.Id] = item;
-            }
-            return dbRs;
-        }*/
-        public DbValueSet MakeDbValueSet(ErValueSet vs)
-        {
-            DbValueSet dbVs = new(vs.Name == "" ? null : vs.Name);
-            TryToGetId(ValueSetRegistry, valueSetsNotRetrieved, vs, dbVs);
-
-            return dbVs;
-        }
-        public DbDiagram MakeDbDiagram(ErDiagram dgr)
-        {
-            DbDiagram dbDgr = new DbDiagram(dgr.Name == "" ? null : dgr.Name);
-            TryToGetId(DiagramRegistry, diagramsNotRetrieved, dgr, dbDgr);
-
-            return dbDgr;
-        }
-        private DbAttribute? MakeDbAttribute(ErAttribute attr)
-        {
-            DbAttribute dbAttr = new DbAttribute(attr.Name == "" ? null : attr.Name);
-            var fk = AttributeRegistry.FindForeignKey(attr);
-            ConsoleLog.Log($"{fk} {fk?.Count} {fk?[0]}");
-            if (fk != null && fk[0] != null)
-            {
-                dbAttr.ErElementWithAttributesId = (int)fk[0];
-            }
-            else
-            {
-                ConsoleLog.Log("TRYING TO CREATE AN ATTRIBUTE ENTRY THAT REQUIRES A FOREIGN KEY BUT DOESN'T HAVE IT", this);
-                return null;
-            }
-            dbAttr.MinValue = attr.minValue;
-            dbAttr.MaxValue = attr.maxValue;
-            dbAttr.AllowedValues = attr.allowedValues;
-            
-            TryToGetId(AttributeRegistry, attributesNotRetrieved, attr, dbAttr);
-
-            return dbAttr;
-        }
-
-        private Dictionary<TObject, int> MakeObjectIdDict<TObject, TDbEntry>(Dictionary<TObject, TDbEntry> dict) 
-            where TObject : notnull 
-            where TDbEntry : IDbEntry
-        {
-            Dictionary<TObject, int> newDict = new();
-            foreach(var objectDbEntryPair in dict)
-            {
-                newDict.Add(objectDbEntryPair.Key, objectDbEntryPair.Value.Id);
-            }
-            return newDict;
-        }
         public void FlushRegistries()
         {
-            EntitySetRegistry.Flush(MakeObjectIdDict(entitySetsNotRetrieved));
-            RelationshipSetRegistry.Flush(MakeObjectIdDict(relationshipSetsNotRetrieved));
-            ValueSetRegistry.Flush(MakeObjectIdDict(valueSetsNotRetrieved));
-            DiagramRegistry.Flush(MakeObjectIdDict(diagramsNotRetrieved));
-            AttributeRegistry.Flush(MakeObjectIdDict(attributesNotRetrieved));
-            RoleRegistry.Flush(MakeObjectIdDict(rolesNotRetrieved));
-            MappingRegistry.Flush(MakeObjectIdDict(mappingsNotRetrieved));
-            PrimitiveRegistry.Flush(MakeObjectIdDict(primitivesNotRetrieved));
+            EntitySetRegistry.Flush();
+            RelationshipSetRegistry.Flush();
+            ValueSetRegistry.Flush();
+            DiagramRegistry.Flush();
+            AttributeRegistry.Flush();
+            RoleRegistry.Flush();
+            MappingRegistry.Flush();
+            PrimitiveRegistry.Flush();
         }
 
+        // Также относится к попыткам поддерживать ограничения внешний ключей. Очень сложно, и ненадежно.
         public void Recieve(Notification notification)
         {
             observerLogic.Recieve(notification);
         }
-
-        public void Visit(ObjectAddedToCompositeObject<ErAttribute, ErElementWithAttributes> notif)
+        public void Visit(ObjectAddedNotification<ErAttribute, ErElementWithAttributes> notif)
         {
-            int? id = null;
-            var es = notif.CompositeObject as ErEntitySet;
-            if(es != null)
-            {
-                id = EntitySetRegistry.FindId(es);
-            }
-            var rs = notif.CompositeObject as ErRelationshipSet;
-            if (rs != null)
-            {
-                id = RelationshipSetRegistry.FindId(rs);
-            }
+            AttributeRegistry.Recieve(new ObjectCreatedNotification<ErAttribute>(notif.Object));
+            attributeForeignKeys.Add(notif.Object, notif.AddedTo);
+        }
+        public void Visit(ObjectAddedNotification<ErRole, ErRelationshipSet> notif)
+        {
 
-            if(id != null)
-            {
-                AttributeRegistry.Recieve(new ObjectCreatedNotification<ErAttribute>(notif.Object));
-                AttributeRegistry.AddForeignKey(notif.Object, [id]);
-            }
         }
     }
 }

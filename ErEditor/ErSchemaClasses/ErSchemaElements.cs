@@ -43,7 +43,7 @@ namespace ErEditor.ErSchemaClasses
             ErAttribute newAttribute = new(name);
             attributes.Add(newAttribute);
 
-            observableLogic.Notify(new ObjectAddedToCompositeObject<ErAttribute, ErElementWithAttributes>(newAttribute, this));
+            observableLogic.Notify(new ObjectAddedNotification<ErAttribute, ErElementWithAttributes>(newAttribute, this));
             return newAttribute;
         }
 

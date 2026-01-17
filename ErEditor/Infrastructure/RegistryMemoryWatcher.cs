@@ -1,11 +1,10 @@
-﻿using ErEditor.Infrastructure;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ErEditor.DbSchemaClasses
+namespace ErEditor.Infrastructure
 {
     // For Registry only 
     // converts notifications into three types registry accepts
