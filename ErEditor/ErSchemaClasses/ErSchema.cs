@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ErEditor.ErSchemaClasses
 {
     public partial class ErSchema : 
-        IObservable, IObserver
+        IObservable
     {
         private string name = String.Empty;
 
@@ -18,12 +18,20 @@ namespace ErEditor.ErSchemaClasses
         private List<ErDiagram> diagrams                 = new();
 
         private readonly ObservableBase observableLogic = new();
-        private Visitor visitorLogic;
+
+        public readonly ErEntitySetWatcher EntitySetWatcher = new();
+        public readonly ErRelationshipSetWatcher RelationshipSetWatcher = new();
+        public readonly ErValueSetWatcher ValueSetWatcher = new();
+        public readonly ErDiagramWatcher DiagramWatcher = new();
 
         public ErSchema(string name = "") 
         {
             this.name = name;
-            visitorLogic = new(this);
+
+            this.Subscribe(EntitySetWatcher);
+            this.Subscribe(RelationshipSetWatcher);
+            this.Subscribe(ValueSetWatcher);
+            this.Subscribe(DiagramWatcher);
         }
 
         public string Name
@@ -70,21 +78,25 @@ namespace ErEditor.ErSchemaClasses
             ErEntitySet es = new(name);
             entitySets.Add(es);
 
-            es.Subscribe(this);
-
-            observableLogic.Notify(new ObjectAddedNotification<ErEntitySet>(es));
+            observableLogic.Notify(new ObjectCreatedNotification<ErEntitySet>(es));
             return es;
+        }
+        public ErEntitySet AddEntitySet(ErEntitySet entitySet)
+        {
+            ErEntitySet newEs = new(entitySet.Name);
+            entitySets.Add(newEs);
+
+            observableLogic.Notify(new ObjectCreatedNotification<ErEntitySet>(newEs));
+
+            newEs.AddAttributeRange(entitySet.attributes);
+
+            return newEs;
         }
         public void AddEntitySetRange(List<ErEntitySet> range)
         {
-            entitySets.AddRange(range);
-
-            // Пока немножко не оптимизированно, но ничего страшного
-            // Все получится. Все получится!
             foreach(var es in range)
             {
-                es.Subscribe(this);
-                observableLogic.Notify(new ObjectAddedNotification<ErEntitySet>(es));
+                this.AddEntitySet(es);
             }
         }
         public ErRelationshipSet AddRelationshipSet(string name = "")
@@ -92,9 +104,7 @@ namespace ErEditor.ErSchemaClasses
             ErRelationshipSet rs = new(name);
             relationshipSets.Add(rs);
 
-            rs.Subscribe(this);
-
-            observableLogic.Notify(new ObjectAddedNotification<ErRelationshipSet>(rs));
+            observableLogic.Notify(new ObjectCreatedNotification<ErRelationshipSet>(rs));
             return rs;
         }
         public void AddRelationshipSetRange(List<ErRelationshipSet> range)
@@ -103,8 +113,7 @@ namespace ErEditor.ErSchemaClasses
 
             foreach (var rs in range)
             {
-                rs.Subscribe(this);
-                observableLogic.Notify(new ObjectAddedNotification<ErRelationshipSet>(rs));
+                observableLogic.Notify(new ObjectCreatedNotification<ErRelationshipSet>(rs));
             }
         }
         public ErValueSet AddValueSet(string name = "")
@@ -112,9 +121,7 @@ namespace ErEditor.ErSchemaClasses
             ErValueSet vs = new(name);
             valueSets.Add(vs);
 
-            vs.Subscribe(this);
-
-            observableLogic.Notify(new ObjectAddedNotification<ErValueSet>(vs));
+            observableLogic.Notify(new ObjectCreatedNotification<ErValueSet>(vs));
             return vs;
         }
         public void AddValueSetRange(List<ErValueSet> range)
@@ -123,8 +130,7 @@ namespace ErEditor.ErSchemaClasses
 
             foreach (var vs in range)
             {
-                vs.Subscribe(this);
-                observableLogic.Notify(new ObjectAddedNotification<ErValueSet>(vs));
+                observableLogic.Notify(new ObjectCreatedNotification<ErValueSet>(vs));
             }
         }
         public ErDiagram AddDiagram(string name = "")
@@ -132,9 +138,7 @@ namespace ErEditor.ErSchemaClasses
             ErDiagram dgr = new(this, name);
             diagrams.Add(dgr);
 
-            dgr.Subscribe(this);
-
-            observableLogic.Notify(new ObjectAddedNotification<ErDiagram>(dgr));
+            observableLogic.Notify(new ObjectCreatedNotification<ErDiagram>(dgr));
             return dgr;
         }
         public void AddDiagramRange(List<ErDiagram> range)
@@ -143,8 +147,7 @@ namespace ErEditor.ErSchemaClasses
 
             foreach (var dgr in range)
             {
-                dgr.Subscribe(this);
-                observableLogic.Notify(new ObjectAddedNotification<ErDiagram>(dgr));
+                observableLogic.Notify(new ObjectCreatedNotification<ErDiagram>(dgr));
             }
         }
 
@@ -159,11 +162,27 @@ namespace ErEditor.ErSchemaClasses
             foreach (var el in entitySets)
             {
                 output += $"\t{el.Name}\n";
+                foreach(var attr in el.attributes)
+                {
+                    output += $"\t ├ {attr.Name}\n";
+                }
+
             }
             output += $"Множества связей (всего - {relationshipSets.Count}):\n";
             foreach (var el in relationshipSets)
             {
                 output += $"\t{el.Name}\n";
+                if(el.attributes.Count > 0) { output += $"\t\tAttributes:"; }
+                foreach (var attr in el.attributes)
+                {
+                    output += $"\t ├ {attr.Name}\n";
+                }
+
+                if (el.roles.Count > 0) { output += $"\t\tRoles:"; }
+                foreach (var role in el.roles)
+                {
+                    output += $"\t ├ {role.Name} (entity set {role.entitySet?.Name})\n";
+                }
             }
             output += $"Множества значений (всего - {valueSets.Count}):\n";
             foreach (var el in valueSets)
@@ -185,11 +204,6 @@ namespace ErEditor.ErSchemaClasses
         public bool Unsubscribe(IObserver observer)
         {
             return observableLogic.Unsubscribe(observer);
-        }
-
-        public void Recieve(Notification notification)
-        {
-            notification.Accept(visitorLogic);
         }
     }
 }

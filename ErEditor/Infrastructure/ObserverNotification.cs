@@ -13,11 +13,11 @@ namespace ErEditor.Infrastructure
         public virtual void Accept(IVisitor visitor) { }
     }
 
-    public class ObjectAddedNotification<TObject> : Notification
+    public class ObjectCreatedNotification<TObject> : Notification
     {
         public readonly TObject Object;
 
-        public ObjectAddedNotification(TObject @object)
+        public ObjectCreatedNotification(TObject @object)
         {
             Object = @object;
         }
@@ -56,6 +56,34 @@ namespace ErEditor.Infrastructure
         public ObjectNameChangedNotification(TObject @object, string newName) : base(@object)
         {
             this.NewName = newName;
+        }
+
+        public override void Accept(IVisitor visitor) { visitor.Visit(this); }
+    }
+
+    public class ObjectNameChangedNotification : Notification
+    {
+        public readonly object Object;
+        public readonly string NewName;
+
+        public ObjectNameChangedNotification(object @object, string newName)
+        {
+            this.Object = @object;
+            this.NewName = newName;
+        }
+
+        public override void Accept(IVisitor visitor) { visitor.Visit(this); }
+    }
+
+    public class ObjectAddedToCompositeObject<TObject, TCompositeObject> : Notification
+    {
+        public readonly TObject Object;
+        public readonly TCompositeObject CompositeObject;
+
+        public ObjectAddedToCompositeObject(TObject @object, TCompositeObject compositeObject)
+        {
+            Object = @object;
+            CompositeObject = compositeObject;
         }
 
         public override void Accept(IVisitor visitor) { visitor.Visit(this); }

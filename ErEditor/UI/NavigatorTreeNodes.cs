@@ -1,4 +1,4 @@
-﻿using ErEditor.DbSchema;
+﻿using ErEditor.DbSchemaClasses;
 using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
 using System;
@@ -183,21 +183,21 @@ namespace ErEditor.UI
         {
             if (acceptNotifications)
             {
-                if (notification is ObjectAddedNotification<ErEntitySet>)
+                if (notification is ObjectCreatedNotification<ErEntitySet>)
                 {
-                    ConsoleLog.Log($"Schema node {this.Name} received notification that new entity set was added ({((ObjectAddedNotification<ErEntitySet>)notification).Object})");
-                    this.AddEntitySetNode(((ObjectAddedNotification<ErEntitySet>)notification).Object);
+                    ConsoleLog.Log($"Schema node {this.Name} received notification that new entity set was added ({((ObjectCreatedNotification<ErEntitySet>)notification).Object})");
+                    this.AddEntitySetNode(((ObjectCreatedNotification<ErEntitySet>)notification).Object);
                 }
-                else if (notification is ObjectAddedNotification<ErRelationshipSet>)
+                else if (notification is ObjectCreatedNotification<ErRelationshipSet>)
                 {
-                    ConsoleLog.Log($"Schema node {this.Name} received notification that new relationship set was added ({((ObjectAddedNotification<ErRelationshipSet>)notification).Object})");
-                    this.AddRelationshipSetNode(((ObjectAddedNotification<ErRelationshipSet>)notification).Object);
+                    ConsoleLog.Log($"Schema node {this.Name} received notification that new relationship set was added ({((ObjectCreatedNotification<ErRelationshipSet>)notification).Object})");
+                    this.AddRelationshipSetNode(((ObjectCreatedNotification<ErRelationshipSet>)notification).Object);
                 }
             }
         }
     }
 
-    public class ErEntitySetNode : ExtTreeNodeBase<ErEntitySet>, IObserver, IVisitor<ObjectNameChangedNotification<ErEntitySet>>
+    public class ErEntitySetNode : ExtTreeNodeBase<ErEntitySet>, IObserver, IVisitor<ObjectNameChangedNotification>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErEntitySet entitySet;
@@ -223,7 +223,7 @@ namespace ErEditor.UI
         public override string Name
         {
             get { return base.Name; }
-            set { base.Name = value; entitySet.Name = value; }
+            set { entitySet.Name = value; }
         }
         public override ErEntitySet Data
         {
@@ -245,9 +245,13 @@ namespace ErEditor.UI
             this.nodes.Add(attributeFolder);
             attributeFolder.ImageIndex = 1;
             attributeFolder.SelectedImageIndex = 1;
-        }
 
-        private ErAttributeNode CreateAttributeNode(ErAttribute attribute)
+            foreach(var attr in entitySet.attributes)
+            {
+                this.AddAttributeNode(attr);
+            }
+        }
+        private ErAttributeNode AddAttributeNode(ErAttribute attribute)
         {
             var newNode = new ErAttributeNode(attribute, parentTree);
             attributeFolder.Nodes.Add(newNode);
@@ -257,7 +261,7 @@ namespace ErEditor.UI
         private void AddAttribute(object? sender, EventArgs e)
         {
             var newAttribute = entitySet.AddAttribute();
-            var newNode = CreateAttributeNode(newAttribute);
+            var newNode = AddAttributeNode(newAttribute);
 
             attributeFolder.Expand();
             parentTree.RenameNode(newNode);
@@ -267,13 +271,13 @@ namespace ErEditor.UI
         {
             notification.Accept(visitorLogic);
         }
-        public void Visit(ObjectNameChangedNotification<ErEntitySet> notif)
+        public void Visit(ObjectNameChangedNotification notif)
         {
             base.Name = notif.NewName;
         }
     }
 
-    public class ErRelationshipSetNode : ExtTreeNodeBase<ErRelationshipSet>, IObserver, IVisitor<ObjectNameChangedNotification<ErRelationshipSet>>
+    public class ErRelationshipSetNode : ExtTreeNodeBase<ErRelationshipSet>, IObserver, IVisitor<ObjectNameChangedNotification>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErRelationshipSet relationshipSet;
@@ -301,7 +305,7 @@ namespace ErEditor.UI
         public override string Name
         {
             get { return base.Name; }
-            set { base.Name = value; relationshipSet.Name = value; }
+            set { relationshipSet.Name = value; }
         }
         public override ErRelationshipSet Data
         {
@@ -376,7 +380,7 @@ namespace ErEditor.UI
         {
             notification.Accept(visitorLogic);
         }
-        public void Visit(ObjectNameChangedNotification<ErRelationshipSet> notif)
+        public void Visit(ObjectNameChangedNotification notif)
         {
             base.Name = notif.NewName;
         }

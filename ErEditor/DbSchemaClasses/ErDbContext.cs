@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ErEditor.DbSchema
+namespace ErEditor.DbSchemaClasses
 {
     public class ErDbContext : DbContext
     {

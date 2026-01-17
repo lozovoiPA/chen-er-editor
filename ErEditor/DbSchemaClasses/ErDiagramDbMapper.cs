@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Windows.Forms.LinkLabel;
 
-namespace ErEditor.DbSchema
+namespace ErEditor.DbSchemaClasses
 {
     // use for one full transaction only
     /*

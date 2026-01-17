@@ -1,4 +1,4 @@
-﻿using ErEditor.DbSchema;
+﻿using ErEditor.DbSchemaClasses;
 using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
 using FontAwesome.Sharp;

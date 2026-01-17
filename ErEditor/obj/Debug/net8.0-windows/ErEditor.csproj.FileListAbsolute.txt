@@ -56,3 +56,4 @@ D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErE
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.MainWindow.resources
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.NewErSchemaWindow.resources
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\bin\Debug\net8.0-windows\FontAwesome.Sharp.dll
+D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.sourcelink.json

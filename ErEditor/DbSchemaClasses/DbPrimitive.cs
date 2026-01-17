@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ErEditor.Infrastructure;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ErEditor.DbSchema
+namespace ErEditor.DbSchemaClasses
 {
     [Table("Primitives")]
     public abstract class DbPrimitive : IDbEntry

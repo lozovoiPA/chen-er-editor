@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public abstract class ErElement : IObservable
+    public interface IErElement : IObservable { }
+    public abstract class ErElement : IErElement
     {
         protected string name = String.Empty;
         protected readonly ObservableBase observableLogic = new();
@@ -15,7 +16,7 @@ namespace ErEditor.ErSchemaClasses
         public virtual string Name
         {
             get { return name; }
-            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification<ErElement>(this, name)); }
+            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification(this, name)); }
         }
 
         public bool Subscribe(IObserver observer)
@@ -41,7 +42,17 @@ namespace ErEditor.ErSchemaClasses
         {
             ErAttribute newAttribute = new(name);
             attributes.Add(newAttribute);
+
+            observableLogic.Notify(new ObjectAddedToCompositeObject<ErAttribute, ErElementWithAttributes>(newAttribute, this));
             return newAttribute;
+        }
+
+        public void AddAttributeRange(IEnumerable<ErAttribute> range)
+        {
+            foreach(var attr in range)
+            {
+                this.AddAttribute(attr.Name);
+            }
         }
     }
 
@@ -50,12 +61,6 @@ namespace ErEditor.ErSchemaClasses
         public ErEntitySet(string name = "")
         {
             this.name = name;
-        }
-
-        public override string Name
-        {
-            get { return name; }
-            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification<ErEntitySet>(this, name)); }
         }
     }
 
@@ -67,12 +72,6 @@ namespace ErEditor.ErSchemaClasses
         public ErRelationshipSet(string name = "")
         {
             this.name = name;
-        }
-
-        public override string Name
-        {
-            get { return name; }
-            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification<ErRelationshipSet>(this, name)); }
         }
 
         public ErRole AddRole(string name = "")
@@ -103,12 +102,6 @@ namespace ErEditor.ErSchemaClasses
         public ErValueSet(string name = "")
         {
             this.name = name;
-        }
-
-        public override string Name
-        {
-            get { return name; }
-            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification<ErValueSet>(this, name)); }
         }
     }
 }

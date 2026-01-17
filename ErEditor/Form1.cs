@@ -1,4 +1,4 @@
-using ErEditor.DbSchema;
+using ErEditor.DbSchemaClasses;
 using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
 using ErEditor.UI;
@@ -13,20 +13,21 @@ namespace ErEditor
         {
             InitializeComponent();
 
+            this.Initialize();
+            this.InitializeDebugMenu();
+        }
+
+        private void Initialize()
+        {
             //ErSchema newSchema = new("Test Schema");
             //this.newSchema = newSchema;
             //navigatorTreeView1.OpenSchema(newSchema);
 
             DialogManager.DiagramPanel = diagramPanel1;
+        }
 
-            // Test log sender names
-            ConsoleLog.Log("Test short sender name", this, "TEST");
-            Console.WriteLine(this);
-            ConsoleLog.Log("Test full sender name", this, "TEST", true);
-            ConsoleLog.Log("Test short sender name", this.navigatorTreeView1, "TEST");
-            Console.WriteLine(this.navigatorTreeView1);
-            ConsoleLog.Log("Test full sender name", this.navigatorTreeView1, "TEST", true);
-
+        private void InitializeDebugMenu()
+        {
             ToolStripMenuItem debugDropDown = new("Дебаг");
             ToolStripMenuItem showSchemaObjectItem = new("Показать схему в оперативной памяти");
             showSchemaObjectItem.Click += Debug_ShowSchema;
@@ -49,7 +50,7 @@ namespace ErEditor
         }
         private void Debug_ShowSchema(object? sender, EventArgs e)
         {
-            Console.WriteLine(newSchema);
+            Console.WriteLine(newSchema?.PrintState());
         }
         private void Debug_ShowRegistry(object? sender, EventArgs e)
         {

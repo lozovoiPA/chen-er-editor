@@ -1,4 +1,5 @@
 ﻿using ErEditor.ErSchemaClasses;
+using ErEditor.Infrastructure;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ErEditor.DbSchema
+namespace ErEditor.DbSchemaClasses
 {
     public abstract class DbErElement : IDbEntry
     {
@@ -32,7 +33,7 @@ namespace ErEditor.DbSchema
 
     public class DbRelationshipSet : DbErElementWithAttributes
     {
-        public virtual ObservableCollectionListSource<DbRole> EntitySets { get; } = new();
+        public virtual ObservableCollectionListSource<DbRole> Roles { get; } = new();
         public virtual ObservableCollectionListSource<DbMapping> Mappings { get; } = new();
 
         public DbRelationshipSet(string? name = null)

@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public class ErDiagram : IObservable
+    public interface IErDiagram : IErElement { }
+    public class ErDiagram : IErDiagram
     {
         private string name = String.Empty;
         private readonly ErSchema schema;
@@ -28,7 +29,7 @@ namespace ErEditor.ErSchemaClasses
         public string Name
         {
             get { return name; }
-            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification<ErDiagram>(this, name)); }
+            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification(this, name)); }
         }
 
         public ErSchema Schema

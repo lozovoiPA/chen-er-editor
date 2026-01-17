@@ -7,13 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ErEditor.DbSchema
+namespace ErEditor.DbSchemaClasses
 {
     [Table("Attributes")]
     public class DbAttribute : DbErElement
     {
-        public int ParentId { get; set; }
-        public virtual DbErElementWithAttributes Parent { get; set; } = null!;
+        public int ErElementWithAttributesId { get; set; }
+        public virtual DbErElementWithAttributes ErElementWithAttributes { get; set; } = null!;
 
         public double? MinValue { get; set; }
         public double? MaxValue { get; set; }
@@ -21,6 +21,9 @@ namespace ErEditor.DbSchema
         public bool IsKey { get; set; }
 
         public virtual ObservableCollectionListSource<DbValueSet> ValueSets { get; set; } = new();
+
+        [NotMapped]
+        public EntityState State { get; set; }
 
         public DbAttribute(string? name = null)
         {

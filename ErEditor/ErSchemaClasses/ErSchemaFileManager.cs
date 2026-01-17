@@ -1,4 +1,4 @@
-﻿using ErEditor.DbSchema;
+﻿using ErEditor.DbSchemaClasses;
 using ErEditor.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,37 +10,75 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    // Пока просто связка схемы с реестром и файлом бд
-    public class ErSchemaFileData
+    public class ErSchemaDbData
     {
-        private ErSchema schema;
-        private ErSchemaRegistry schemaRegistry;
-        private string filepath;
+        public readonly ErSchemaRegistry SchemaRegistry;
+        public readonly string Filepath;
 
-        public ErSchemaFileData(ErSchema schema, ErSchemaRegistry schemaRegistry, string filepath)
+        public ErSchemaDbData(ErSchema schema, string filepath)
         {
-            this.schema = schema;
-            this.filepath = filepath;
-            this.schemaRegistry = schemaRegistry;
+            this.Filepath = filepath;
+            this.SchemaRegistry = new(schema);
         }
 
-        public ErSchema Schema
+        public ErSchema Schema { get { return SchemaRegistry.Schema; } }
+
+        // this maps what is in the database to the memory, i.e., elements that exist in memory but not in database will remain
+        public ErSchema OpenSchemaFromDatabase()
         {
-            get { return this.schema; }
+            ErDbContext dbcontext = new ErDbContext(Filepath);
+            if (dbcontext.Database.EnsureCreated()) // file doesn't exist, there's nothing to map
+            {
+                return Schema;
+            }
+
+            DbSchema dbschema = new();
+            dbschema.AddEntitySetRange(dbcontext.EntitySets.Include(el => el.Attributes).ToList());
+            dbschema.AddRelationshipSetRange(dbcontext.RelationshipSets
+                .Include(el => el.Attributes)
+                .Include(el => el.Roles)
+                .Include(el => el.Mappings)
+                .ToList());
+            dbschema.AddValueSetRange(dbcontext.ValueSets.ToList());
+            dbschema.AddDiagramRange(dbcontext.Diagrams.Include(el => el.Primitives).ToList());
+            dbcontext.Dispose();
+
+            SchemaRegistry.GetSchemaFromDb(dbschema);
+            return Schema;
         }
-        public ErSchemaRegistry SchemaRegistry
+        public bool SaveSchemaToDatabase()
         {
-            get { return this.schemaRegistry; }
-        }
-        public string Filepath
-        {
-            get { return this.filepath; }
+            // Check if the database from the file can be connected to
+            ErDbContext dbcontext = new ErDbContext(Filepath);
+            if (!dbcontext.Database.CanConnect())
+            {
+                ConsoleLog.Log($"Saving schema {Schema.Name} failed because the database connection couldn't be established." +
+                    $"Please check whether there is another open connection.",
+                    "ErSchemaFileManager", "ERROR");
+                return false;
+            }
+            ConsoleLog.Log("[0/3] Initiating mapping to database.", this);
+            var changes = SchemaRegistry.MakeChangedDbEntries();
+            ConsoleLog.Log("[1/3] Entries in registry were created for database.", this);
+            dbcontext.UpdateRange(changes.Updated);
+            dbcontext.AddRange(changes.Created);
+            dbcontext.RemoveRange(changes.Deleted);
+
+            dbcontext.SaveChanges();
+            dbcontext.Dispose();
+            ConsoleLog.Log("[2/3] Schema was saved to database.", this);
+
+            SchemaRegistry.FlushRegistries();
+            ConsoleLog.Log("[3/3] Registries have been flushed.", this);
+            ConsoleLog.Log("[3/3] Schema was fully saved, you can continue working.", this);
+
+            return true;
         }
     }
 
     public static class ErSchemaFileManager
     {
-        private static List<ErSchemaFileData> openSchemas = new();
+        private static List<ErSchemaDbData> openSchemas = new();
         public static ErSchema NewErSchema(string schemaName, string schemaFileName, string folderPath)
         {
             openSchemas.Clear();
@@ -56,16 +94,15 @@ namespace ErEditor.ErSchemaClasses
             dbcontext.Dispose();
 
             ErSchema schema = new(schemaName);
-            ErSchemaRegistry schemaRegistry = new(schema);
+            ErSchemaDbData newSchemaData = new(schema, fullPath);
 
-            ErSchemaFileData newSchemaData = new(schema, schemaRegistry, fullPath);
             openSchemas.Add(newSchemaData);
             return newSchemaData.Schema;
         }
         public static bool SaveSchema(ErSchema schema)
         {
             // Check if filedata for this schema exists
-            ErSchemaFileData? data = openSchemas.Find(x => x.Schema == schema);
+            ErSchemaDbData? data = openSchemas.Find(x => x.Schema == schema);
             if (data == null)
             {
                 ConsoleLog.Log($"You are trying to save schema that doesn't have a corresponding file data ({schema.Name})." +
@@ -83,22 +120,8 @@ namespace ErEditor.ErSchemaClasses
                 return false;
             }
 
-            // Check if the database from the file can be connected to
-            ErDbContext dbcontext = new ErDbContext(data.Filepath);
-            if (!dbcontext.Database.CanConnect())
-            {
-                ConsoleLog.Log($"Saving schema {schema.Name} failed because the database connection couldn't be established." +
-                    $"Please check whether there is another open connection.", 
-                    "ErSchemaFileManager", "ERROR");
-                return false;
-            }
-
-            // Save schema
-            ErSchemaDbMapper mapper = new(data.Schema, data.SchemaRegistry, dbcontext);
-            mapper.MapToDatabase();
-            dbcontext.Dispose();
-
-            return true;
+            // Try to save schema
+            return data.SaveSchemaToDatabase();
         }
         public static ErSchema? OpenErSchema(string filepath)
         {
@@ -114,23 +137,9 @@ namespace ErEditor.ErSchemaClasses
             }
 
             ErSchema schema = new(schemaName);
-            ErSchemaRegistry schemaRegistry = new(schema);
+            ErSchemaDbData data = new(schema, filepath);
+            data.OpenSchemaFromDatabase();
 
-            // Check if the database from the file can be connected to
-            ErDbContext dbcontext = new ErDbContext(filepath);
-            if (!dbcontext.Database.CanConnect())
-            {
-                ConsoleLog.Log($"Opening schema {schema.Name} failed because the database connection couldn't be established." +
-                    $"Please check whether there is another open connection.",
-                    "ErSchemaFileManager", "ERROR");
-                return null;
-            }
-
-            ErSchemaDbMapper mapper = new(schema, schemaRegistry, dbcontext);
-            schema = mapper.MapFromDatabase();
-            dbcontext.Dispose();
-
-            ErSchemaFileData data = new ErSchemaFileData(schema, schemaRegistry, filepath);
             openSchemas.Add(data);
 
             return data.Schema;
