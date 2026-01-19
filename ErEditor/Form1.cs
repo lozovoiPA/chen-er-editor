@@ -1,4 +1,3 @@
-using ErEditor.DbSchemaClasses;
 using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
 using ErEditor.UI;
@@ -13,55 +12,18 @@ namespace ErEditor
         {
             InitializeComponent();
 
-            this.Initialize();
+            // я гарантирую, что все елементы в конструкторе могут обращаться к DialogManager и получать везде результат
+            new DialogManager(new(navigatorTreeView1, elementPropertiesPanel1, diagramPanel1));
+
             this.InitializeDebugMenu();
-        }
-
-        private void Initialize()
-        {
-            //ErSchema newSchema = new("Test Schema");
-            //this.newSchema = newSchema;
-            //navigatorTreeView1.OpenSchema(newSchema);
-
-            DialogManager.DiagramPanel = diagramPanel1;
-        }
-
-        private void InitializeDebugMenu()
-        {
-            ToolStripMenuItem debugDropDown = new("Дебаг");
-            ToolStripMenuItem showSchemaObjectItem = new("Показать схему в оперативной памяти");
-            showSchemaObjectItem.Click += Debug_ShowSchema;
-            ToolStripMenuItem showRegistryStateItem = new("Показать состояние реестра схемы");
-            showRegistryStateItem.Click += Debug_ShowRegistry;
-            debugDropDown.DropDownItems.AddRange(
-                [
-                showSchemaObjectItem,
-                showRegistryStateItem
-                ]);
-            this.menuStrip1.Items.Add(debugDropDown);
         }
 
         private void createSchemaToolstripMenuItem_Click(object sender, EventArgs e)
         {
-            ErSchema newSchema = DialogManager.CreateNewErSchemaWindow();
-            navigatorTreeView1.OpenSchema(newSchema);
-
-            this.newSchema = newSchema;
-        }
-        private void Debug_ShowSchema(object? sender, EventArgs e)
-        {
-            Console.WriteLine(newSchema?.PrintState());
-        }
-        private void Debug_ShowRegistry(object? sender, EventArgs e)
-        {
-            ErSchemaRegistry? registry = null;
+            ErSchema? newSchema = DialogManager.CreateNewErSchemaWindow();
             if(newSchema != null)
             {
-                registry = ErSchemaFileManager.GetRegistry(newSchema);
-            }
-            if(registry != null)
-            {
-                Console.WriteLine(registry.PrintState());
+                DialogManager.Instance.OpenSchema(newSchema);
             }
         }
         private void saveSchemaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -74,9 +36,7 @@ namespace ErEditor
         private void openSchemaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ErSchema schema = DialogManager.OpenSchemaWindow();
-            navigatorTreeView1.OpenSchema(schema);
-
-            this.newSchema = schema;
+            DialogManager.Instance.OpenSchema(schema);
         }
     }
 }

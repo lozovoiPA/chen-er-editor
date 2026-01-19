@@ -9,7 +9,8 @@ namespace ErEditor.ErSchemaClasses
 {
     public abstract class ErElementWatcher<TErElement> : RegistryMemoryWatcher,
         IVisitor<ObjectNameChangedNotification>,
-        IVisitor<ObjectCreatedNotification<TErElement>>
+        IVisitor<ObjectCreatedNotification<TErElement>>,
+        IVisitor<ObjectDeletedNotification<TErElement>>
 
         where TErElement : class, IErElement
     {
@@ -29,10 +30,15 @@ namespace ErEditor.ErSchemaClasses
             notif.Object.Subscribe(observerLogic);
             observableLogic.Notify(notif);
         }
+        public virtual void Visit(ObjectDeletedNotification<TErElement> notif)
+        {
+            notif.Object.Unsubscribe(observerLogic);
+            observableLogic.Notify(notif);
+        }
     }
 
     public abstract class ErElementWithAttributesWatcher<TErElement> : ErElementWatcher<TErElement>,
-        IVisitor<ObjectAddedNotification<ErAttribute, ErElementWithAttributes>>
+        IVisitor<ObjectAddedNotification<ErElementWithAttributes, ErAttribute>>
         
         where TErElement : ErElementWithAttributes
     {
@@ -52,12 +58,12 @@ namespace ErEditor.ErSchemaClasses
                 return;
             }
         }
-        public virtual void Visit(ObjectAddedNotification<ErAttribute, ErElementWithAttributes> notif)
+        public virtual void Visit(ObjectAddedNotification<ErElementWithAttributes, ErAttribute> notif)
         {
             ConsoleLog.Log($"New attribute was added to the element", this, "INFO");
-            notif.Object.Subscribe(this);
+            notif.ObjectAdded.Subscribe(this);
 
-            observableLogic.Notify(new ObjectAddedNotification<ErAttribute, ErElementWithAttributes>(notif.Object, notif.AddedTo));
+            observableLogic.Notify(notif);
         }
     }
     public class ErEntitySetWatcher : ErElementWithAttributesWatcher<ErEntitySet>
@@ -67,11 +73,18 @@ namespace ErEditor.ErSchemaClasses
             observerLogic.Recieve(notification);
         }
     }
-    public class ErRelationshipSetWatcher : ErElementWithAttributesWatcher<ErRelationshipSet>
+    public class ErRelationshipSetWatcher : 
+        ErElementWithAttributesWatcher<ErRelationshipSet>,
+        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>
     {
         public override void Recieve(Notification notification)
         {
             observerLogic.Recieve(notification);
+        }
+        public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> notif)
+        {
+            notif.ObjectAdded.Subscribe(this);
+            observableLogic.Notify(notif);
         }
     }
     public class ErValueSetWatcher : ErElementWatcher<ErValueSet>

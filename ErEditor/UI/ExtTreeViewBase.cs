@@ -88,5 +88,20 @@ namespace ErEditor.UI
             Console.WriteLine($"Begin editing node (Rename manually): {node.Name}");
             BeginRenamingNodeInner(node);
         }
+
+        public TData? GetNodeData<TData>(TreeNode node)
+        {
+            if(Nodes[node] != null)
+            {
+                var extNode = (Nodes[node] as ExtTreeNodeBase<TData>);
+                TData? data = default;
+                if (extNode != null)
+                {
+                    data = extNode.Data;
+                }
+                return data;
+            }
+            return default;
+        }
     }
 }

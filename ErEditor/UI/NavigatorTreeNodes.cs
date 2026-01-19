@@ -12,11 +12,13 @@ using System.Xml.Linq;
 namespace ErEditor.UI
 {
     // По сути этот же нод ответственен и за своих четырех детей. Нет смысла плодить дополнительные классы если они неразрывно связаны со схемой и ее коллекциями.
-    public class ErSchemaNode : ExtTreeNodeBase<ErSchema>, IObserver
+    public class ErSchemaNode : 
+        ExtTreeNodeBase<ErSchema>, IObserver,
+        IVisitor<ObjectDeletedNotification<ErEntitySet>>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes; // если такая коллекция значит в нодах храним разные объекты
         private ErSchema schema;
-        private NavigatorTreeView parentTree;
+        private NavigatorTreeView parentTree; // Через мой ПОТРЯСАЮЩИЙ статик-нестатик синглтон-несинглтон медиатор можно не хранить это
 
         private ExtTreeNodeTyped<object, ErEntitySetNode> entitySetFolder = new("Множества сущностей");
         private ExtTreeNodeTyped<object, ErRelationshipSetNode> relationshipSetFolder = new("Множества связей");
@@ -24,6 +26,7 @@ namespace ErEditor.UI
         private ExtTreeNodeTyped<object, ErDiagramNode> diagramFolder = new("ER-диаграммы");
 
         private bool acceptNotifications = true;
+        private ObserverBase observerLogic;
         public ErSchemaNode(ErSchema schema, NavigatorTreeView parentTree)
         {
             nodes = new(this.TreeNodes);
@@ -32,6 +35,8 @@ namespace ErEditor.UI
             this.parentTree = parentTree;
 
             this.Initialize();
+
+            observerLogic = new(this);
 
             schema.Subscribe(this);
         }
@@ -181,6 +186,7 @@ namespace ErEditor.UI
 
         public void Recieve(Notification notification)
         {
+            observerLogic.Recieve(notification);
             if (acceptNotifications)
             {
                 if (notification is ObjectCreatedNotification<ErEntitySet>)
@@ -193,6 +199,23 @@ namespace ErEditor.UI
                     ConsoleLog.Log($"Schema node {this.Name} received notification that new relationship set was added ({((ObjectCreatedNotification<ErRelationshipSet>)notification).Object})");
                     this.AddRelationshipSetNode(((ObjectCreatedNotification<ErRelationshipSet>)notification).Object);
                 }
+            }
+        }
+
+        public void Visit(ObjectDeletedNotification<ErEntitySet> notif)
+        {
+            ErEntitySetNode? delNode = null;
+            foreach(ErEntitySetNode node in entitySetFolder.Nodes)
+            {
+                if(node.Data == notif.Object)
+                {
+                    delNode = node;
+                    break;
+                }
+            }
+            if(delNode != null)
+            {
+                entitySetFolder.Nodes.Remove(delNode);
             }
         }
     }
@@ -239,24 +262,33 @@ namespace ErEditor.UI
         {
             this.ImageIndex = 3;
             this.SelectedImageIndex = 3;
-            UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
-            
+            UIHelper.AddContextMenu(
+                this,
+                new Dictionary<string, EventHandler>() {
+                    { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) },
+                    { "Удалить", new EventHandler(this.DeleteEntitySet) }
+                });
+
             UIHelper.AddContextMenu(attributeFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(this.AddAttribute) } });
             this.nodes.Add(attributeFolder);
             attributeFolder.ImageIndex = 1;
             attributeFolder.SelectedImageIndex = 1;
 
-            foreach(var attr in entitySet.attributes)
+            foreach(var attr in entitySet.Attributes)
             {
                 this.AddAttributeNode(attr);
             }
+        }
+
+        private void DeleteEntitySet(object? sender, EventArgs e)
+        {
+            (parentTree.Nodes[this.Parent.Parent] as ErSchemaNode)?.Data.RemoveEntitySet(this.entitySet);
         }
         private ErAttributeNode AddAttributeNode(ErAttribute attribute)
         {
             var newNode = new ErAttributeNode(attribute, parentTree);
             attributeFolder.Nodes.Add(newNode);
             return newNode;
-
         }
         private void AddAttribute(object? sender, EventArgs e)
         {
@@ -287,7 +319,7 @@ namespace ErEditor.UI
         private ExtTreeNodeTyped<object, ErRoleNode> roleFolder = new("Роли");
         private ExtTreeNodeTyped<object, ErMappingNode> mappingFolder = new("Отображения");
 
-        private Visitor visitorLogic; // через визитеров МОЖНО обновляться по нотификациям. По сути ООП версия if else if ... по типам Notification
+        private Visitor visitorLogic;
 
         public ErRelationshipSetNode(ErRelationshipSet relationshipSet, NavigatorTreeView parentTree)
         {
@@ -323,45 +355,79 @@ namespace ErEditor.UI
             this.SelectedImageIndex = 4;
             UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
 
-            attributeFolder = new("Атрибуты");
             UIHelper.AddContextMenu(attributeFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(this.AddAttribute) } });
             this.nodes.Add(attributeFolder);
             attributeFolder.ImageIndex = 1;
             attributeFolder.SelectedImageIndex = 1;
 
-            roleFolder = new("Роли");
             UIHelper.AddContextMenu(roleFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(this.AddRole) } });
             this.nodes.Add(roleFolder);
             roleFolder.ImageIndex = 1;
             roleFolder.SelectedImageIndex = 1;
 
-            mappingFolder = new("Отображения");
             UIHelper.AddContextMenu(mappingFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(this.AddMapping) } });
             this.nodes.Add(mappingFolder);
             mappingFolder.ImageIndex = 1;
             mappingFolder.SelectedImageIndex = 1;
+
+            foreach (var attr in relationshipSet.Attributes)
+            {
+                this.AddAttributeNode(attr);
+            }
+            foreach (var role in relationshipSet.Roles)
+            {
+                this.AddRoleNode(role);
+            }
+            foreach (var mapping in relationshipSet.Mappings)
+            {
+                //this.AddMappingNode(mapping);
+            }
+
+            parentTree.NodeMouseClick += Tree_NodeMouseClick;
         }
 
-        private ErAttributeNode CreateAttributeNode(ErAttribute attribute)
+        private void Tree_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
+        {
+            ConsoleLog.Log("Relationship Set Node nodeclick handler was triggered");
+            foreach (ErRoleNode node in roleFolder.Nodes)
+            {
+                if (e.Node == node)
+                {
+                    ConsoleLog.Log("Found corresponding Role Node that was clicked.");
+                    var schema = parentTree.GetNodeData<ErSchema>(this.Parent.Parent);
+                    if(schema != null)
+                    {
+                        DialogManager.Instance.OpenProperties(schema, node.Data);
+                    }
+                }
+            }
+        }
+
+        private ErAttributeNode AddAttributeNode(ErAttribute attribute)
         {
             var newNode = new ErAttributeNode(attribute, parentTree);
             attributeFolder.Nodes.Add(newNode);
             return newNode;
-
         }
         private void AddAttribute(object? sender, EventArgs e)
         {
             var newAttribute = relationshipSet.AddAttribute();
-            var newNode = CreateAttributeNode(newAttribute);
+            var newNode = AddAttributeNode(newAttribute);
 
             attributeFolder.Expand();
             parentTree.RenameNode(newNode);
         }
+        private ErRoleNode AddRoleNode(ErRole role)
+        {
+            var newNode = new ErRoleNode(role, parentTree);
+            roleFolder.Nodes.Add(newNode);
+
+            return newNode;
+        }
         private void AddRole(object? sender, EventArgs e)
         {
             var newRole = relationshipSet.AddRole();
-            var newNode = new ErRoleNode(newRole, parentTree);
-            roleFolder.Nodes.Add(newNode);
+            var newNode = AddRoleNode(newRole);
 
             roleFolder.Expand();
             parentTree.RenameNode(newNode);

@@ -1,4 +1,4 @@
-﻿using ErEditor.ErSchemaClasses;
+﻿using ErEditor.DbSchemaClasses;
 using ErEditor.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,11 +10,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Media3D;
 
-namespace ErEditor.DbSchemaClasses
+namespace ErEditor.ErSchemaClasses
 {
     public class ErSchemaRegistry : IObserver, 
-        IVisitor<ObjectAddedNotification<ErAttribute, ErElementWithAttributes>>,
-        IVisitor<ObjectAddedNotification<ErRole, ErRelationshipSet>>
+        IVisitor<ObjectAddedNotification<ErElementWithAttributes, ErAttribute>>,
+        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>
     {
         public readonly ErSchema Schema;
 
@@ -60,7 +60,7 @@ namespace ErEditor.DbSchemaClasses
         {
             ErEntitySet entitySet = Schema.AddEntitySet(dbEs.Name ?? string.Empty);
 
-            var attributes = this.AttributeRegistry.RetrieveDbEntryList(
+            var attributes = AttributeRegistry.RetrieveDbEntryList(
                 dbEs.Attributes.ToList(), 
                 el =>
                 {
@@ -74,7 +74,7 @@ namespace ErEditor.DbSchemaClasses
         {
             ErRelationshipSet relationshipSet = Schema.AddRelationshipSet(dbRs.Name ?? string.Empty);
 
-            var attributes = this.AttributeRegistry.RetrieveDbEntryList(
+            var attributes = AttributeRegistry.RetrieveDbEntryList(
                 dbRs.Attributes.ToList(),
                 el =>
                 {
@@ -82,7 +82,7 @@ namespace ErEditor.DbSchemaClasses
                     return attr;
                 });
 
-            var roles = this.RoleRegistry.RetrieveDbEntryList(
+            var roles = RoleRegistry.RetrieveDbEntryList(
                 dbRs.Roles.ToList(),
                 el =>
                 {
@@ -110,7 +110,6 @@ namespace ErEditor.DbSchemaClasses
             attr.isKey = dbAttr.IsKey;
 
             attributeForeignKeys.Add(attr, element);
-            //AttributeRegistry.AddForeignKey(attr, [dbAttr.ErElementWithAttributesId]);
 
             foreach (DbValueSet dbVs in dbAttr.ValueSets)
             {
@@ -122,14 +121,13 @@ namespace ErEditor.DbSchemaClasses
         private ErRole CreateRoleOnSchema(ErRelationshipSet rs, DbRole dbRole)
         {   
             ErRole role = rs.AddRole(dbRole.Name ?? string.Empty);
-            role.isKey = dbRole.IsKeyEntitySet;
-            role.isIdDependency = dbRole.IsIdDependant;
+            role.IsKey = dbRole.IsKeyEntitySet;
+            role.IsIdDependency = dbRole.IsIdDependant;
 
             roleForeignKeys.Add(role, rs);
-            //RoleRegistry.AddForeignKey(role, [dbRole.EntitySetId, dbRole.RelationshipSetId]);
 
             var es = EntitySetRegistry.RetrieveDbEntry(dbRole.EntitySet, CreateEntitySetOnSchema);
-            role.entitySet = es;
+            role.EntitySet = es;
             
             return role;
         }
@@ -169,14 +167,13 @@ namespace ErEditor.DbSchemaClasses
 
             return dbDgr;
         }
-
         private DbAttribute? MakeDbAttribute(ErAttribute attr)
         {
             DbAttribute dbAttr = new DbAttribute(attr.Name == "" ? null : attr.Name);
 
             int? id = null;
             DbErElementWithAttributes? dbEl = null;
-            if (!this.attributeForeignKeys.ContainsKey(attr))
+            if (!attributeForeignKeys.ContainsKey(attr))
             {
                 ConsoleLog.Log("Attribute foreign key entity couldn't be found in the foreign keys. Entity will not be saved in the database.");
                 return null;
@@ -195,6 +192,11 @@ namespace ErEditor.DbSchemaClasses
                     }
                     dbEl = (DbErElementWithAttributes?)EntitySetRegistry.CreatedDbEntries[es];
                 }
+                else if(EntitySetRegistry.Deleted.Contains(es))
+                {
+                    ConsoleLog.Log("Attribute foreign key entity set is marked for deletion. Attribute will not be saved in the database.");
+                    return null;
+                }
             }
             else
             {
@@ -210,6 +212,11 @@ namespace ErEditor.DbSchemaClasses
                             return null;
                         }
                         dbEl = (DbErElementWithAttributes?)RelationshipSetRegistry.CreatedDbEntries[rs];
+                    }
+                    else if (RelationshipSetRegistry.Deleted.Contains(rs))
+                    {
+                        ConsoleLog.Log("Attribute foreign key relationship set is marked for deletion. Attribute will not be saved in the database.");
+                        return null;
                     }
                 }
             }
@@ -227,6 +234,7 @@ namespace ErEditor.DbSchemaClasses
                 ConsoleLog.Log("Attribute foreign key ID couldn't be found. Entity will not be saved in the database.");
                 return null;
             }
+
             dbAttr.MinValue = attr.minValue;
             dbAttr.MaxValue = attr.maxValue;
             dbAttr.AllowedValues = attr.allowedValues;
@@ -237,7 +245,7 @@ namespace ErEditor.DbSchemaClasses
         }
         private DbRole? MakeDbRole(ErRole role)
         {
-            var es = role.entitySet;
+            var es = role.EntitySet;
             if (es == null)
             {
                 ConsoleLog.Log("Role doesn't have an entity set assigned to it. It will not be saved in the database.");
@@ -248,7 +256,7 @@ namespace ErEditor.DbSchemaClasses
 
             int? esId = null, rsId = null;
             DbEntitySet? dbEs = null; DbRelationshipSet? dbRs = null; 
-            if (!this.roleForeignKeys.ContainsKey(role))
+            if (!roleForeignKeys.ContainsKey(role))
             {
                 ConsoleLog.Log("Role foreign key entity couldn't be found in the foreign keys. Entity will not be saved in the database.");
                 return null;
@@ -304,8 +312,8 @@ namespace ErEditor.DbSchemaClasses
                 return null;
             }
 
-            dbRole.IsIdDependant = role.isIdDependency;
-            dbRole.IsKeyEntitySet = role.isKey;
+            dbRole.IsIdDependant = role.IsIdDependency;
+            dbRole.IsKeyEntitySet = role.IsKey;
 
             dbRole.Id = TryToAssignId(role, RoleRegistry);
             return dbRole;
@@ -382,18 +390,21 @@ namespace ErEditor.DbSchemaClasses
             created.AddRange(MakeCreatedDbEntriesList(ValueSetRegistry, MakeDbValueSet));
             created.AddRange(MakeCreatedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             created.AddRange(MakeCreatedDbEntriesList(AttributeRegistry, MakeDbAttribute));
+            created.AddRange(MakeCreatedDbEntriesList(RoleRegistry, MakeDbRole));
 
             updated.AddRange(MakeUpdatedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
             updated.AddRange(MakeUpdatedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
             updated.AddRange(MakeUpdatedDbEntriesList(ValueSetRegistry, MakeDbValueSet));
             updated.AddRange(MakeUpdatedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             updated.AddRange(MakeUpdatedDbEntriesList(AttributeRegistry, MakeDbAttribute));
+            updated.AddRange(MakeUpdatedDbEntriesList(RoleRegistry, MakeDbRole));
 
             deleted.AddRange(MakeDeletedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
             deleted.AddRange(MakeDeletedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
             deleted.AddRange(MakeDeletedDbEntriesList(ValueSetRegistry, MakeDbValueSet));
             deleted.AddRange(MakeDeletedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             deleted.AddRange(MakeDeletedDbEntriesList(AttributeRegistry, MakeDbAttribute));
+            deleted.AddRange(MakeDeletedDbEntriesList(RoleRegistry, MakeDbRole));
 
             changes.AddCreatedRange(created);
             changes.AddUpdatedRange(updated);
@@ -446,19 +457,22 @@ namespace ErEditor.DbSchemaClasses
             PrimitiveRegistry.Flush();
         }
 
-        // Также относится к попыткам поддерживать ограничения внешний ключей. Очень сложно, и ненадежно.
+        // Распаковщик уведомлений от вотчеров к общим уведомлениям реестров (чтобы реестры не менять и у них у всех
+        // ожидаемое и одинаковое поведение)
+        // (опять же, его можно было бы поменять и через наследование, но здесь я сделал по-другому. масштабируемо!)
         public void Recieve(Notification notification)
         {
             observerLogic.Recieve(notification);
         }
-        public void Visit(ObjectAddedNotification<ErAttribute, ErElementWithAttributes> notif)
+        public void Visit(ObjectAddedNotification<ErElementWithAttributes, ErAttribute> notif)
         {
-            AttributeRegistry.Recieve(new ObjectCreatedNotification<ErAttribute>(notif.Object));
-            attributeForeignKeys.Add(notif.Object, notif.AddedTo);
+            AttributeRegistry.Recieve(new ObjectCreatedNotification<ErAttribute>(notif.ObjectAdded));
+            attributeForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
         }
-        public void Visit(ObjectAddedNotification<ErRole, ErRelationshipSet> notif)
+        public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> notif)
         {
-
+            RoleRegistry.Recieve(new ObjectCreatedNotification<ErRole>(notif.ObjectAdded));
+            roleForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
         }
     }
 }

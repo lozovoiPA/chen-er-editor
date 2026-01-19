@@ -45,8 +45,10 @@
             splitter1 = new Splitter();
             groupBox1 = new GroupBox();
             toolStrip2 = new ToolStrip();
+            elementPropertiesPanel1 = new ErEditor.UI.ElementPropertiesPanel();
             menuStrip1.SuspendLayout();
             panel1.SuspendLayout();
+            groupBox3.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox1.SuspendLayout();
             SuspendLayout();
@@ -115,7 +117,7 @@
             diagramPanel1.Dock = DockStyle.Fill;
             diagramPanel1.Location = new Point(29, 19);
             diagramPanel1.Name = "diagramPanel1";
-            diagramPanel1.Size = new Size(660, 596);
+            diagramPanel1.Size = new Size(567, 596);
             diagramPanel1.TabIndex = 4;
             // 
             // panel1
@@ -133,10 +135,11 @@
             // 
             // groupBox3
             // 
+            groupBox3.Controls.Add(elementPropertiesPanel1);
             groupBox3.Dock = DockStyle.Fill;
             groupBox3.Location = new Point(301, 0);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(256, 618);
+            groupBox3.Size = new Size(349, 618);
             groupBox3.TabIndex = 4;
             groupBox3.TabStop = false;
             groupBox3.Text = "groupBox3";
@@ -144,7 +147,7 @@
             // splitter2
             // 
             splitter2.Dock = DockStyle.Right;
-            splitter2.Location = new Point(557, 0);
+            splitter2.Location = new Point(650, 0);
             splitter2.Name = "splitter2";
             splitter2.Size = new Size(3, 618);
             splitter2.TabIndex = 3;
@@ -155,9 +158,9 @@
             groupBox2.Controls.Add(diagramPanel1);
             groupBox2.Controls.Add(toolStrip3);
             groupBox2.Dock = DockStyle.Right;
-            groupBox2.Location = new Point(560, 0);
+            groupBox2.Location = new Point(653, 0);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(692, 618);
+            groupBox2.Size = new Size(599, 618);
             groupBox2.TabIndex = 2;
             groupBox2.TabStop = false;
             groupBox2.Text = "groupBox2";
@@ -200,6 +203,15 @@
             toolStrip2.TabIndex = 1;
             toolStrip2.Text = "toolStrip2";
             // 
+            // elementPropertiesPanel1
+            // 
+            elementPropertiesPanel1.Dock = DockStyle.Fill;
+            elementPropertiesPanel1.Location = new Point(3, 19);
+            elementPropertiesPanel1.Margin = new Padding(0);
+            elementPropertiesPanel1.Name = "elementPropertiesPanel1";
+            elementPropertiesPanel1.Size = new Size(343, 596);
+            elementPropertiesPanel1.TabIndex = 0;
+            // 
             // MainWindow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -214,6 +226,7 @@
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             panel1.ResumeLayout(false);
+            groupBox3.ResumeLayout(false);
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
             groupBox1.ResumeLayout(false);
@@ -240,5 +253,6 @@
         private GroupBox groupBox2;
         private ToolStrip toolStrip2;
         private ToolStrip toolStrip3;
+        private UI.ElementPropertiesPanel elementPropertiesPanel1;
     }
 }

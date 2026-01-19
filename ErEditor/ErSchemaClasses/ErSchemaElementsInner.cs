@@ -33,26 +33,32 @@ namespace ErEditor.ErSchemaClasses
 
     public class ErRole : ErElement
     {
-        public ErEntitySet? entitySet;
-        public int? minCardinalityWhenImage;
-        public int? maxCardinalityWhenImage;
-        public int? minCardinalityWhenPreimage;
-        public int? maxCardinalityWhenPreimage;
+        private ErEntitySet entitySet;
 
-        public bool isIdDependency;
-        public bool isKey;
+        private bool isIdDependency = false;
+        private bool isKey = false;
 
-        public ErRole(string name = "", ErEntitySet? entitySet = null)
+        public ErRole(ErEntitySet entitySet, string name = "")
         {
             this.name = name;
-            isIdDependency = false;
-            isKey = false;
             this.entitySet = entitySet;
         }
 
-        public void AddEntitySet(ErEntitySet _entitySet)
+        // сделать проверку что схема та же
+        public ErEntitySet EntitySet
         {
-            entitySet = _entitySet;
+            get {  return entitySet; }
+            set { entitySet = value; }
+        }
+        public bool IsIdDependency
+        {
+            get { return isIdDependency; }
+            set { isIdDependency = value; }
+        }
+        public bool IsKey
+        {
+            get { return isKey; }
+            set { isKey = value; }
         }
     }
 

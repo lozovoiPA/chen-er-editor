@@ -63,6 +63,7 @@ namespace ErEditor.UI
             this.treeNodeCollection = treeNodeCollection; 
         }
 
+
         public int Add(T extTreeNode)
         {
             int index = treeNodeCollection.Add(extTreeNode.TreeNode);

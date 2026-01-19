@@ -1,6 +1,8 @@
 ﻿using ErEditor.Infrastructure;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,17 +38,16 @@ namespace ErEditor.ErSchemaClasses
 
     public abstract class ErElementWithAttributes : ErElement
     {
-        public List<ErAttribute> attributes = new();
+        private List<ErAttribute> attributes = new();
 
         public ErAttribute AddAttribute(string name = "")
         {
             ErAttribute newAttribute = new(name);
             attributes.Add(newAttribute);
 
-            observableLogic.Notify(new ObjectAddedNotification<ErAttribute, ErElementWithAttributes>(newAttribute, this));
+            observableLogic.Notify(new ObjectAddedNotification<ErElementWithAttributes, ErAttribute>(this, newAttribute));
             return newAttribute;
         }
-
         public void AddAttributeRange(IEnumerable<ErAttribute> range)
         {
             foreach(var attr in range)
@@ -54,10 +55,16 @@ namespace ErEditor.ErSchemaClasses
                 this.AddAttribute(attr.Name);
             }
         }
+        public ReadOnlyCollection<ErAttribute> Attributes
+        {
+            get { return attributes.AsReadOnly(); }
+        }
     }
 
     public class ErEntitySet : ErElementWithAttributes
     {
+        public static readonly ErEntitySet Empty = new ErEntitySet();
+
         public ErEntitySet(string name = "")
         {
             this.name = name;
@@ -66,8 +73,8 @@ namespace ErEditor.ErSchemaClasses
 
     public class ErRelationshipSet : ErElementWithAttributes
     {
-        public List<ErRole> roles = new();
-        public List<ErMapping> mappings = new();
+        private List<ErRole> roles = new();
+        private List<ErMapping> mappings = new();
 
         public ErRelationshipSet(string name = "")
         {
@@ -76,24 +83,45 @@ namespace ErEditor.ErSchemaClasses
 
         public ErRole AddRole(string name = "")
         {
-            ErRole newRole = new(name);
-            roles.Add(newRole);
+            var newRole = this.AddRole(ErEntitySet.Empty, name);
+
             return newRole;
         }
+        public ErRole AddRole(ErEntitySet entitySet, string name = "")
+        {
+            ErRole newRole = new(entitySet, name);
+            roles.Add(newRole);
+
+            observableLogic.Notify(new ObjectAddedNotification<ErRelationshipSet, ErRole>(this, newRole));
+
+            return newRole;
+        }
+        public bool RemoveRole(ErRole role)
+        {
+            if (!roles.Contains(role))
+            {
+                return false;
+            }
+            roles.Remove(role);
+            observableLogic.Notify(new ObjectDeletedNotification<ErRole>(role));
+            return true;
+        }
+
         public ErMapping AddMapping(string name = "")
         {
             ErMapping newMapping = new(name);
             mappings.Add(newMapping);
             return newMapping;
         }
-        public bool RemoveRole(ErRole role)
+
+
+        public ReadOnlyCollection<ErRole> Roles
         {
-            if (roles.Contains(role))
-            {
-                roles.Remove(role);
-                return true;
-            }
-            return false;
+            get { return roles.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<ErMapping> Mappings
+        {
+            get { return mappings.AsReadOnly(); }
         }
     }
 

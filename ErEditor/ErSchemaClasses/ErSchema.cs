@@ -1,6 +1,7 @@
 ﻿using ErEditor.Infrastructure;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,21 +40,21 @@ namespace ErEditor.ErSchemaClasses
             get { return name; }
             set { name = value; }
         }
-        public List<ErEntitySet> EntitySets
+        public ReadOnlyCollection<ErEntitySet> EntitySets
         {
-            get { return entitySets; }
+            get { return entitySets.AsReadOnly(); }
         }
-        public List<ErRelationshipSet> RelationshipSets
+        public ReadOnlyCollection<ErRelationshipSet> RelationshipSets
         {
-            get { return relationshipSets; }
+            get { return relationshipSets.AsReadOnly(); }
         }
-        public List<ErValueSet> ValueSets
+        public ReadOnlyCollection<ErValueSet> ValueSets
         {
-            get { return valueSets; }
+            get { return valueSets.AsReadOnly(); }
         }
-        public List<ErDiagram> Diagrams
+        public ReadOnlyCollection<ErDiagram> Diagrams
         {
-            get { return diagrams; }
+            get { return diagrams.AsReadOnly(); }
         }
 
         public bool FindEntitySet(ErEntitySet entitySet)
@@ -88,7 +89,7 @@ namespace ErEditor.ErSchemaClasses
 
             observableLogic.Notify(new ObjectCreatedNotification<ErEntitySet>(newEs));
 
-            newEs.AddAttributeRange(entitySet.attributes);
+            newEs.AddAttributeRange(entitySet.Attributes);
 
             return newEs;
         }
@@ -99,6 +100,18 @@ namespace ErEditor.ErSchemaClasses
                 this.AddEntitySet(es);
             }
         }
+        public bool RemoveEntitySet(ErEntitySet es)
+        {
+            if (!entitySets.Contains(es))
+            {
+                return false;
+            }
+            entitySets.Remove(es);
+
+            observableLogic.Notify(new ObjectDeletedNotification<ErEntitySet>(es));
+            return true;
+        }
+
         public ErRelationshipSet AddRelationshipSet(string name = "")
         {
             ErRelationshipSet rs = new(name);
@@ -162,7 +175,7 @@ namespace ErEditor.ErSchemaClasses
             foreach (var el in entitySets)
             {
                 output += $"\t{el.Name}\n";
-                foreach(var attr in el.attributes)
+                foreach(var attr in el.Attributes)
                 {
                     output += $"\t ├ {attr.Name}\n";
                 }
@@ -172,16 +185,16 @@ namespace ErEditor.ErSchemaClasses
             foreach (var el in relationshipSets)
             {
                 output += $"\t{el.Name}\n";
-                if(el.attributes.Count > 0) { output += $"\t\tAttributes:"; }
-                foreach (var attr in el.attributes)
+                if(el.Attributes.Count > 0) { output += $"\t Attributes:\n"; }
+                foreach (var attr in el.Attributes)
                 {
                     output += $"\t ├ {attr.Name}\n";
                 }
 
-                if (el.roles.Count > 0) { output += $"\t\tRoles:"; }
-                foreach (var role in el.roles)
+                if (el.Roles.Count > 0) { output += $"\t Roles:\n"; }
+                foreach (var role in el.Roles)
                 {
-                    output += $"\t ├ {role.Name} (entity set {role.entitySet?.Name})\n";
+                    output += $"\t ├ {role.Name} -> entity set {role.EntitySet?.Name}\n";
                 }
             }
             output += $"Множества значений (всего - {valueSets.Count}):\n";

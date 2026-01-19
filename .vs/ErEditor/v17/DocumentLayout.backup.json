@@ -3,20 +3,12 @@
   "WorkspaceRootPath": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\dbschemaclasses\\erschemaregistry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\dbschemaclasses\\erschemaregistry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\ui\\elementview.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\ui\\elementview.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\infrastructure\\registry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\infrastructure\\registry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\erschemaclasses\\erschemamemorywatchers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\erschemaclasses\\erschemamemorywatchers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\erschemaclasses\\erschemaelements.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\erschemaclasses\\erschemaelements.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|d:\\04 studies in tsu\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u043D\u0438\u0440\\newereditor\\ereditor\\ereditor\\ui\\dialogmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{43386DD1-B99C-460F-87B0-787B26B5F6A0}|ErEditor\\ErEditor.csproj|solutionrelative:ereditor\\ui\\dialogmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,58 +18,32 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ErSchemaMemoryWatchers.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaMemoryWatchers.cs",
-              "RelativeDocumentMoniker": "ErEditor\\ErSchemaClasses\\ErSchemaMemoryWatchers.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaMemoryWatchers.cs",
-              "RelativeToolTip": "ErEditor\\ErSchemaClasses\\ErSchemaMemoryWatchers.cs",
-              "ViewState": "AgIAACcAAAAAAAAAAAAgwDsAAACAAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "ElementView.cs",
+              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\UI\\ElementView.cs",
+              "RelativeDocumentMoniker": "ErEditor\\UI\\ElementView.cs",
+              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\UI\\ElementView.cs",
+              "RelativeToolTip": "ErEditor\\UI\\ElementView.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAAQwBoAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-17T09:10:05.263Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ErSchemaElements.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaElements.cs",
-              "RelativeDocumentMoniker": "ErEditor\\ErSchemaClasses\\ErSchemaElements.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\ErSchemaClasses\\ErSchemaElements.cs",
-              "RelativeToolTip": "ErEditor\\ErSchemaClasses\\ErSchemaElements.cs",
-              "ViewState": "AgIAAAEAAAAAAAAAAAAAAFAAAAAbAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-17T07:12:51.39Z",
+              "WhenOpened": "2026-01-19T06:18:00.918Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "Registry.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\Infrastructure\\Registry.cs",
-              "RelativeDocumentMoniker": "ErEditor\\Infrastructure\\Registry.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\Infrastructure\\Registry.cs",
-              "RelativeToolTip": "ErEditor\\Infrastructure\\Registry.cs",
-              "ViewState": "AgIAAOkAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAA==",
+              "Title": "DialogManager.cs",
+              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\UI\\DialogManager.cs",
+              "RelativeDocumentMoniker": "ErEditor\\UI\\DialogManager.cs",
+              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\UI\\DialogManager.cs",
+              "RelativeToolTip": "ErEditor\\UI\\DialogManager.cs",
+              "ViewState": "AgIAAEYAAAAAAAAAAAAQwGAAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-17T04:44:05.385Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "ErSchemaRegistry.cs",
-              "DocumentMoniker": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\ErSchemaRegistry.cs",
-              "RelativeDocumentMoniker": "ErEditor\\DbSchemaClasses\\ErSchemaRegistry.cs",
-              "ToolTip": "D:\\04 STUDIES IN TSU\\4 \u043A\u0443\u0440\u0441 1 \u0441\u0435\u043C\u0435\u0441\u0442\u0440\\\u041D\u0418\u0420\\NewErEditor\\ErEditor\\ErEditor\\DbSchemaClasses\\ErSchemaRegistry.cs",
-              "RelativeToolTip": "ErEditor\\DbSchemaClasses\\ErSchemaRegistry.cs",
-              "ViewState": "AgIAAHkBAAAAAAAAAAAAAI8BAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T11:01:39.953Z",
+              "WhenOpened": "2026-01-19T05:49:17.004Z",
               "EditorCaption": ""
             }
           ]

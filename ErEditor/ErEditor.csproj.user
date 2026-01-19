@@ -4,10 +4,16 @@
     <Compile Update="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="MainWindowDebugMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="NewErSchemaWindow.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="UI\DiagramPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\ElementView.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="UI\ExtTreeViewBase.cs">
