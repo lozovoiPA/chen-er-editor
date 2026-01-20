@@ -5,15 +5,33 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace ErEditor.UI
 {
+    // По сути поддерживаю ограничение внешнего ключа схема -> элемент в навигаторе.
+    // Логично потому что это пока единственное место, где может быть открыто несколько схем (не считая инфраструктурных
+    // классов которые работают только со схемой, и не работают с ее элементами, поэтому им это ограничение безразлично)
+    public abstract class NavigatorErNode<TData> : ExtTreeNodeBase<TData>
+    {
+        protected readonly ErSchema ParentSchema;
+
+        public NavigatorErNode(ErSchema parentSchema){
+            ParentSchema = parentSchema;
+        }
+
+        public override void Click(object? sender, MouseEventArgs e)
+        {
+            MainWindow.OpenProperties(ParentSchema, Data);
+        }
+    }
+
     // По сути этот же нод ответственен и за своих четырех детей. Нет смысла плодить дополнительные классы если они неразрывно связаны со схемой и ее коллекциями.
     public class ErSchemaNode : 
-        ExtTreeNodeBase<ErSchema>, IObserver,
+        NavigatorErNode<ErSchema>, IObserver,
         IVisitor<ObjectDeletedNotification<ErEntitySet>>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes; // если такая коллекция значит в нодах храним разные объекты
@@ -27,7 +45,7 @@ namespace ErEditor.UI
 
         private bool acceptNotifications = true;
         private ObserverBase observerLogic;
-        public ErSchemaNode(ErSchema schema, NavigatorTreeView parentTree)
+        public ErSchemaNode(ErSchema schema, NavigatorTreeView parentTree) : base(schema)
         {
             nodes = new(this.TreeNodes);
             this.schema = schema;
@@ -101,75 +119,32 @@ namespace ErEditor.UI
             relationshipSetFolder.Expand();
             valueSetFolder.Expand();
             diagramFolder.Expand();
-
-            parentTree.NodeMouseClick += Tree_NodeMouseClick;
         }
 
         private ErEntitySetNode AddEntitySetNode(ErEntitySet es)
         {
-            var newNode = new ErEntitySetNode(es, parentTree);
+            var newNode = new ErEntitySetNode(ParentSchema, es, parentTree);
             entitySetFolder.Nodes.Add(newNode);
             return newNode;
         }
         private ErRelationshipSetNode AddRelationshipSetNode(ErRelationshipSet rs)
         {
-            var newNode = new ErRelationshipSetNode(rs, parentTree);
+            var newNode = new ErRelationshipSetNode(ParentSchema, rs, parentTree);
             relationshipSetFolder.Nodes.Add(newNode);
             return newNode;
         }
         private ErValueSetNode AddValueSetNode(ErValueSet vs)
         {
-            var newNode = new ErValueSetNode(vs, parentTree);
+            var newNode = new ErValueSetNode(ParentSchema, vs, parentTree);
             valueSetFolder.Nodes.Add(newNode);
             return newNode;
         }
         private ErDiagramNode AddDiagramNode(ErDiagram dgr)
         {
-            var newNode = new ErDiagramNode(dgr, parentTree);
+            var newNode = new ErDiagramNode(ParentSchema, dgr, parentTree);
             diagramFolder.Nodes.Add(newNode);
             return newNode;
         }
-        public void Tree_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
-        {
-            if (e.Node == this
-                || e.Node == entitySetFolder
-                || e.Node == relationshipSetFolder
-                || e.Node == valueSetFolder
-                || e.Node == diagramFolder)
-            {
-                MainWindow.CloseProperties();
-            }
-            foreach (ErEntitySetNode node in entitySetFolder.Nodes)
-            {
-                if (e.Node == node)
-                {
-                    MainWindow.OpenProperties(schema, node.Data);
-                }
-            }
-            foreach (ErRelationshipSetNode node in relationshipSetFolder.Nodes)
-            {
-                if (e.Node == node)
-                {
-                    MainWindow.OpenProperties(schema, node.Data);
-                }
-            }
-            foreach (ErValueSetNode node in valueSetFolder.Nodes)
-            {
-                if (e.Node == node)
-                {
-                    MainWindow.OpenProperties(schema, node.Data);
-                }
-            }
-            foreach (ErDiagramNode node in diagramFolder.Nodes)
-            {
-                if(e.Node == node)
-                {
-                    ConsoleLog.Log("Clicked diagram node. The diagram will be assigned to diagram panel.", node.Data.Name);
-                    //DialogManager.OpenDiagram(node.Data);
-                }
-            }
-        }
-
         private void AddEntitySet(object? sender, EventArgs e)
         {
             ConsoleLog.Log("Adding new entity set in the navigator", this, "INFO");
@@ -249,7 +224,7 @@ namespace ErEditor.UI
         }
     }
 
-    public class ErEntitySetNode : ExtTreeNodeBase<ErEntitySet>, IObserver, IVisitor<ObjectNameChangedNotification>
+    public class ErEntitySetNode : NavigatorErNode<ErEntitySet>, IObserver, IVisitor<ObjectNameChangedNotification>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErEntitySet entitySet;
@@ -259,7 +234,7 @@ namespace ErEditor.UI
 
         private Visitor visitorLogic;
 
-        public ErEntitySetNode(ErEntitySet entitySet, NavigatorTreeView parentTree)
+        public ErEntitySetNode(ErSchema schema, ErEntitySet entitySet, NavigatorTreeView parentTree) : base(schema)
         {
             nodes = new(this.TreeNode.Nodes); // или this.TreeNodes
             this.entitySet = entitySet;
@@ -315,7 +290,7 @@ namespace ErEditor.UI
         }
         private ErAttributeNode AddAttributeNode(ErAttribute attribute)
         {
-            var newNode = new ErAttributeNode(attribute, parentTree);
+            var newNode = new ErAttributeNode(ParentSchema, attribute, parentTree);
             attributeFolder.Nodes.Add(newNode);
             return newNode;
         }
@@ -338,7 +313,7 @@ namespace ErEditor.UI
         }
     }
 
-    public class ErRelationshipSetNode : ExtTreeNodeBase<ErRelationshipSet>, IObserver, IVisitor<ObjectNameChangedNotification>
+    public class ErRelationshipSetNode : NavigatorErNode<ErRelationshipSet>, IObserver, IVisitor<ObjectNameChangedNotification>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErRelationshipSet relationshipSet;
@@ -350,7 +325,7 @@ namespace ErEditor.UI
 
         private Visitor visitorLogic;
 
-        public ErRelationshipSetNode(ErRelationshipSet relationshipSet, NavigatorTreeView parentTree)
+        public ErRelationshipSetNode(ErSchema schema, ErRelationshipSet relationshipSet, NavigatorTreeView parentTree) : base(schema)
         {
             nodes = new(this.TreeNodes);
             this.relationshipSet = relationshipSet;
@@ -434,7 +409,7 @@ namespace ErEditor.UI
 
         private ErAttributeNode AddAttributeNode(ErAttribute attribute)
         {
-            var newNode = new ErAttributeNode(attribute, parentTree);
+            var newNode = new ErAttributeNode(ParentSchema, attribute, parentTree);
             attributeFolder.Nodes.Add(newNode);
             return newNode;
         }
@@ -448,7 +423,7 @@ namespace ErEditor.UI
         }
         private ErRoleNode AddRoleNode(ErRole role)
         {
-            var newNode = new ErRoleNode(role, parentTree);
+            var newNode = new ErRoleNode(ParentSchema, role, parentTree);
             roleFolder.Nodes.Add(newNode);
 
             return newNode;
@@ -464,7 +439,7 @@ namespace ErEditor.UI
         private void AddMapping(object? sender, EventArgs e)
         {
             var newMap = relationshipSet.AddMapping();
-            var newNode = new ErMappingNode(newMap, parentTree);
+            var newNode = new ErMappingNode(ParentSchema, newMap, parentTree);
             mappingFolder.Nodes.Add(newNode);
 
             mappingFolder.Expand();
@@ -481,13 +456,13 @@ namespace ErEditor.UI
         }
     }
 
-    public class ErValueSetNode : ExtTreeNodeBase<ErValueSet>
+    public class ErValueSetNode : NavigatorErNode<ErValueSet>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErValueSet valueSet;
         private NavigatorTreeView parentTree;
 
-        public ErValueSetNode(ErValueSet valueSet, NavigatorTreeView parentTree)
+        public ErValueSetNode(ErSchema schema, ErValueSet valueSet, NavigatorTreeView parentTree) : base(schema)
         {
             nodes = new(this.TreeNodes);
             this.valueSet = valueSet;
@@ -520,13 +495,13 @@ namespace ErEditor.UI
         }
     }
 
-    public class ErDiagramNode : ExtTreeNodeBase<ErDiagram>
+    public class ErDiagramNode : NavigatorErNode<ErDiagram>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErDiagram diagram;
         private NavigatorTreeView parentTree;
 
-        public ErDiagramNode(ErDiagram diagram, NavigatorTreeView parentTree)
+        public ErDiagramNode(ErSchema schema, ErDiagram diagram, NavigatorTreeView parentTree) : base(schema)
         {
             nodes = new(this.TreeNodes);
             this.diagram = diagram;
@@ -557,15 +532,20 @@ namespace ErEditor.UI
             this.SelectedImageIndex = 0;
             UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
         }
+
+        public override void DoubleClick(object? sender, MouseEventArgs e)
+        {
+            MainWindow.OpenDiagram(diagram);
+        }
     }
 
-    public class ErAttributeNode : ExtTreeNodeBase<ErAttribute>
+    public class ErAttributeNode : NavigatorErNode<ErAttribute>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErAttribute attribute;
         private NavigatorTreeView parentTree;
 
-        public ErAttributeNode(ErAttribute attribute, NavigatorTreeView parentTree)
+        public ErAttributeNode(ErSchema schema, ErAttribute attribute, NavigatorTreeView parentTree) : base(schema)
         {
             nodes = new(this.TreeNodes);
             this.attribute = attribute;
@@ -597,13 +577,13 @@ namespace ErEditor.UI
             UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
         }
     }
-    public class ErRoleNode : ExtTreeNodeBase<ErRole>
+    public class ErRoleNode : NavigatorErNode<ErRole>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErRole role;
         private NavigatorTreeView parentTree;
 
-        public ErRoleNode(ErRole role, NavigatorTreeView parentTree)
+        public ErRoleNode(ErSchema schema, ErRole role, NavigatorTreeView parentTree) : base(schema)
         {
             nodes = new(this.TreeNodes);
             this.role = role;
@@ -635,13 +615,13 @@ namespace ErEditor.UI
             UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
         }
     }
-    public class ErMappingNode : ExtTreeNodeBase<ErMapping>
+    public class ErMappingNode : NavigatorErNode<ErMapping>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErMapping mapping;
         private NavigatorTreeView parentTree;
 
-        public ErMappingNode(ErMapping mapping, NavigatorTreeView parentTree)
+        public ErMappingNode(ErSchema schema, ErMapping mapping, NavigatorTreeView parentTree) : base(schema)
         {
             nodes = new(this.TreeNodes);
             this.mapping = mapping;

@@ -17,6 +17,9 @@ namespace ErEditor.UI
 
         public void BeginEdit();
         public void EndEdit(bool cancel);
+
+        public void Click(object? sender, MouseEventArgs e);
+        public void DoubleClick(object? sender, MouseEventArgs e);
     }
     public abstract class ExtTreeNodeBase<T> : TreeNode, IExtTreeNode
     {
@@ -32,6 +35,18 @@ namespace ErEditor.UI
         public abstract T? Data { get; set; }
         public new abstract ITreeNodeCollection Nodes { get; }
         protected TreeNodeCollection TreeNodes { get { return base.Nodes; } }
+
+        // The base ExtTreeView implementation doesn't pass it's node-related handlers 
+        // to child nodes. However you can derive your own implementation that does that.
+        // Override these handlers if you need the node to react to the events.
+        public virtual void Click(object? sender, MouseEventArgs e)
+        {
+
+        }
+        public virtual void DoubleClick(object? sender, MouseEventArgs e)
+        {
+
+        }
     }
 
     // ExtTreeNode подходит для любых типов объектов и любых целей, когда не нужны особые классы узлов

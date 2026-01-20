@@ -1,4 +1,5 @@
-﻿using ErEditor.ErSchemaClasses;
+﻿using ErEditor.DbSchemaClasses;
+using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
 using ErEditor.UI;
 using System;
@@ -42,18 +43,38 @@ namespace ErEditor
                 return Instance.elementPropertiesPanel1;
             }
         }
+        private static DiagramPanel DiagramPanel
+        {
+            get
+            {
+                return Instance.diagramPanel1;
+            }
+        }
 
         public static void OpenSchema(ErSchema schema)
         {
             Navigator.OpenSchema(schema);
+            Navigator.Enabled = true;
         }
-        public static void OpenProperties<TErElement>(ErSchema schema, TErElement entitySet)
+        public static void OpenProperties<TErElement>(ErSchema schema, TErElement element)
         {
-            PropertiesPanel.OpenProperties(schema, entitySet);
+            PropertiesPanel.OpenProperties(schema, element);
+        }
+        public static void OpenDiagram(ErDiagram diagram)
+        {
+            DiagramPanel.BackColor = SystemColors.Window;
+            Instance.groupBox2.Text = $"Диаграммер - {diagram.Name}";
+
+            DiagramPanel.Diagram = diagram;
         }
         public static void CloseProperties()
         {
             PropertiesPanel.CloseProperties();
+        }
+        public static void CloseDiagram()
+        {
+            DiagramPanel.Diagram = null;
+            DiagramPanel.BackColor = SystemColors.ControlLight;
         }
     }
 }

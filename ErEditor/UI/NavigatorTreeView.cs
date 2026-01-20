@@ -53,6 +53,22 @@ namespace ErEditor.UI
             imageList.AddIcon(IconChar.Exchange);               // 9
 
             ImageList = imageList;
+
+            this.NodeMouseClick += NavigatorTreeView_NodeMouseClick;
+            this.NodeMouseDoubleClick += NavigatorTreeView_NodeMouseDoubleClick;
+        }
+
+        // this requires all nodes to have access to the mediator.
+        // alternatively, received node could be casted to specific types and actions can be performed depending on the type.
+        private void NavigatorTreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
+        {
+            var args = new System.Windows.Forms.MouseEventArgs(e.Button, e.Clicks, e.X, e.Y, e.Delta);
+            Nodes[e.Node]?.Click(sender, e);
+        }
+        private void NavigatorTreeView_NodeMouseDoubleClick(object? sender, TreeNodeMouseClickEventArgs e)
+        {
+            var args = new System.Windows.Forms.MouseEventArgs(e.Button, e.Clicks, e.X, e.Y, e.Delta);
+            Nodes[e.Node]?.DoubleClick(sender, e);
         }
 
         public void OpenSchema(ErSchema schema)

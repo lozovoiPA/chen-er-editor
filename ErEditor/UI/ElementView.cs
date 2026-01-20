@@ -160,7 +160,10 @@ namespace ErEditor.UI
 
         public void CommitChanges()
         {
-
+            if(element != null)
+            {
+                element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.Empty;
+            }
         }
 
         public override ErSchema? Schema
@@ -174,7 +177,6 @@ namespace ErEditor.UI
                     schema = value;
                     entitySetComboBox.DataSource = value.EntitySets;
                     entitySetComboBox.DisplayMember = "Name";
-                    //entitySetComboBox.ValueMember = "Name";
                 }
             }
         }
@@ -186,6 +188,7 @@ namespace ErEditor.UI
                 if (value != null)
                 {
                     element = value;
+                    entitySetComboBox.SelectedItem = value.EntitySet;
                 }
             }
         }
