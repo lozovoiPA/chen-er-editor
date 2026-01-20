@@ -29,14 +29,19 @@ namespace ErEditor
         }
         private void Debug_ShowSchema(object? sender, EventArgs e)
         {
-            Console.WriteLine(newSchema?.PrintState());
+            var schemas = navigatorTreeView1.Schemas;
+            if (schemas.Count > 0)
+            {
+                Console.WriteLine(schemas[0].PrintState());
+            }
         }
         private void Debug_ShowRegistry(object? sender, EventArgs e)
         {
             ErSchemaRegistry? registry = null;
-            if (newSchema != null)
+            var schemas = navigatorTreeView1.Schemas;
+            if (schemas.Count > 0)
             {
-                registry = ErSchemaFileManager.GetRegistry(newSchema);
+                registry = ErSchemaFileManager.GetRegistry(schemas[0]);
             }
             if (registry != null)
             {

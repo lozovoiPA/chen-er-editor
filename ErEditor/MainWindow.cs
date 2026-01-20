@@ -7,7 +7,6 @@ namespace ErEditor
 {
     public partial class MainWindow : Form
     {
-        ErSchema? newSchema = null;
         public MainWindow()
         {
             InitializeComponent();
@@ -26,9 +25,10 @@ namespace ErEditor
         }
         private void saveSchemaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (this.newSchema != null)
+            var schemas = navigatorTreeView1.Schemas;
+            if (schemas.Count > 0)
             {
-                ErSchemaFileManager.SaveSchema(this.newSchema);
+                ErSchemaFileManager.SaveSchema(schemas[0]);
             }
         }
         private void openSchemaToolStripMenuItem_Click(object sender, EventArgs e)

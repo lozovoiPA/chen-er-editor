@@ -24,6 +24,18 @@ namespace ErEditor.UI
         {
             get { return nodes; }
         }
+        public List<ErSchema> Schemas
+        {
+            get
+            {
+                List<ErSchema> schemas = new();
+                foreach (var node in nodes)
+                {
+                    schemas.Add(node.Data);
+                }
+                return schemas;
+            }
+        }
 
         public void Initialize()
         {
@@ -42,6 +54,7 @@ namespace ErEditor.UI
 
             ImageList = imageList;
         }
+
         public void OpenSchema(ErSchema schema)
         {
             ErSchemaNode node = new(schema, this);

@@ -11,7 +11,7 @@ using System.Windows.Controls.Primitives;
 
 namespace ErEditor.UI
 {
-    public abstract class ElementView<TErElement> : TableLayoutPanel
+    public class ElementView<TErElement> : TableLayoutPanel
     {
         protected List<Tuple<Label, Control?>> rows = new();
         protected int rowHeight = 30;
@@ -148,7 +148,14 @@ namespace ErEditor.UI
         private ComboBox entitySetComboBox = new();
         public RoleView() : base()
         {
+            entitySetComboBox.SelectionChangeCommitted += EntitySetComboBox_SelectionChangeCommitted;
+
             AddRow("Множество сущностей", entitySetComboBox);
+        }
+
+        private void EntitySetComboBox_SelectionChangeCommitted(object? sender, EventArgs e)
+        {
+            ConsoleLog.Log($"Type of value chosen: {entitySetComboBox.SelectedValue?.GetType()}");
         }
 
         public void CommitChanges()
@@ -166,7 +173,6 @@ namespace ErEditor.UI
                     // only happens once!
                     schema = value;
                     entitySetComboBox.DataSource = value.EntitySets;
-                    ConsoleLog.Log("idk");
                     entitySetComboBox.DisplayMember = "Name";
                     //entitySetComboBox.ValueMember = "Name";
                 }

@@ -13,10 +13,10 @@ namespace ErEditor.UI
         public IExtTreeNode? this[TreeNode treeNode] { get; }
     }
     // TO-DO: this class lacks many actual method implementations from IList and TreeNodeCollection except those I needed
-    public class ExtTreeNodeCollection<T> : ITreeNodeCollection where T : IExtTreeNode
+    public class ExtTreeNodeCollection<TExtTreeNode> : ITreeNodeCollection where TExtTreeNode : IExtTreeNode
     {
         private TreeNodeCollection treeNodeCollection;
-        private List<T> extTreeNodeCollection = new();
+        private List<TExtTreeNode> extTreeNodeCollection = new();
 
         public bool IsFixedSize => ((IList)treeNodeCollection).IsFixedSize;
         public bool IsReadOnly => ((IList)treeNodeCollection).IsReadOnly;
@@ -26,7 +26,7 @@ namespace ErEditor.UI
         object? IList.this[int index] { get => ((IList)treeNodeCollection)[index]; set => ((IList)treeNodeCollection)[index] = value; }
         IExtTreeNode ITreeNodeCollection.this[int index] { get => ((ITreeNodeCollection)treeNodeCollection)[index]; set => ((ITreeNodeCollection)treeNodeCollection)[index] = value; }
 
-        public T this[int index]
+        public TExtTreeNode this[int index]
         {
             get
             {
@@ -64,7 +64,7 @@ namespace ErEditor.UI
         }
 
 
-        public int Add(T extTreeNode)
+        public int Add(TExtTreeNode extTreeNode)
         {
             int index = treeNodeCollection.Add(extTreeNode.TreeNode);
             Console.WriteLine($"ADDING NODE {extTreeNode.Name}, INDEX: {index}");
@@ -118,9 +118,14 @@ namespace ErEditor.UI
             ((ICollection)treeNodeCollection).CopyTo(array, index);
         }
 
-        public IEnumerator GetEnumerator()
+        public List<TExtTreeNode>.Enumerator GetEnumerator()
         {
-            return ((IEnumerable)treeNodeCollection).GetEnumerator();
+            return extTreeNodeCollection.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

@@ -131,11 +131,29 @@ namespace ErEditor.UI
         }
         public void Tree_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-            if (e.Node == this)
+            if (e.Node == this
+                || e.Node == entitySetFolder
+                || e.Node == relationshipSetFolder
+                || e.Node == valueSetFolder
+                || e.Node == diagramFolder)
             {
                 MainWindow.CloseProperties();
             }
             foreach (ErEntitySetNode node in entitySetFolder.Nodes)
+            {
+                if (e.Node == node)
+                {
+                    MainWindow.OpenProperties(schema, node.Data);
+                }
+            }
+            foreach (ErRelationshipSetNode node in relationshipSetFolder.Nodes)
+            {
+                if (e.Node == node)
+                {
+                    MainWindow.OpenProperties(schema, node.Data);
+                }
+            }
+            foreach (ErValueSetNode node in valueSetFolder.Nodes)
             {
                 if (e.Node == node)
                 {
