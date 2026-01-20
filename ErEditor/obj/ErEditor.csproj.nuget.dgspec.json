@@ -56,6 +56,10 @@
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[8.0.22, )"
+            },
+            "Microsoft.Msagl": {
+              "target": "Package",
+              "version": "[1.1.6, )"
             }
           },
           "imports": [

@@ -16,10 +16,14 @@ namespace ErEditor
             showSchemaObjectItem.Click += Debug_ShowSchema;
             ToolStripMenuItem showRegistryStateItem = new("Показать состояние реестра схемы");
             showRegistryStateItem.Click += Debug_ShowRegistry;
+            ToolStripMenuItem showMsaglGraph = new("Генерация графа (MSAGL)");
+            showMsaglGraph.Click += Debug_ShowMsaglGraph;
+            
             debugDropDown.DropDownItems.AddRange(
                 [
                 showSchemaObjectItem,
-                showRegistryStateItem
+                showRegistryStateItem,
+                showMsaglGraph
                 ]);
             menuStrip1.Items.Add(debugDropDown);
         }
@@ -38,6 +42,11 @@ namespace ErEditor
             {
                 Console.WriteLine(registry.PrintState());
             }
+        }
+        private void Debug_ShowMsaglGraph(object? sender, EventArgs e)
+        {
+            MsaglTestsForm msaglTestsForm = new();
+            msaglTestsForm.ShowDialog();
         }
     }
 }

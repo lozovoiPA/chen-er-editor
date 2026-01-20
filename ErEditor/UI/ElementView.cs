@@ -2,6 +2,7 @@
 using ErEditor.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,10 +11,14 @@ using System.Windows.Controls.Primitives;
 
 namespace ErEditor.UI
 {
-    public class ElementView : TableLayoutPanel
+    public abstract class ElementView<TErElement> : TableLayoutPanel
     {
         protected List<Tuple<Label, Control?>> rows = new();
         protected int rowHeight = 30;
+
+        protected ErSchema? schema;
+        protected TErElement? element;
+
         public ElementView()
         {
             ColumnCount = 2; // without panel, don't add this (uses default 2 columns) 
@@ -22,6 +27,30 @@ namespace ErEditor.UI
             AutoSize = false;
 
             AddRow("Название");
+        }
+
+        public virtual ErSchema? Schema
+        {
+            get { return schema; }
+            set
+            {
+                if (value != null)
+                {
+                    // only happens once!
+                    schema = value;
+                }
+            }
+        }
+        public virtual TErElement? Element
+        {
+            get { return element; }
+            set
+            {
+                if (value != null)
+                {
+                    element = value;
+                }
+            }
         }
 
         protected Label AddPropertyLabel(string propertyName)
@@ -39,7 +68,6 @@ namespace ErEditor.UI
 
             return label;
         }
-
         protected int AddRow(string propertyName)
         {
             // the correct way to do this is
@@ -88,14 +116,26 @@ namespace ErEditor.UI
             Controls.Add(roleView);
         }
 
-        public void OpenProperties(ErSchema schema, ErRole role)
+        // Этот объект и MainWindow не интересует конкретный тип TErElement. Они с ним не работают, они его перенапрявлют туда, куда надо.
+        public void OpenProperties<TErElement>(ErSchema schema, TErElement element)
         {
-            // В панели же можно какие-то CheckConstraints сделать
-            roleView.Schema = schema;
-            roleView.Role = role;
-            roleView.Visible = true;
-        }
+            CloseProperties();
+            ElementView<TErElement>? elementView = null;
 
+            switch (element){
+                case ErRole es:
+                    elementView = roleView as ElementView<TErElement>;
+                    break;
+            }
+            
+            if(elementView != null)
+            {
+                elementView.Schema = schema;
+                elementView.Element = element;
+
+                elementView.Visible = true;
+            }
+        }
         public void CloseProperties()
         {
             roleView.CommitChanges();
@@ -103,11 +143,8 @@ namespace ErEditor.UI
         }
     }
 
-    public class RoleView : ElementView
+    public class RoleView : ElementView<ErRole>
     {
-        private ErSchema? schema; // if each element knew its parent schema (as readonly) this wouldn't be necessary. I'm thinking of adding that to every element.
-        private ErRole? role;
-
         private ComboBox entitySetComboBox = new();
         public RoleView() : base()
         {
@@ -119,7 +156,7 @@ namespace ErEditor.UI
 
         }
 
-        public ErSchema? Schema
+        public override ErSchema? Schema
         {
             get { return schema; }
             set
@@ -135,14 +172,14 @@ namespace ErEditor.UI
                 }
             }
         }
-        public ErRole? Role
+        public override ErRole? Element
         {
-            get { return role; }
+            get { return element; }
             set
             {
                 if (value != null)
                 {
-                    role = value;
+                    element = value;
                 }
             }
         }

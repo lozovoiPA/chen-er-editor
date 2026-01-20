@@ -12,18 +12,16 @@ namespace ErEditor
         {
             InitializeComponent();
 
-            // я гарантирую, что все елементы в конструкторе могут обращаться к DialogManager и получать везде результат
-            new DialogManager(new(navigatorTreeView1, elementPropertiesPanel1, diagramPanel1));
+            MainWindow.Instance = this; // redirected all mediator calls to this form
 
             this.InitializeDebugMenu();
         }
-
         private void createSchemaToolstripMenuItem_Click(object sender, EventArgs e)
         {
             ErSchema? newSchema = DialogManager.CreateNewErSchemaWindow();
             if(newSchema != null)
             {
-                DialogManager.Instance.OpenSchema(newSchema);
+                OpenSchema(newSchema);
             }
         }
         private void saveSchemaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -36,7 +34,7 @@ namespace ErEditor
         private void openSchemaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ErSchema schema = DialogManager.OpenSchemaWindow();
-            DialogManager.Instance.OpenSchema(schema);
+            OpenSchema(schema);
         }
     }
 }

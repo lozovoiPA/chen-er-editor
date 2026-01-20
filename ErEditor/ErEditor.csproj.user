@@ -7,6 +7,12 @@
     <Compile Update="MainWindowDebugMenu.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="MainWindowMediator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MsaglTestsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="NewErSchemaWindow.cs">
       <SubType>Form</SubType>
     </Compile>

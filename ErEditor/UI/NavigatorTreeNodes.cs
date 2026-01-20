@@ -131,12 +131,23 @@ namespace ErEditor.UI
         }
         public void Tree_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
+            if (e.Node == this)
+            {
+                MainWindow.CloseProperties();
+            }
+            foreach (ErEntitySetNode node in entitySetFolder.Nodes)
+            {
+                if (e.Node == node)
+                {
+                    MainWindow.OpenProperties(schema, node.Data);
+                }
+            }
             foreach (ErDiagramNode node in diagramFolder.Nodes)
             {
                 if(e.Node == node)
                 {
                     ConsoleLog.Log("Clicked diagram node. The diagram will be assigned to diagram panel.", node.Data.Name);
-                    DialogManager.OpenDiagram(node.Data);
+                    //DialogManager.OpenDiagram(node.Data);
                 }
             }
         }
@@ -397,7 +408,7 @@ namespace ErEditor.UI
                     var schema = parentTree.GetNodeData<ErSchema>(this.Parent.Parent);
                     if(schema != null)
                     {
-                        DialogManager.Instance.OpenProperties(schema, node.Data);
+                        MainWindow.OpenProperties(schema, node.Data);
                     }
                 }
             }
