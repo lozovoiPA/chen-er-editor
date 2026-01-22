@@ -60,12 +60,11 @@ namespace ErEditor
         {
             PropertiesPanel.OpenProperties(schema, element);
         }
-        public static void OpenDiagram(ErDiagram diagram)
+        public static void OpenDiagram(ErSchema schema, ErDiagram diagram)
         {
             DiagramPanel.BackColor = SystemColors.Window;
             Instance.groupBox2.Text = $"Диаграммер - {diagram.Name}";
-
-            DiagramPanel.Diagram = diagram;
+            DiagramPanel.OpenDiagram(schema, diagram);
         }
         public static void CloseProperties()
         {
@@ -73,7 +72,7 @@ namespace ErEditor
         }
         public static void CloseDiagram()
         {
-            DiagramPanel.Diagram = null;
+            DiagramPanel.CloseDiagram();
             DiagramPanel.BackColor = SystemColors.ControlLight;
         }
     }

@@ -25,7 +25,7 @@ namespace ErEditor.ErSchemaClasses
         public readonly Registry<ErAttribute> AttributeRegistry = new();
         public readonly Registry<ErRole> RoleRegistry = new();
         public readonly Registry<ErMapping> MappingRegistry = new();
-        public readonly Registry<DiagramPrimitive> PrimitiveRegistry = new();
+        public readonly Registry<ErDiagramPrimitive> PrimitiveRegistry = new();
 
         public ObserverBase observerLogic;
 
@@ -58,7 +58,7 @@ namespace ErEditor.ErSchemaClasses
         // MapTo - создание объекта из Dbобъекта
         private ErEntitySet CreateEntitySetOnSchema(DbEntitySet dbEs)
         {
-            ErEntitySet entitySet = Schema.AddEntitySet(dbEs.Name ?? string.Empty);
+            ErEntitySet entitySet = Schema.EntitySets.Add(dbEs.Name ?? string.Empty);
 
             var attributes = AttributeRegistry.RetrieveDbEntryList(
                 dbEs.Attributes.ToList(), 
@@ -72,7 +72,7 @@ namespace ErEditor.ErSchemaClasses
         }
         private ErRelationshipSet CreateRelationshipSetOnSchema(DbRelationshipSet dbRs)
         {
-            ErRelationshipSet relationshipSet = Schema.AddRelationshipSet(dbRs.Name ?? string.Empty);
+            ErRelationshipSet relationshipSet = Schema.RelationshipSets.Add(dbRs.Name ?? string.Empty);
 
             var attributes = AttributeRegistry.RetrieveDbEntryList(
                 dbRs.Attributes.ToList(),
@@ -93,12 +93,12 @@ namespace ErEditor.ErSchemaClasses
         }
         private ErValueSet CreateValueSetOnSchema(DbValueSet dbVs)
         {
-            ErValueSet valueSet = Schema.AddValueSet(dbVs.Name == null ? "" : dbVs.Name);
+            ErValueSet valueSet = Schema.ValueSets.Add(dbVs.Name == null ? "" : dbVs.Name);
             return valueSet;
         }
         private ErDiagram CreateDiagramOnSchema(DbDiagram dbDgr)
         {
-            ErDiagram diagram = Schema.AddDiagram(dbDgr.Name ?? string.Empty);
+            ErDiagram diagram = Schema.Diagrams.Add(dbDgr.Name ?? string.Empty);
             return diagram;
         }
         private ErAttribute CreateAttributeOnSchema(ErElementWithAttributes element, DbAttribute dbAttr)

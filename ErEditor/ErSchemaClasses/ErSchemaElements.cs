@@ -9,25 +9,27 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public interface IErElement : IObservable { }
-    public abstract class ErElement : IErElement
+    public abstract class ErElement : IObservable, INamedObject
     {
-        protected string name = String.Empty;
-        protected readonly ObservableBase observableLogic = new();
+        protected string name = string.Empty;
+        protected readonly ObservableBase observers = new();
 
         public virtual string Name
         {
             get { return name; }
-            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification(this, name)); }
+            set { 
+                name = value; 
+                observers.Notify(new ObjectNameChangedNotification(this, name)); 
+            }
         }
 
         public bool Subscribe(IObserver observer)
         {
-            return observableLogic.Subscribe(observer);
+            return observers.Subscribe(observer);
         }
         public bool Unsubscribe(IObserver observer)
         {
-            return observableLogic.Unsubscribe(observer);
+            return observers.Unsubscribe(observer);
         }
 
         public override string ToString()
@@ -45,7 +47,7 @@ namespace ErEditor.ErSchemaClasses
             ErAttribute newAttribute = new(name);
             attributes.Add(newAttribute);
 
-            observableLogic.Notify(new ObjectAddedNotification<ErElementWithAttributes, ErAttribute>(this, newAttribute));
+            observers.Notify(new ObjectAddedNotification<ErElementWithAttributes, ErAttribute>(this, newAttribute));
             return newAttribute;
         }
         public void AddAttributeRange(IEnumerable<ErAttribute> range)
@@ -65,7 +67,8 @@ namespace ErEditor.ErSchemaClasses
     {
         public static readonly ErEntitySet Empty = new ErEntitySet();
 
-        public ErEntitySet(string name = "")
+        public ErEntitySet() { }
+        public ErEntitySet(string name)
         {
             this.name = name;
         }
@@ -76,9 +79,19 @@ namespace ErEditor.ErSchemaClasses
         private List<ErRole> roles = new();
         private List<ErMapping> mappings = new();
 
-        public ErRelationshipSet(string name = "")
+        public ErRelationshipSet() { }
+        public ErRelationshipSet(string name)
         {
             this.name = name;
+        }
+
+        public ReadOnlyCollection<ErRole> Roles
+        {
+            get { return roles.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<ErMapping> Mappings
+        {
+            get { return mappings.AsReadOnly(); }
         }
 
         public ErRole AddRole(string name = "")
@@ -92,7 +105,7 @@ namespace ErEditor.ErSchemaClasses
             ErRole newRole = new(entitySet, name);
             roles.Add(newRole);
 
-            observableLogic.Notify(new ObjectAddedNotification<ErRelationshipSet, ErRole>(this, newRole));
+            observers.Notify(new ObjectAddedNotification<ErRelationshipSet, ErRole>(this, newRole));
 
             return newRole;
         }
@@ -103,31 +116,21 @@ namespace ErEditor.ErSchemaClasses
                 return false;
             }
             roles.Remove(role);
-            observableLogic.Notify(new ObjectDeletedNotification<ErRole>(role));
+            observers.Notify(new ObjectDeletedNotification<ErRole>(role));
             return true;
         }
-
         public ErMapping AddMapping(string name = "")
         {
             ErMapping newMapping = new(name);
             mappings.Add(newMapping);
             return newMapping;
         }
-
-
-        public ReadOnlyCollection<ErRole> Roles
-        {
-            get { return roles.AsReadOnly(); }
-        }
-        public ReadOnlyCollection<ErMapping> Mappings
-        {
-            get { return mappings.AsReadOnly(); }
-        }
     }
 
     public class ErValueSet : ErElement
     {
-        public ErValueSet(string name = "")
+        public ErValueSet() { }
+        public ErValueSet(string name)
         {
             this.name = name;
         }

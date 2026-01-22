@@ -115,7 +115,6 @@
             // diagramPanel1
             // 
             diagramPanel1.BackColor = SystemColors.ControlLight;
-            diagramPanel1.Diagram = null;
             diagramPanel1.Dock = DockStyle.Fill;
             diagramPanel1.Location = new Point(29, 16);
             diagramPanel1.Name = "diagramPanel1";

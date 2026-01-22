@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public abstract class ErElementWatcher<TErElement> : RegistryMemoryWatcher,
+    public abstract class ErElementWatcher<TErElement> : CollectionWatcher<TErElement>,
         IVisitor<ObjectNameChangedNotification>,
         IVisitor<ObjectCreatedNotification<TErElement>>,
         IVisitor<ObjectDeletedNotification<TErElement>>
 
-        where TErElement : class, IErElement
+        where TErElement : class, IObservable
     {
         public virtual void Visit(ObjectNameChangedNotification notif)
         {
@@ -20,20 +20,19 @@ namespace ErEditor.ErSchemaClasses
             TErElement? castedEl = notif.Object as TErElement;
             if (castedEl != null)
             {
-                observableLogic.Notify(new ObjectUpdatedNotification<TErElement>(castedEl));
+                observers.Notify(new ObjectUpdatedNotification<TErElement>(castedEl));
                 return;
             }
         }
-        public virtual void Visit(ObjectCreatedNotification<TErElement> notif)
+        public override void Visit(ObjectCreatedNotification<TErElement> notif)
         {
-            ConsoleLog.Log($"New {notif.Object.GetType()} was added", this, "INFO");
-            notif.Object.Subscribe(observerLogic);
-            observableLogic.Notify(notif);
+            base.Visit(notif);
+            notif.Object.Subscribe(notificationProcessor);
         }
-        public virtual void Visit(ObjectDeletedNotification<TErElement> notif)
+        public override void Visit(ObjectDeletedNotification<TErElement> notif)
         {
-            notif.Object.Unsubscribe(observerLogic);
-            observableLogic.Notify(notif);
+            base.Visit(notif);
+            notif.Object.Unsubscribe(notificationProcessor);
         }
     }
 
@@ -48,13 +47,13 @@ namespace ErEditor.ErSchemaClasses
             TErElement? castedEl = notif.Object as TErElement;
             if(castedEl != null)
             {
-                observableLogic.Notify(new ObjectUpdatedNotification<TErElement>(castedEl));
+                observers.Notify(new ObjectUpdatedNotification<TErElement>(castedEl));
                 return;
             }
             ErAttribute? castedAttr = notif.Object as ErAttribute;
             if (castedAttr != null)
             {
-                observableLogic.Notify(new ObjectUpdatedNotification<ErAttribute>(castedAttr));
+                observers.Notify(new ObjectUpdatedNotification<ErAttribute>(castedAttr));
                 return;
             }
         }
@@ -63,49 +62,28 @@ namespace ErEditor.ErSchemaClasses
             ConsoleLog.Log($"New attribute was added to the element", this, "INFO");
             notif.ObjectAdded.Subscribe(this);
 
-            observableLogic.Notify(notif);
+            observers.Notify(notif);
         }
-    }
-    public class ErEntitySetWatcher : ErElementWithAttributesWatcher<ErEntitySet>
-    {
         public override void Recieve(Notification notification)
         {
-            observerLogic.Recieve(notification);
+            notificationProcessor.Recieve(notification);
         }
     }
+    public class ErEntitySetWatcher : ErElementWithAttributesWatcher<ErEntitySet> { }
     public class ErRelationshipSetWatcher : 
         ErElementWithAttributesWatcher<ErRelationshipSet>,
         IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>
     {
         public override void Recieve(Notification notification)
         {
-            observerLogic.Recieve(notification);
+            notificationProcessor.Recieve(notification);
         }
         public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> notif)
         {
             notif.ObjectAdded.Subscribe(this);
-            observableLogic.Notify(notif);
+            observers.Notify(notif);
         }
     }
-    public class ErValueSetWatcher : ErElementWatcher<ErValueSet>
-    {
-        public override void Recieve(Notification notification)
-        {
-            observerLogic.Recieve(notification);
-        }
-    }
-    public class ErDiagramWatcher : ErElementWatcher<ErDiagram>
-    {
-        public override void Recieve(Notification notification)
-        {
-            observerLogic.Recieve(notification);
-        }
-    }
-    public class ErAttributeWatcher : ErElementWatcher<ErAttribute>
-    {
-        public override void Recieve(Notification notification)
-        {
-            observerLogic.Recieve(notification);
-        }
-    }
+    public class ErValueSetWatcher : ErElementWatcher<ErValueSet> { }
+    public class ErDiagramWatcher : ErElementWatcher<ErDiagram>{ }
 }

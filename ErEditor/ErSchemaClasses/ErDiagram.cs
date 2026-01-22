@@ -1,5 +1,6 @@
 ﻿using ErEditor.Infrastructure;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,69 +8,38 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public interface IErDiagram : IErElement { }
-    public class ErDiagram : IErDiagram
+    public class ErDiagram : IObservable, INamedObject, IEnumerable<ErDiagramPrimitive>
     {
-        private string name = String.Empty;
-        private readonly ErSchema schema;
+        private string name = string.Empty;
+        private List<ErDiagramPrimitive> primitives     = new();
 
-        //private List<DiagramShape> shapes        = new();
-        private List<DiagramRectangle> rectangles   = new();
-        private List<DiagramRhombus> rhombuses      = new();
-        private List<DiagramAssociation> edges      = new();
+        private readonly ObservableBase observers = new();
 
-        private readonly ObservableBase observableLogic = new();
-
-        public ErDiagram(ErSchema schema, string name = "")
+        public ErDiagram() { }
+        public ErDiagram(string name)
         {
-            this.schema = schema;
             this.name = name;
         }
 
         public string Name
         {
             get { return name; }
-            set { name = value; observableLogic.Notify(new ObjectNameChangedNotification(this, name)); }
+            set { name = value; observers.Notify(new ObjectNameChangedNotification(this, name)); }
         }
 
-        public ErSchema Schema
+        public ErDiagramRectangle AddRectangle(ErEntitySet entitySet, int x, int y, int w = 100, int h = 30)
         {
-            get { return schema; }
-        }
-
-        private DiagramRectangle AddRectangle_Inner(ErEntitySet entitySet, int x, int y, int w, int h)
-        {
-            DiagramRectangle pr = new DiagramRectangle(entitySet, x, y, w, h);
-            rectangles.Add(pr);
+            ErDiagramRectangle pr = new ErDiagramRectangle(entitySet, x, y, w, h);
+            primitives.Add(pr);
             return pr;
         }
-        public DiagramRectangle AddRectangle(int x, int y, int w = 100, int h = 30)
+        public ErDiagramDiamond AddDiamond(ErRelationshipSet relationshipSet, int x, int y, int w = 100, int h = 30)
         {
-            ErEntitySet el = schema.AddEntitySet();
-            var pr = AddRectangle_Inner(el, x, y, w, h);
+            ErDiagramDiamond pr = new ErDiagramDiamond(relationshipSet, x, y, w, h);
+            primitives.Add(pr);
             return pr;
         }
-        public DiagramRectangle? AddRectangle(ErEntitySet entitySet, int x, int y, int w = 100, int h = 30)
-        {
-            if (!schema.FindEntitySet(entitySet))
-            {
-                ConsoleLog.Log($"Cannot find entity set {entitySet.Name} on parent schema of diagram {this.name}." +
-                    $"A rectangle for this entity set will not be added.", this, "WARNING");
-                return null;
-            }
-            var pr = AddRectangle_Inner(entitySet, x, y, w, h);
-            return pr;
-        }
-        public DiagramRhombus AddRhombus(int x, int y, int w = 100, int h = 30)
-        {
-            ErRelationshipSet el = schema.AddRelationshipSet();
-            DiagramRhombus pr = new DiagramRhombus(x, y, el, w, h);
-            rhombuses.Add(pr);
-            return pr;
-        }
-
-        /*
-        public DiagramAssociation AddEdge(DiagramPrimitive pr1, DiagramPrimitive pr2, Point p1, Point p2)
+        public ErDiagramEdge AddEdge(ErRole role, ErDiagramPrimitive pr1, ErDiagramPrimitive pr2, Point p1, Point p2)
         {
             if (p1.Y > p2.Y) // because we are assigning p1 - top left, p2 - bottom right, but this link (line) may be upside down (pr1 is always above pr2)
             {
@@ -85,50 +55,36 @@ namespace ErEditor.ErSchemaClasses
             p1.Y -= pr1.Y;
             p2.X -= pr2.X;
             p2.Y -= pr2.Y;
-            DiagramEdge edge = new DiagramEdge(pr1, pr2, p1, p2);
-            edges.Add(edge);
+            ErDiagramEdge edge = new ErDiagramEdge(role, pr1, pr2, p1, p2);
+            primitives.Add(edge);
 
             return edge;
-        }*/
+        }
+
+        public IEnumerator<ErDiagramPrimitive> GetEnumerator()
+        {
+            return primitives.GetEnumerator();
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         public void Draw(Graphics g)
         {
-            foreach (DiagramAssociation lk in edges)
+            foreach (var primitive in primitives)
             {
-                lk.Draw(g);
-            }
-            foreach (var pr in rectangles)
-            {
-                pr.Draw(g);
-            }
-            foreach (var pr in rhombuses)
-            {
-                pr.Draw(g);
+                primitive.Draw(g);
             }
         }
-        public DiagramPrimitive? FindAt(int x, int y)
+        public ErDiagramPrimitive? FindAt(int x, int y)
         {
-            foreach (DiagramShape pr in rectangles)
+            Point point = new(x, y);
+            foreach (var primitive in primitives)
             {
-                if ((pr.X < x) && (pr.X + pr.width > x) && (pr.Y < y) && (pr.Y + pr.height > y))
+                if (primitive.Intersects(point))
                 {
-                    return pr;
-                }
-            }
-            foreach (DiagramShape pr in rhombuses)
-            {
-                if ((pr.X < x) && (pr.X + pr.width > x) && (pr.Y < y) && (pr.Y + pr.height > y))
-                {
-                    return pr;
-                }
-            }
-            foreach (DiagramAssociation lk in edges)
-            {
-                double calc1 = ((double)(x - lk.X - 5) / (lk.width)) - ((double)(y - lk.Y + 5) / (lk.height));
-                double calc2 = ((double)(x - lk.X + 5) / (lk.width)) - ((double)(y - lk.Y - 5) / (lk.height));
-                if (calc1 * calc2 < 0)
-                {
-                    return lk;
+                    return primitive;
                 }
             }
             return null;
@@ -153,18 +109,18 @@ namespace ErEditor.ErSchemaClasses
         }
         */
 
-        public bool Subscribe(IObserver observer)
-        {
-            return observableLogic.Subscribe(observer);
-        }
-        public bool Unsubscribe(IObserver observer)
-        {
-            return observableLogic.Unsubscribe(observer);
-        }
-
         public override string ToString()
         {
             return this.name;
+        }
+
+        public bool Subscribe(IObserver observer)
+        {
+            return observers.Subscribe(observer);
+        }
+        public bool Unsubscribe(IObserver observer)
+        {
+            return observers.Unsubscribe(observer);
         }
     }
 }

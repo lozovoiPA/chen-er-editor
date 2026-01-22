@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ErEditor.DbSchemaClasses;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing.Drawing2D;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public abstract class DiagramPrimitive
+    public abstract class ErDiagramPrimitive
     {
         public int X;
         public int Y;
@@ -19,29 +20,21 @@ namespace ErEditor.ErSchemaClasses
 
         public abstract string Label { get; set; }
         public abstract void Draw(Graphics g);
-        public abstract string GetCustomType();
+        public abstract bool Intersects(Point point);
 
         public abstract ErElement ErElement { get; }
     }
 
-    public abstract class DiagramShape : DiagramPrimitive
+    public class ErDiagramEdge : ErDiagramPrimitive
     {
-
-    }
-    public abstract class DiagramAssociation : DiagramPrimitive
-    {
-        public DiagramPrimitive pr1 = null!;
-        public DiagramPrimitive pr2 = null!;
-    }
-
-    public class DiagramEdge : DiagramAssociation
-    {
+        public ErDiagramPrimitive pr1 = null!;
+        public ErDiagramPrimitive pr2 = null!;
         public Point margin1;
         public Point margin2;
 
         private ErRole role;
 
-        public DiagramEdge(DiagramPrimitive pr1, DiagramPrimitive pr2, Point margin1, Point margin2, ErRole role)
+        public ErDiagramEdge(ErRole role, ErDiagramPrimitive pr1, ErDiagramPrimitive pr2, Point margin1, Point margin2)
         {
             this.pr1 = pr1;
             this.pr2 = pr2;
@@ -70,24 +63,23 @@ namespace ErEditor.ErSchemaClasses
             width = pr2.X + margin2.X;
             height = pr2.Y + margin2.Y;
             g.DrawLine(new Pen(brush1), X, Y, width, height);
-            width -= X;
-            height -= Y;
-            //width = Math.Abs(width);
-            //height = Math.Abs(height);
-
             brush1.Dispose();
         }
-        public override string GetCustomType()
+        public override bool Intersects(Point point)
         {
-            return "edge";
+            if ((X < point.X) && (X + width > point.X) && (Y < point.Y) && (Y + height > point.Y))
+            {
+                return true;
+            }
+            return false;
         }
     }
 
-    public class DiagramRectangle : DiagramShape
+    public class ErDiagramRectangle : ErDiagramPrimitive
     {
         private ErEntitySet entitySet;
 
-        public DiagramRectangle(ErEntitySet entitySet, int x, int y, int width = 100, int height = 30)
+        public ErDiagramRectangle(ErEntitySet entitySet, int x, int y, int width = 100, int height = 30)
         {
             this.X = x;
             this.Y = y;
@@ -110,34 +102,39 @@ namespace ErEditor.ErSchemaClasses
 
         public override void Draw(Graphics g)
         {
-            SolidBrush brush1 = new SolidBrush(Color.Black);
-            SolidBrush brush = new SolidBrush(Color.White);
-            g.DrawRectangle(new Pen(brush1), X, Y, width, height);
-            g.FillRectangle(brush, X + 1, Y + 1, width - 2, height - 2);
+            SolidBrush outlineBrush = new SolidBrush(Color.Black);
+            SolidBrush fillBrush = new SolidBrush(Color.White);
+
+            g.DrawRectangle(new Pen(outlineBrush), X, Y, width, height);
+            g.FillRectangle(fillBrush, X + 1, Y + 1, width - 2, height - 2);
 
             Font font = new Font(FontFamily.GenericSansSerif, 10);
-            SizeF size = g.MeasureString(this.Label, font);
-            g.DrawString(this.Label, new Font(FontFamily.GenericSansSerif, 10), brush1, X + width / 2 - size.Width / 2, Y + height / 2 - size.Height / 2);
+            SizeF labelSize = g.MeasureString(this.Label, font);
+            g.DrawString(this.Label, new Font(FontFamily.GenericSansSerif, 10), outlineBrush, X + width / 2 - labelSize.Width / 2, Y + height / 2 - labelSize.Height / 2);
 
-            brush1.Dispose();
-            brush.Dispose();
+            outlineBrush.Dispose();
+            fillBrush.Dispose();
         }
-        public override string GetCustomType()
+        public override bool Intersects(Point point)
         {
-            return "rect";
+            if ((X < point.X) && (X + width > point.X) && (Y < point.Y) && (Y + height > point.Y))
+            {
+                return true;
+            }
+            return false;
         }
     }
-    public class DiagramRhombus : DiagramShape
+    public class ErDiagramDiamond : ErDiagramPrimitive
     {
         private ErRelationshipSet relationshipSet;
 
-        public DiagramRhombus(int _x, int _y, ErRelationshipSet relationshipSet, int _width = 100, int _height = 50)
+        public ErDiagramDiamond(ErRelationshipSet relationshipSet, int x, int y, int width = 100, int height = 50)
         {
-            X = _x;
-            Y = _y;
+            X = x;
+            Y = y;
 
-            width = _width;
-            height = _height;
+            base.width = width;
+            base.height = height;
 
             this.relationshipSet = relationshipSet; 
         }
@@ -154,8 +151,8 @@ namespace ErEditor.ErSchemaClasses
 
         public override void Draw(Graphics g)
         {
-            SolidBrush brush1 = new SolidBrush(Color.Black);
-            SolidBrush brush = new SolidBrush(Color.White);
+            SolidBrush outlineBrush = new SolidBrush(Color.Black);
+            SolidBrush fillBrush = new SolidBrush(Color.White);
 
             Point[] points =
                 [
@@ -166,23 +163,29 @@ namespace ErEditor.ErSchemaClasses
                 new Point(X + width / 2, Y + 1)
                 ];
             byte[] point_types = [(byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line];
-            GraphicsPath path = new GraphicsPath(points, point_types);
-            Region region = new Region(path);
+            GraphicsPath line = new GraphicsPath(points, point_types);
+            Region shape = new Region(line);
 
-            g.DrawLines(new Pen(brush1, 2), points);
-            g.FillRegion(brush, region);
+            g.DrawLines(new Pen(outlineBrush, 2), points);
+            g.FillRegion(fillBrush, shape);
 
             Font font = new Font(FontFamily.GenericSansSerif, 10);
             SizeF size = g.MeasureString(this.Label, font);
-            g.DrawString(this.Label, font, brush1, X + width / 2 - size.Width / 2, Y + height / 2 - size.Height / 2);
+            g.DrawString(this.Label, font, outlineBrush, X + width / 2 - size.Width / 2, Y + height / 2 - size.Height / 2);
 
 
-            brush1.Dispose();
-            brush.Dispose();
+            outlineBrush.Dispose();
+            fillBrush.Dispose();
         }
-        public override string GetCustomType()
+        public override bool Intersects(Point point)
         {
-            return "rhombus";
+            double parallelLine1 = ((double)(point.X - X - 5) / (width)) - ((double)(point.Y - Y + 5) / (height));
+            double parallelLine2 = ((double)(point.X - X + 5) / (width)) - ((double)(point.Y - Y - 5) / (height));
+            if (parallelLine1 * parallelLine2 < 0)
+            {
+                return true;
+            }
+            return false;
         }
     }
 

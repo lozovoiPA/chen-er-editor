@@ -12,30 +12,17 @@ namespace ErEditor.UI
 {
     public class DiagramPanel : Panel
     {
-        ErDiagram? diagram;
+        private ErSchema? schema;
+        private ErDiagram? diagram;
 
-        TextBox renameTextBox = new();
-        DiagramPrimitive? active_pr;
-
-        Rectangle active_at = Rectangle.Empty;
-        bool edge_draw = false;
-        bool hold = false;
-
-        private ContextMenuStrip drawingContextMenu = new();
+        private ContextMenuStrip panelContextMenu = new();
         private ContextMenuStrip primitiveContextMenu = new();
+        private TextBox selectedPrimitiveRenameTextBox = new();
+        private ErDiagramPrimitive? selectedPrimitive;
 
-        public ErDiagram? Diagram
-        {
-            get
-            {
-                return diagram;
-            }
-            set
-            {
-                diagram = value;
-                this.Invalidate();
-            }
-        }
+        Rectangle selectedPrimitiveLocation = Rectangle.Empty;
+        bool isEdgeBeingDrawn = false;
+        bool isMouseBeingHeld = false;
 
         public DiagramPanel()
         {
@@ -44,23 +31,8 @@ namespace ErEditor.UI
             Initialize();
         }
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            if (diagram != null)
-            {
-                if (edge_draw) // links are drawn under the figures
-                {
-                    Console.WriteLine(active_at);
-                    e.Graphics.DrawLine(new Pen(Color.Black), active_at.X, active_at.Y, active_at.Width, active_at.Height);
-                }
-                diagram.Draw(e.Graphics);
-            }
-        }
-
         private void Initialize()
         {
-            ConsoleLog.Log("Started Initialize()", this, "INFO");
             InitializeDrawingContextMenu();
             InitializePrimitiveContextMenu();
 
@@ -69,12 +41,12 @@ namespace ErEditor.UI
             this.MouseDoubleClick += new MouseEventHandler(DiagramPanel_MouseDoubleClick);
             this.MouseMove += new MouseEventHandler(DiagramPanel_MouseMove);
 
-            renameTextBox.Width = 100;
-            renameTextBox.Height = 30;
-            renameTextBox.Text = String.Empty;
-            renameTextBox.Visible = false;
-            renameTextBox.KeyDown += new KeyEventHandler(EndRename);
-            Controls.Add(renameTextBox);
+            selectedPrimitiveRenameTextBox.Width = 100;
+            selectedPrimitiveRenameTextBox.Height = 30;
+            selectedPrimitiveRenameTextBox.Text = string.Empty;
+            selectedPrimitiveRenameTextBox.Visible = false;
+            selectedPrimitiveRenameTextBox.KeyDown += new KeyEventHandler(EndRename);
+            Controls.Add(selectedPrimitiveRenameTextBox);
         }
         private void InitializeDrawingContextMenu()
         {
@@ -90,10 +62,10 @@ namespace ErEditor.UI
             createRelationshipSetItem.Click += CreateRelationshipSet;
 
             createPrimitiveDropdown.DropDownItems.AddRange([
-                createEntitySetItem, 
+                createEntitySetItem,
                 createRelationshipSetItem
                 ]);
-            drawingContextMenu.Items.Add(createPrimitiveDropdown);
+            panelContextMenu.Items.Add(createPrimitiveDropdown);
         }
         private void InitializePrimitiveContextMenu()
         {
@@ -111,47 +83,81 @@ namespace ErEditor.UI
                 ]);
         }
 
+        public void OpenDiagram(ErSchema schema, ErDiagram diagram)
+        {
+            this.schema = schema;
+            this.diagram = diagram;
+            this.Invalidate();
+        }
+        public void CloseDiagram()
+        {
+            schema = null;
+            diagram = null;
+            this.Invalidate();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            if (diagram != null)
+            {
+                if (isEdgeBeingDrawn) // links are drawn under the figures
+                {
+                    Console.WriteLine(selectedPrimitiveLocation);
+                    e.Graphics.DrawLine(new Pen(Color.Black), selectedPrimitiveLocation.X, selectedPrimitiveLocation.Y, selectedPrimitiveLocation.Width, selectedPrimitiveLocation.Height);
+                }
+                diagram.Draw(e.Graphics);
+            }
+        }
+        
+
         private void CreateEntitySet(object? sender, EventArgs e)
         {
-            ConsoleLog.Log("New entity set creation (diagram) handler was called", this, "INFO");
-            Point point = PointToClient(new Point(drawingContextMenu.Bounds.X, drawingContextMenu.Bounds.Y));
+            Point point = PointToClient(new Point(panelContextMenu.Bounds.X, panelContextMenu.Bounds.Y));
             
-            DiagramRectangle pr = diagram!.AddRectangle(point.X, point.Y);
-            active_pr = pr;
-            Invalidate();
-            RenamePrimitive(pr);
+            if(diagram != null && schema != null)
+            {
+                ErDiagramRectangle pr = diagram.AddRectangle(schema.EntitySets.Add(), point.X, point.Y);
+                selectedPrimitive = pr;
+                Invalidate();
+                RenamePrimitive(pr);
+            }
         }
         private void CreateRelationshipSet(object? sender, EventArgs e)
         {
             ConsoleLog.Log("New relationship set creation (diagram) handler was called", this, "INFO");
-            Point point = PointToClient(new Point(drawingContextMenu.Bounds.X, drawingContextMenu.Bounds.Y));
-            
-            DiagramRhombus pr = diagram!.AddRhombus(point.X, point.Y);
-            active_pr = pr;
-            Invalidate();
-            RenamePrimitive(pr);
+            Point point = PointToClient(new Point(panelContextMenu.Bounds.X, panelContextMenu.Bounds.Y));
+
+            if (diagram != null && schema != null)
+            {
+                ErDiagramDiamond pr = diagram.AddDiamond(schema.RelationshipSets.Add(), point.X, point.Y);
+                selectedPrimitive = pr;
+                Invalidate();
+                RenamePrimitive(pr);
+            }
+
         }
 
         private void DiagramPanel_MouseDown(object? sender, MouseEventArgs e)
         {
             if (diagram != null)
             {
-                if (renameTextBox.Visible)
+                if (selectedPrimitiveRenameTextBox.Visible)
                 {
                     this.EndRenameActivity();
                 }
-                hold = false;
-                DiagramPrimitive? pr = diagram.FindAt(e.X, e.Y);
+                isMouseBeingHeld = false;
+                ErDiagramPrimitive? pr = diagram.FindAt(e.X, e.Y);
                 Console.WriteLine("\n" + e.X + " " + e.Y);
                 if (e.Button == MouseButtons.Right)
                 {
                     if (pr == null)
                     {
-                        drawingContextMenu.Show(this, e.X, e.Y);
+                        panelContextMenu.Show(this, e.X, e.Y);
                     }
                     else
                     {
-                        active_pr = pr;
+                        selectedPrimitive = pr;
                         primitiveContextMenu.Show(this, e.X, e.Y);
                     }
                 }
@@ -159,22 +165,22 @@ namespace ErEditor.UI
                 {
                     if (pr != null)
                     {
-                        if (!edge_draw) // we are not currently drawing a link so we can start holding
+                        if (!isEdgeBeingDrawn) // we are not currently drawing a link so we can start holding
                         {
-                            hold = true;
-                            active_pr = pr;
-                            active_at = new Rectangle(pr.X, pr.Y, e.X - pr.X, e.Y - pr.Y);
+                            isMouseBeingHeld = true;
+                            selectedPrimitive = pr;
+                            selectedPrimitiveLocation = new Rectangle(pr.X, pr.Y, e.X - pr.X, e.Y - pr.Y);
                         }
                         else
                         {
                             //diagram.AddEdge(active_pr, pr, new Point(active_at.X, active_at.Y), new Point(active_at.Width, active_at.Height));
-                            edge_draw = false;
+                            isEdgeBeingDrawn = false;
                             Invalidate();
                         }
                     }
-                    else if (edge_draw)
+                    else if (isEdgeBeingDrawn)
                     {
-                        edge_draw = false;
+                        isEdgeBeingDrawn = false;
                         Invalidate();
                     }
                 }
@@ -186,10 +192,10 @@ namespace ErEditor.UI
             {
                 Point point = new Point(e.X, e.Y);
                 Console.WriteLine(point);
-                DiagramPrimitive? pr = diagram.FindAt(point.X, point.Y);
+                ErDiagramPrimitive? pr = diagram.FindAt(point.X, point.Y);
                 if (pr != null)
                 {
-                    active_pr = pr;
+                    selectedPrimitive = pr;
                     this.RenamePrimitive(pr);
                 }
             }
@@ -198,17 +204,17 @@ namespace ErEditor.UI
         {
             if (diagram != null)
             {
-                if (hold && active_pr != null)
+                if (isMouseBeingHeld && selectedPrimitive != null)
                 {
-                    active_pr.X = e.X - active_at.Width;
-                    active_pr.Y = e.Y - active_at.Height;
+                    selectedPrimitive.X = e.X - selectedPrimitiveLocation.Width;
+                    selectedPrimitive.Y = e.Y - selectedPrimitiveLocation.Height;
 
                     Invalidate();
                 }
-                else if (edge_draw)
+                else if (isEdgeBeingDrawn)
                 {
-                    active_at.Width = e.X;
-                    active_at.Height = e.Y;
+                    selectedPrimitiveLocation.Width = e.X;
+                    selectedPrimitiveLocation.Height = e.Y;
 
                     Invalidate();
                 }
@@ -218,19 +224,19 @@ namespace ErEditor.UI
         {
             if (diagram != null)
             {
-                hold = false;
+                isMouseBeingHeld = false;
             }
         }
 
-        private void RenamePrimitive(DiagramPrimitive pr)
+        private void RenamePrimitive(ErDiagramPrimitive pr)
         {
-            hold = false;
-            renameTextBox.Left = (int)(pr.X + pr.width * 0.5);
-            renameTextBox.Top = (int)(pr.Y + pr.height * 0.5);
-            renameTextBox.Text = pr.Label;
+            isMouseBeingHeld = false;
+            selectedPrimitiveRenameTextBox.Left = (int)(pr.X + pr.width * 0.5);
+            selectedPrimitiveRenameTextBox.Top = (int)(pr.Y + pr.height * 0.5);
+            selectedPrimitiveRenameTextBox.Text = pr.Label;
 
-            renameTextBox.Visible = true;
-            renameTextBox.Focus();
+            selectedPrimitiveRenameTextBox.Visible = true;
+            selectedPrimitiveRenameTextBox.Focus();
 
             Invalidate();
         }
@@ -243,12 +249,12 @@ namespace ErEditor.UI
         }
         private void EndRenameActivity()
         {
-            if(active_pr != null && renameTextBox.Visible)
+            if(selectedPrimitive != null && selectedPrimitiveRenameTextBox.Visible)
             {
-                active_pr.Label = renameTextBox.Text;
-                renameTextBox.Visible = false;
-                renameTextBox.Clear();
-                active_pr = null;
+                selectedPrimitive.Label = selectedPrimitiveRenameTextBox.Text;
+                selectedPrimitiveRenameTextBox.Visible = false;
+                selectedPrimitiveRenameTextBox.Clear();
+                selectedPrimitive = null;
                 Invalidate();
             }
         }

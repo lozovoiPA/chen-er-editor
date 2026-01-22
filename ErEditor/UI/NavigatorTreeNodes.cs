@@ -150,7 +150,7 @@ namespace ErEditor.UI
             ConsoleLog.Log("Adding new entity set in the navigator", this, "INFO");
             acceptNotifications = false;
 
-            var newEl = schema.AddEntitySet();
+            var newEl = schema.EntitySets.Add();
             var newNode = AddEntitySetNode(newEl);
 
             entitySetFolder.Expand();
@@ -162,7 +162,7 @@ namespace ErEditor.UI
             ConsoleLog.Log("Adding new relationship set in the navigator", this, "INFO");
             acceptNotifications = false;
 
-            var newEl = schema.AddRelationshipSet();
+            var newEl = schema.RelationshipSets.Add();
             var newNode = AddRelationshipSetNode(newEl);
 
             relationshipSetFolder.Expand();
@@ -172,7 +172,7 @@ namespace ErEditor.UI
         private void AddValueSet(object? sender, EventArgs e)
         {
             ConsoleLog.Log("Adding new value set in the navigator", this, "INFO");
-            var newEl = schema.AddValueSet();
+            var newEl = schema.ValueSets.Add();
             var newNode = AddValueSetNode(newEl);
 
             valueSetFolder.Expand();
@@ -181,7 +181,7 @@ namespace ErEditor.UI
         private void AddDiagram(object? sender, EventArgs e)
         {
             ConsoleLog.Log("Adding new diagram in the navigator", this, "INFO");
-            var newEl = schema.AddDiagram();
+            var newEl = schema.Diagrams.Add();
             var newNode = AddDiagramNode(newEl);
 
             diagramFolder.Expand();
@@ -283,10 +283,10 @@ namespace ErEditor.UI
                 this.AddAttributeNode(attr);
             }
         }
-
         private void DeleteEntitySet(object? sender, EventArgs e)
         {
-            (parentTree.Nodes[this.Parent.Parent] as ErSchemaNode)?.Data.RemoveEntitySet(this.entitySet);
+            ErSchema? schema = parentTree.GetNodeData<ErSchema>(this.Parent.Parent);
+            schema?.EntitySets.Remove(entitySet);
         }
         private ErAttributeNode AddAttributeNode(ErAttribute attribute)
         {
@@ -535,7 +535,7 @@ namespace ErEditor.UI
 
         public override void DoubleClick(object? sender, MouseEventArgs e)
         {
-            MainWindow.OpenDiagram(diagram);
+            MainWindow.OpenDiagram(ParentSchema, diagram);
         }
     }
 

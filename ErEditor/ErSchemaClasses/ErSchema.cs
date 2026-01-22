@@ -1,5 +1,6 @@
 ﻿using ErEditor.Infrastructure;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -8,18 +9,17 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public partial class ErSchema : 
-        IObservable
+    public class ErSchema : IObservable, INamedObject
     {
-        private string name = String.Empty;
+        private string name = string.Empty;
 
-        private List<ErEntitySet> entitySets             = new(); // без всяких observablecollection - просто метод AddEntitySet привязываем куда это надо (к ноду, к графическому элементу и т.д.)
-        private List<ErRelationshipSet> relationshipSets = new();
-        private List<ErValueSet> valueSets               = new();
-        private List<ErDiagram> diagrams                 = new();
+        public readonly ErElementCollection<ErEntitySet> EntitySets;
+        public readonly ErElementCollection<ErRelationshipSet> RelationshipSets;
+        public readonly ErElementCollection<ErValueSet> ValueSets;
+        public readonly ErElementCollection<ErDiagram> Diagrams;
 
-        private readonly ObservableBase observableLogic = new();
-
+        // Шлюзы для передачи уведомлений от схемы. Индивидуально для каждого типа элементов.
+        // Изолируют передачу и обработку уведомлений от самого объекта. Являясь единой точкой, подписанной на все необходимые объекты.
         public readonly ErEntitySetWatcher EntitySetWatcher = new();
         public readonly ErRelationshipSetWatcher RelationshipSetWatcher = new();
         public readonly ErValueSetWatcher ValueSetWatcher = new();
@@ -29,139 +29,16 @@ namespace ErEditor.ErSchemaClasses
         {
             this.name = name;
 
-            this.Subscribe(EntitySetWatcher);
-            this.Subscribe(RelationshipSetWatcher);
-            this.Subscribe(ValueSetWatcher);
-            this.Subscribe(DiagramWatcher);
+            EntitySets = new(EntitySetWatcher);
+            RelationshipSets = new(RelationshipSetWatcher);
+            ValueSets = new(ValueSetWatcher);
+            Diagrams = new(DiagramWatcher);
         }
 
         public string Name
         {
             get { return name; }
             set { name = value; }
-        }
-        public ReadOnlyCollection<ErEntitySet> EntitySets
-        {
-            get { return entitySets.AsReadOnly(); }
-        }
-        public ReadOnlyCollection<ErRelationshipSet> RelationshipSets
-        {
-            get { return relationshipSets.AsReadOnly(); }
-        }
-        public ReadOnlyCollection<ErValueSet> ValueSets
-        {
-            get { return valueSets.AsReadOnly(); }
-        }
-        public ReadOnlyCollection<ErDiagram> Diagrams
-        {
-            get { return diagrams.AsReadOnly(); }
-        }
-
-        public bool FindEntitySet(ErEntitySet entitySet)
-        {
-            return !(entitySets.Find(x => x == entitySet) is null);
-        }
-        public bool FindRelationshipSet(ErRelationshipSet relationshipSet)
-        {
-            return !(relationshipSets.Find(x => x == relationshipSet) is null);
-        }
-        public ErEntitySet? FindEntitySet(string name)
-        {
-            return entitySets.Find(x => x.Name == name);
-        }
-        public ErValueSet? FindValueSet(string name)
-        {
-            return valueSets.Find(x => x.Name == name);
-        }
-
-        public ErEntitySet AddEntitySet(string name = "")
-        {
-            ErEntitySet es = new(name);
-            entitySets.Add(es);
-
-            observableLogic.Notify(new ObjectCreatedNotification<ErEntitySet>(es));
-            return es;
-        }
-        public ErEntitySet AddEntitySet(ErEntitySet entitySet)
-        {
-            ErEntitySet newEs = new(entitySet.Name);
-            entitySets.Add(newEs);
-
-            observableLogic.Notify(new ObjectCreatedNotification<ErEntitySet>(newEs));
-
-            newEs.AddAttributeRange(entitySet.Attributes);
-
-            return newEs;
-        }
-        public void AddEntitySetRange(List<ErEntitySet> range)
-        {
-            foreach(var es in range)
-            {
-                this.AddEntitySet(es);
-            }
-        }
-        public bool RemoveEntitySet(ErEntitySet es)
-        {
-            if (!entitySets.Contains(es))
-            {
-                return false;
-            }
-            entitySets.Remove(es);
-
-            observableLogic.Notify(new ObjectDeletedNotification<ErEntitySet>(es));
-            return true;
-        }
-
-        public ErRelationshipSet AddRelationshipSet(string name = "")
-        {
-            ErRelationshipSet rs = new(name);
-            relationshipSets.Add(rs);
-
-            observableLogic.Notify(new ObjectCreatedNotification<ErRelationshipSet>(rs));
-            return rs;
-        }
-        public void AddRelationshipSetRange(List<ErRelationshipSet> range)
-        {
-            relationshipSets.AddRange(range);
-
-            foreach (var rs in range)
-            {
-                observableLogic.Notify(new ObjectCreatedNotification<ErRelationshipSet>(rs));
-            }
-        }
-        public ErValueSet AddValueSet(string name = "")
-        {
-            ErValueSet vs = new(name);
-            valueSets.Add(vs);
-
-            observableLogic.Notify(new ObjectCreatedNotification<ErValueSet>(vs));
-            return vs;
-        }
-        public void AddValueSetRange(List<ErValueSet> range)
-        {
-            valueSets.AddRange(range);
-
-            foreach (var vs in range)
-            {
-                observableLogic.Notify(new ObjectCreatedNotification<ErValueSet>(vs));
-            }
-        }
-        public ErDiagram AddDiagram(string name = "")
-        {
-            ErDiagram dgr = new(this, name);
-            diagrams.Add(dgr);
-
-            observableLogic.Notify(new ObjectCreatedNotification<ErDiagram>(dgr));
-            return dgr;
-        }
-        public void AddDiagramRange(List<ErDiagram> range)
-        {
-            diagrams.AddRange(range);
-
-            foreach (var dgr in range)
-            {
-                observableLogic.Notify(new ObjectCreatedNotification<ErDiagram>(dgr));
-            }
         }
 
         public override string ToString()
@@ -171,8 +48,8 @@ namespace ErEditor.ErSchemaClasses
         public string PrintState()
         {
             string output = "";
-            output += $"Множества сущностей (всего - {entitySets.Count}):\n";
-            foreach (var el in entitySets)
+            output += $"Множества сущностей (всего - {EntitySets.Count}):\n";
+            foreach (var el in EntitySets)
             {
                 output += $"\t{el.Name}\n";
                 foreach(var attr in el.Attributes)
@@ -181,8 +58,8 @@ namespace ErEditor.ErSchemaClasses
                 }
 
             }
-            output += $"Множества связей (всего - {relationshipSets.Count}):\n";
-            foreach (var el in relationshipSets)
+            output += $"Множества связей (всего - {RelationshipSets.Count}):\n";
+            foreach (var el in RelationshipSets)
             {
                 output += $"\t{el.Name}\n";
                 if(el.Attributes.Count > 0) { output += $"\t Attributes:\n"; }
@@ -197,13 +74,13 @@ namespace ErEditor.ErSchemaClasses
                     output += $"\t ├ {role.Name} -> entity set {role.EntitySet?.Name}\n";
                 }
             }
-            output += $"Множества значений (всего - {valueSets.Count}):\n";
-            foreach (var el in valueSets)
+            output += $"Множества значений (всего - {ValueSets.Count}):\n";
+            foreach (var el in ValueSets)
             {
                 output += $"\t{el.Name}\n";
             }
-            output += $"Диаграммы (всего - {diagrams.Count}):\n";
-            foreach (var el in diagrams)
+            output += $"Диаграммы (всего - {Diagrams.Count}):\n";
+            foreach (var el in Diagrams)
             {
                 output += $"\t{el.Name}\n";
             }
@@ -212,11 +89,17 @@ namespace ErEditor.ErSchemaClasses
 
         public bool Subscribe(IObserver observer)
         {
-            return observableLogic.Subscribe(observer);
+            return EntitySetWatcher.Subscribe(observer) 
+                && RelationshipSetWatcher.Subscribe(observer)
+                && ValueSetWatcher.Subscribe(observer)
+                && DiagramWatcher.Subscribe(observer);
         }
         public bool Unsubscribe(IObserver observer)
         {
-            return observableLogic.Unsubscribe(observer);
+            return EntitySetWatcher.Unsubscribe(observer)
+                && RelationshipSetWatcher.Unsubscribe(observer)
+                && ValueSetWatcher.Unsubscribe(observer)
+                && DiagramWatcher.Unsubscribe(observer);
         }
     }
 }
