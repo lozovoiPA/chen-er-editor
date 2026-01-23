@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,6 +37,20 @@ namespace ErEditor.Infrastructure
                 Console.Write($"{messageType} - {message}");
             }
             Console.WriteLine();
+        }
+        public static string GetFullTypeName(object @object)
+        {
+            string systemName = @object.GetType().ToString();
+            var names = systemName.Split(",");
+            string fullTypeName = names.First();
+            return fullTypeName;
+        }
+        public static string GetShortTypeName(object @object)
+        {
+            string fullTypeName = GetFullTypeName(@object);
+            var names = fullTypeName.Split(".");
+            string shortTypeName = names.Last();
+            return shortTypeName;
         }
     }
 }

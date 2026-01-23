@@ -1,4 +1,5 @@
-﻿using ErEditor.Infrastructure;
+﻿using ErEditor.DbSchemaClasses;
+using ErEditor.Infrastructure;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,15 +30,19 @@ namespace ErEditor.ErSchemaClasses
 
         public ErDiagramRectangle AddRectangle(ErEntitySet entitySet, int x, int y, int w = 100, int h = 30)
         {
-            ErDiagramRectangle pr = new ErDiagramRectangle(entitySet, x, y, w, h);
-            primitives.Add(pr);
-            return pr;
+            ErDiagramRectangle primitive = new ErDiagramRectangle(entitySet, x, y, w, h);
+            primitives.Add(primitive);
+
+            observers.Notify(new ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>(this, primitive));
+            return primitive;
         }
         public ErDiagramDiamond AddDiamond(ErRelationshipSet relationshipSet, int x, int y, int w = 100, int h = 30)
         {
-            ErDiagramDiamond pr = new ErDiagramDiamond(relationshipSet, x, y, w, h);
-            primitives.Add(pr);
-            return pr;
+            ErDiagramDiamond primitive = new ErDiagramDiamond(relationshipSet, x, y, w, h);
+            primitives.Add(primitive);
+
+            observers.Notify(new ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>(this, primitive));
+            return primitive;
         }
         public ErDiagramEdge AddEdge(ErRole role, ErDiagramPrimitive pr1, ErDiagramPrimitive pr2, Point p1, Point p2)
         {
@@ -58,7 +63,19 @@ namespace ErEditor.ErSchemaClasses
             ErDiagramEdge edge = new ErDiagramEdge(role, pr1, pr2, p1, p2);
             primitives.Add(edge);
 
+            observers.Notify(new ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>(this, edge));
             return edge;
+        }
+        public ErDiagramEdge? AddEdge(ErRole role, ErRelationshipSet relationshipSet, Point p1, Point p2)
+        {
+            ErDiagramPrimitive? rectangle = primitives.Find(x => x.ErElement == role.EntitySet);
+            ErDiagramPrimitive? diamond = primitives.Find(x => x.ErElement == relationshipSet);
+
+            if(rectangle != null && diamond != null)
+            {
+                return this.AddEdge(role, rectangle, diamond, p1, p2);
+            }
+            return null;
         }
 
         public IEnumerator<ErDiagramPrimitive> GetEnumerator()

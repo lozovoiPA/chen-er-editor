@@ -1,4 +1,5 @@
 ﻿using ErEditor.DbSchemaClasses;
+using ErEditor.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public abstract class ErDiagramPrimitive
+    public abstract class ErDiagramPrimitive : IObservable
     {
         public int X;
         public int Y;
@@ -18,11 +19,22 @@ namespace ErEditor.ErSchemaClasses
         public int width;
         public int height;
 
+        protected readonly ObservableBase observers = new();
+
         public abstract string Label { get; set; }
+        public abstract ErElement ErElement { get; }
+
         public abstract void Draw(Graphics g);
         public abstract bool Intersects(Point point);
 
-        public abstract ErElement ErElement { get; }
+        public bool Subscribe(IObserver observer)
+        {
+            return observers.Subscribe(observer);
+        }
+        public bool Unsubscribe(IObserver observer)
+        {
+            return observers.Unsubscribe(observer);
+        }
     }
 
     public class ErDiagramEdge : ErDiagramPrimitive

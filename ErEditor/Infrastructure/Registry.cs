@@ -195,7 +195,7 @@ namespace ErEditor.Infrastructure
 
 
         // Maps a DB entry to this Registry entry (object entry) and adds it to retrieved entries
-        public TObject RetrieveDbEntry<TDbObject>(TDbObject dbEntry, Func<TDbObject, TObject> mapFunc) where TDbObject : IDbEntry
+        public TObject? RetrieveDbEntry<TDbObject>(TDbObject dbEntry, Func<TDbObject, TObject?> mapFunc) where TDbObject : IDbEntry
         {
             TObject? retrievedEl = this.FindById(dbEntry.Id);
             if (retrievedEl != null)
@@ -203,15 +203,22 @@ namespace ErEditor.Infrastructure
                 return retrievedEl;
             }
             retrievedEl = mapFunc(dbEntry);
-            this.AddRetrieved(dbEntry.Id, retrievedEl);
+            if(retrievedEl != null)
+            {
+                this.AddRetrieved(dbEntry.Id, retrievedEl);
+            }
             return retrievedEl;
         }
-        public List<TObject> RetrieveDbEntryList<TDbObject>(IEnumerable<TDbObject> dbList, Func<TDbObject, TObject> mapFunc) where TDbObject : class, IDbEntry
+        public List<TObject> RetrieveDbEntryList<TDbObject>(IEnumerable<TDbObject> dbList, Func<TDbObject, TObject?> mapFunc) where TDbObject : class, IDbEntry
         {
             List<TObject> objectList = new();
             foreach(var dbEl in dbList)
             {
-                objectList.Add(RetrieveDbEntry(dbEl, mapFunc));
+                var retrievedEl = RetrieveDbEntry(dbEl, mapFunc);
+                if(retrievedEl != null)
+                {
+                    objectList.Add(retrievedEl);
+                }
             }
             return objectList;
         }

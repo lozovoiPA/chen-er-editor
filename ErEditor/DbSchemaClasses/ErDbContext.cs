@@ -55,8 +55,8 @@ namespace ErEditor.DbSchemaClasses
             modelBuilder.Entity<DbPrimitive>()
                 .HasDiscriminator(primitive => primitive.Type)
                 .HasValue<DbRectangle>("Rectangle")
-                .HasValue<DbRhombus>("Rhombus")
-                .HasValue<DbAssociation>("Association");
+                .HasValue<DbDiamond>("Diamond")
+                .HasValue<DbEdge>("Edge");
         }
     }
 }

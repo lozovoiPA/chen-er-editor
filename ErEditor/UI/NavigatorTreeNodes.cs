@@ -4,6 +4,7 @@ using ErEditor.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Configuration;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -15,7 +16,7 @@ namespace ErEditor.UI
     // По сути поддерживаю ограничение внешнего ключа схема -> элемент в навигаторе.
     // Логично потому что это пока единственное место, где может быть открыто несколько схем (не считая инфраструктурных
     // классов которые работают только со схемой, и не работают с ее элементами, поэтому им это ограничение безразлично)
-    public abstract class NavigatorErNode<TData> : ExtTreeNodeBase<TData>
+    public abstract class NavigatorErNode<TData> : ExtTreeNodeWithNotNullableData<TData>
     {
         protected readonly ErSchema ParentSchema;
 
@@ -385,25 +386,6 @@ namespace ErEditor.UI
             foreach (var mapping in relationshipSet.Mappings)
             {
                 //this.AddMappingNode(mapping);
-            }
-
-            parentTree.NodeMouseClick += Tree_NodeMouseClick;
-        }
-
-        private void Tree_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
-        {
-            ConsoleLog.Log("Relationship Set Node nodeclick handler was triggered");
-            foreach (ErRoleNode node in roleFolder.Nodes)
-            {
-                if (e.Node == node)
-                {
-                    ConsoleLog.Log("Found corresponding Role Node that was clicked.");
-                    var schema = parentTree.GetNodeData<ErSchema>(this.Parent.Parent);
-                    if(schema != null)
-                    {
-                        MainWindow.OpenProperties(schema, node.Data);
-                    }
-                }
             }
         }
 

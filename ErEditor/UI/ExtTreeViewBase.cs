@@ -54,7 +54,24 @@ namespace ErEditor.UI
         protected virtual void ClickNode(object? sender, TreeNodeMouseClickEventArgs e)
         {
             SelectedNode = Nodes[e.Node];
-            Console.WriteLine($"Clicked: {e.Node.Name}");
+        }
+
+        // rename node by handler (selected node)
+        // this handler should be accessible for assignments for nodes and other stuff
+        public void RenameSelectedNode(object? sender, EventArgs e)
+        {
+            if(SelectedNode != null)
+            {
+                RenameNode(SelectedNode);
+            }
+        }
+        // rename node manually
+        public void RenameNode(IExtTreeNode node)
+        {
+            LabelEdit = true;
+            SelectedNode = node;
+            editingNode = node;
+            editingNode.BeginEdit();
         }
         protected virtual void EndRenamingNode(object? sender, NodeLabelEditEventArgs e)
         {
@@ -68,32 +85,12 @@ namespace ErEditor.UI
             }
             LabelEdit = false;
         }
-        private void BeginRenamingNodeInner(IExtTreeNode node)
-        {
-            LabelEdit = true;
-            if (node != null)
-            {
-                Console.WriteLine($"Begin editing node (inner): {node.Name}");
-                SelectedNode = node;
-                editingNode = node;
-                editingNode.BeginEdit();
-            }
-        }
-        public void RenameSelectedNode(object? sender, EventArgs e)
-        {
-            BeginRenamingNodeInner(this.SelectedNode);
-        }
-        public void RenameNode(IExtTreeNode node)
-        {
-            Console.WriteLine($"Begin editing node (Rename manually): {node.Name}");
-            BeginRenamingNodeInner(node);
-        }
 
         public TData? GetNodeData<TData>(TreeNode node)
         {
             if(Nodes[node] != null)
             {
-                var extNode = (Nodes[node] as ExtTreeNodeBase<TData>);
+                var extNode = (Nodes[node] as ExtTreeNodeWithNullableData<TData>);
                 TData? data = default;
                 if (extNode != null)
                 {

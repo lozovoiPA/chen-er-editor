@@ -80,9 +80,13 @@ namespace ErEditor.ErSchemaClasses
                 output += $"\t{el.Name}\n";
             }
             output += $"Диаграммы (всего - {Diagrams.Count}):\n";
-            foreach (var el in Diagrams)
+            foreach (var diagram in Diagrams)
             {
-                output += $"\t{el.Name}\n";
+                output += $"\t{diagram.Name}\n";
+                foreach (var primitive in diagram)
+                {
+                    output += $"\t ├ {ConsoleLog.GetShortTypeName(primitive)} of {ConsoleLog.GetShortTypeName(primitive.ErElement)} \"{primitive.ErElement.Name}\"\n";
+                }
             }
             return output;
         }

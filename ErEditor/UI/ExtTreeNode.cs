@@ -21,7 +21,7 @@ namespace ErEditor.UI
         public void Click(object? sender, MouseEventArgs e);
         public void DoubleClick(object? sender, MouseEventArgs e);
     }
-    public abstract class ExtTreeNodeBase<T> : TreeNode, IExtTreeNode
+    public abstract class ExtTreeNodeBase : TreeNode, IExtTreeNode
     {
         public TreeNode TreeNode
         {
@@ -32,7 +32,6 @@ namespace ErEditor.UI
             get { return base.Text; }
             set { base.Name = value; base.Text = value; }
         }
-        public abstract T? Data { get; set; }
         public new abstract ITreeNodeCollection Nodes { get; }
         protected TreeNodeCollection TreeNodes { get { return base.Nodes; } }
 
@@ -48,9 +47,17 @@ namespace ErEditor.UI
 
         }
     }
+    public abstract class ExtTreeNodeWithNullableData<TData> : ExtTreeNodeBase
+    {
+        public abstract TData? Data { get; set; }
+    }
+    public abstract class ExtTreeNodeWithNotNullableData<TData> : ExtTreeNodeBase
+    {
+        public abstract TData Data { get; set; }
+    }
 
     // ExtTreeNode подходит для любых типов объектов и любых целей, когда не нужны особые классы узлов
-    public class ExtTreeNode : ExtTreeNodeBase<object>
+    public class ExtTreeNode : ExtTreeNodeWithNullableData<object>
     {
         private object? data;
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
@@ -73,7 +80,7 @@ namespace ErEditor.UI
         }
     }
     // ExtTreeNodeTyped нужен для создания узлов с конкретным типом хранимых данных или конкретным типом узлов в коллекции
-    public class ExtTreeNodeTyped<T, U> : ExtTreeNodeBase<T> where U: IExtTreeNode
+    public class ExtTreeNodeTyped<T, U> : ExtTreeNodeWithNullableData<T> where U: IExtTreeNode
     {
         private T? data;
         private ExtTreeNodeCollection<U> nodes;

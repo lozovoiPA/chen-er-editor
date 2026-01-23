@@ -64,20 +64,12 @@ namespace ErEditor.ErSchemaClasses
 
             observers.Notify(notif);
         }
-        public override void Recieve(Notification notification)
-        {
-            notificationProcessor.Recieve(notification);
-        }
     }
     public class ErEntitySetWatcher : ErElementWithAttributesWatcher<ErEntitySet> { }
     public class ErRelationshipSetWatcher : 
         ErElementWithAttributesWatcher<ErRelationshipSet>,
         IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>
     {
-        public override void Recieve(Notification notification)
-        {
-            notificationProcessor.Recieve(notification);
-        }
         public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> notif)
         {
             notif.ObjectAdded.Subscribe(this);
@@ -85,5 +77,19 @@ namespace ErEditor.ErSchemaClasses
         }
     }
     public class ErValueSetWatcher : ErElementWatcher<ErValueSet> { }
-    public class ErDiagramWatcher : ErElementWatcher<ErDiagram>{ }
+    public class ErDiagramWatcher 
+        : ErElementWatcher<ErDiagram>,
+        IVisitor<ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>>
+    {
+        public void Visit(ObjectAddedNotification<ErDiagram, ErDiagramPrimitive> notif)
+        {
+            notif.ObjectAdded.Subscribe(this);
+            observers.Notify(notif);
+        }
+        public void Visit(ObjectDeletedNotification<ErDiagramPrimitive> notif)
+        {
+            notif.Object.Unsubscribe(this);
+            observers.Notify(notif);
+        }
+    }
 }

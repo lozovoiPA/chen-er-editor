@@ -20,7 +20,7 @@ namespace ErEditor.UI
         private TextBox selectedPrimitiveRenameTextBox = new();
         private ErDiagramPrimitive? selectedPrimitive;
 
-        Rectangle selectedPrimitiveLocation = Rectangle.Empty;
+        Rectangle selectedPrimitiveRegion = Rectangle.Empty;
         bool isEdgeBeingDrawn = false;
         bool isMouseBeingHeld = false;
 
@@ -56,10 +56,10 @@ namespace ErEditor.UI
 
             ToolStripMenuItem createEntitySetItem = new();
             createEntitySetItem.Text = "Множество сущностей";
-            createEntitySetItem.Click += CreateEntitySet;
+            createEntitySetItem.Click += CreateEntitySet_Handler;
             ToolStripMenuItem createRelationshipSetItem = new();
             createRelationshipSetItem.Text = "Множество связей";
-            createRelationshipSetItem.Click += CreateRelationshipSet;
+            createRelationshipSetItem.Click += CreateRelationshipSet_Handler;
 
             createPrimitiveDropdown.DropDownItems.AddRange([
                 createEntitySetItem,
@@ -69,15 +69,16 @@ namespace ErEditor.UI
         }
         private void InitializePrimitiveContextMenu()
         {
-            ToolStripMenuItem createLinkItem = new();
-            createLinkItem.Text = "Создать связь...";
+            ToolStripMenuItem createEdgeItem = new();
+            createEdgeItem.Text = "Создать связь...";
+            createEdgeItem.Click += StartDrawingEdge_Handler;
             ToolStripMenuItem deletePrimitiveOnlyItem = new();
             deletePrimitiveOnlyItem.Text = "Убрать элемент";
             ToolStripMenuItem deleteErElementItem = new();
             deleteErElementItem.Text = "Удалить элемент";
 
             primitiveContextMenu.Items.AddRange([
-                createLinkItem,
+                createEdgeItem,
                 deletePrimitiveOnlyItem,
                 deleteErElementItem
                 ]);
@@ -103,15 +104,15 @@ namespace ErEditor.UI
             {
                 if (isEdgeBeingDrawn) // links are drawn under the figures
                 {
-                    Console.WriteLine(selectedPrimitiveLocation);
-                    e.Graphics.DrawLine(new Pen(Color.Black), selectedPrimitiveLocation.X, selectedPrimitiveLocation.Y, selectedPrimitiveLocation.Width, selectedPrimitiveLocation.Height);
+                    Console.WriteLine(selectedPrimitiveRegion);
+                    e.Graphics.DrawLine(new Pen(Color.Black), selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y, selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height);
                 }
                 diagram.Draw(e.Graphics);
             }
         }
         
 
-        private void CreateEntitySet(object? sender, EventArgs e)
+        private void CreateEntitySet_Handler(object? sender, EventArgs e)
         {
             Point point = PointToClient(new Point(panelContextMenu.Bounds.X, panelContextMenu.Bounds.Y));
             
@@ -123,7 +124,7 @@ namespace ErEditor.UI
                 RenamePrimitive(pr);
             }
         }
-        private void CreateRelationshipSet(object? sender, EventArgs e)
+        private void CreateRelationshipSet_Handler(object? sender, EventArgs e)
         {
             ConsoleLog.Log("New relationship set creation (diagram) handler was called", this, "INFO");
             Point point = PointToClient(new Point(panelContextMenu.Bounds.X, panelContextMenu.Bounds.Y));
@@ -137,6 +138,13 @@ namespace ErEditor.UI
             }
 
         }
+        private void StartDrawingEdge_Handler(object? sender, EventArgs e)
+        {
+            isEdgeBeingDrawn = true;
+            Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
+            Console.WriteLine(point);
+            selectedPrimitiveRegion = new Rectangle(point.X, point.Y, point.X, point.Y);
+        }
 
         private void DiagramPanel_MouseDown(object? sender, MouseEventArgs e)
         {
@@ -147,33 +155,43 @@ namespace ErEditor.UI
                     this.EndRenameActivity();
                 }
                 isMouseBeingHeld = false;
-                ErDiagramPrimitive? pr = diagram.FindAt(e.X, e.Y);
-                Console.WriteLine("\n" + e.X + " " + e.Y);
+                ErDiagramPrimitive? clickedPrimitive = diagram.FindAt(e.X, e.Y);
                 if (e.Button == MouseButtons.Right)
                 {
-                    if (pr == null)
+                    if (clickedPrimitive == null)
                     {
                         panelContextMenu.Show(this, e.X, e.Y);
                     }
                     else
                     {
-                        selectedPrimitive = pr;
+                        selectedPrimitive = clickedPrimitive;
                         primitiveContextMenu.Show(this, e.X, e.Y);
                     }
                 }
                 else if (e.Button == MouseButtons.Left)
                 {
-                    if (pr != null)
+                    if (clickedPrimitive != null)
                     {
                         if (!isEdgeBeingDrawn) // we are not currently drawing a link so we can start holding
                         {
                             isMouseBeingHeld = true;
-                            selectedPrimitive = pr;
-                            selectedPrimitiveLocation = new Rectangle(pr.X, pr.Y, e.X - pr.X, e.Y - pr.Y);
+                            selectedPrimitive = clickedPrimitive;
+                            selectedPrimitiveRegion = new Rectangle(clickedPrimitive.X, clickedPrimitive.Y, e.X - clickedPrimitive.X, e.Y - clickedPrimitive.Y);
                         }
                         else
                         {
-                            //diagram.AddEdge(active_pr, pr, new Point(active_at.X, active_at.Y), new Point(active_at.Width, active_at.Height));
+                            ErRelationshipSet? relationshipSet = (selectedPrimitive as ErDiagramDiamond)?.ErElement
+                                ?? (clickedPrimitive as ErDiagramDiamond)?.ErElement;
+                            ErEntitySet? entitySet = (selectedPrimitive as ErDiagramRectangle)?.ErElement
+                                ?? (clickedPrimitive as ErDiagramRectangle)?.ErElement;
+                            if(relationshipSet != null && entitySet != null)
+                            {
+                                ErRole role = relationshipSet.AddRole(entitySet);
+                                diagram.AddEdge(role, selectedPrimitive!, clickedPrimitive, 
+                                    new Point(selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y), 
+                                    new Point(selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height));
+                            }
+
                             isEdgeBeingDrawn = false;
                             Invalidate();
                         }
@@ -206,15 +224,15 @@ namespace ErEditor.UI
             {
                 if (isMouseBeingHeld && selectedPrimitive != null)
                 {
-                    selectedPrimitive.X = e.X - selectedPrimitiveLocation.Width;
-                    selectedPrimitive.Y = e.Y - selectedPrimitiveLocation.Height;
+                    selectedPrimitive.X = e.X - selectedPrimitiveRegion.Width;
+                    selectedPrimitive.Y = e.Y - selectedPrimitiveRegion.Height;
 
                     Invalidate();
                 }
                 else if (isEdgeBeingDrawn)
                 {
-                    selectedPrimitiveLocation.Width = e.X;
-                    selectedPrimitiveLocation.Height = e.Y;
+                    selectedPrimitiveRegion.Width = e.X;
+                    selectedPrimitiveRegion.Height = e.Y;
 
                     Invalidate();
                 }

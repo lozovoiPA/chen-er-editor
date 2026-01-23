@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -14,7 +16,8 @@ namespace ErEditor.ErSchemaClasses
 {
     public class ErSchemaRegistry : IObserver, 
         IVisitor<ObjectAddedNotification<ErElementWithAttributes, ErAttribute>>,
-        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>
+        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
+        IVisitor<ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>>
     {
         public readonly ErSchema Schema;
 
@@ -31,6 +34,8 @@ namespace ErEditor.ErSchemaClasses
 
         private Dictionary<ErAttribute, ErElementWithAttributes> attributeForeignKeys = new();
         private Dictionary<ErRole, ErRelationshipSet> roleForeignKeys = new();
+        private Dictionary<ErMapping, ErRelationshipSet> mappingForeignKeys = new();
+        private Dictionary<ErDiagramPrimitive, ErDiagram> primitiveForeignKeys = new();
 
         public ErSchemaRegistry(ErSchema schema)
         {
@@ -62,11 +67,7 @@ namespace ErEditor.ErSchemaClasses
 
             var attributes = AttributeRegistry.RetrieveDbEntryList(
                 dbEs.Attributes.ToList(), 
-                el =>
-                {
-                    var attr = CreateAttributeOnSchema(entitySet, el);
-                    return attr;
-                });
+                el => CreateAttributeOnSchema(entitySet, el));
 
             return entitySet;
         }
@@ -76,19 +77,11 @@ namespace ErEditor.ErSchemaClasses
 
             var attributes = AttributeRegistry.RetrieveDbEntryList(
                 dbRs.Attributes.ToList(),
-                el =>
-                {
-                    var attr = CreateAttributeOnSchema(relationshipSet, el);
-                    return attr;
-                });
+                el => CreateAttributeOnSchema(relationshipSet, el));
 
             var roles = RoleRegistry.RetrieveDbEntryList(
                 dbRs.Roles.ToList(),
-                el =>
-                {
-                    var role = CreateRoleOnSchema(relationshipSet, el);
-                    return role;
-                });
+                el => CreateRoleOnSchema(relationshipSet, el));
             return relationshipSet;
         }
         private ErValueSet CreateValueSetOnSchema(DbValueSet dbVs)
@@ -99,6 +92,9 @@ namespace ErEditor.ErSchemaClasses
         private ErDiagram CreateDiagramOnSchema(DbDiagram dbDgr)
         {
             ErDiagram diagram = Schema.Diagrams.Add(dbDgr.Name ?? string.Empty);
+            var primitives = PrimitiveRegistry.RetrieveDbEntryList(
+                dbDgr.Primitives.ToList(),
+                dbPrimitive => CreatePrimitiveOnDiagram(diagram, dbPrimitive));
             return diagram;
         }
         private ErAttribute CreateAttributeOnSchema(ErElementWithAttributes element, DbAttribute dbAttr)
@@ -131,6 +127,37 @@ namespace ErEditor.ErSchemaClasses
             
             return role;
         }
+        private ErDiagramPrimitive? CreatePrimitiveOnDiagram(ErDiagram diagram, DbPrimitive dbPrimitive)
+        {
+            ErDiagramPrimitive? primitive = null;
+            switch (dbPrimitive)
+            {
+                case DbRectangle dbRect:
+                    var entitySet = EntitySetRegistry.RetrieveDbEntry(dbRect.ElementWithAttributes, CreateEntitySetOnSchema);
+                    primitive = diagram.AddRectangle(entitySet, dbPrimitive.X, dbPrimitive.Y, dbPrimitive.width, dbPrimitive.height);
+                    break;
+                case DbDiamond dbDiamond:
+                    var relationshipSet = RelationshipSetRegistry.RetrieveDbEntry(dbDiamond.ElementWithAttributes, CreateRelationshipSetOnSchema);
+                    primitive = diagram.AddDiamond(relationshipSet, dbPrimitive.X, dbPrimitive.Y, dbPrimitive.width, dbPrimitive.height);
+                    break;
+                case DbEdge dbEdge:
+                    var roleRelationshipSet = RelationshipSetRegistry.RetrieveDbEntry(dbEdge.Role.RelationshipSet, CreateRelationshipSetOnSchema);
+                    var role = RoleRegistry.RetrieveDbEntry(dbEdge.Role, 
+                        dbRole => 
+                        {
+                            return CreateRoleOnSchema(roleRelationshipSet, dbRole);
+                        });
+                    primitive = diagram.AddEdge(role, roleRelationshipSet,
+                        new Point(dbPrimitive.X, dbPrimitive.Y), 
+                        new Point(dbPrimitive.width, dbPrimitive.height));
+                    break;
+            }
+            if(primitive != null)
+            {
+                primitiveForeignKeys.Add(primitive, diagram);
+            }
+            return primitive;
+        } 
 
         private int TryToAssignId<TObject>(TObject el, Registry<TObject> registry)
             where TObject : notnull
@@ -246,11 +273,6 @@ namespace ErEditor.ErSchemaClasses
         private DbRole? MakeDbRole(ErRole role)
         {
             var es = role.EntitySet;
-            if (es == null)
-            {
-                ConsoleLog.Log("Role doesn't have an entity set assigned to it. It will not be saved in the database.");
-                return null;
-            }
 
             DbRole dbRole = new DbRole(role.Name == "" ? null : role.Name);
 
@@ -317,6 +339,133 @@ namespace ErEditor.ErSchemaClasses
 
             dbRole.Id = TryToAssignId(role, RoleRegistry);
             return dbRole;
+        }
+
+        private (int? EntryId, TDbRow? EntryCandidate) FindForeignKeyConstraint<TDbRow, TElement>(TElement element, Registry<TElement> registry)
+            where TElement: notnull
+            where TDbRow : class, IDbEntry
+        {
+            // Find id or row candidate for creation
+            int? elementId = registry.FindId(element);
+            TDbRow? dbElement = null;
+
+            if(elementId != null)
+            {
+                return (elementId, null);
+            }
+
+            if (!registry.CreatedDbEntries.ContainsKey(element))
+            {
+                ConsoleLog.Log("Foreign key constraint couldn't be found in the registry. Entity will not be saved in the database.");
+                return (null, null);
+            }
+            dbElement = (TDbRow?)registry.CreatedDbEntries[element];
+
+            return (null, dbElement);
+        }
+        private DbPrimitive? MakeDbPrimitive(ErDiagramPrimitive primitive)
+        {
+            // Find diagram foreign key constraint
+            if (!primitiveForeignKeys.ContainsKey(primitive))
+            {
+                ConsoleLog.Log("Primitive foreign key entity couldn't be found in the foreign keys. Entity will not be saved in the database.");
+                return null;
+            }
+
+            ErDiagram diagram = primitiveForeignKeys[primitive];
+            (int? diagramId, DbDiagram? dbDiagram) = FindForeignKeyConstraint<DbDiagram, ErDiagram>(diagram, DiagramRegistry);
+            if(diagramId == null && dbDiagram == null)
+            {
+                ConsoleLog.Log("can't find diagram for primitive");
+                return null;
+            }
+
+            DbPrimitive? dbPrimitive = null;
+            switch (primitive)
+            {
+                case ErDiagramRectangle rect:
+                    (int? entitySetId, DbEntitySet? dbEntitySet) 
+                        = FindForeignKeyConstraint<DbEntitySet, ErEntitySet>(rect.ErElement, EntitySetRegistry);
+                    if(entitySetId == null && dbEntitySet == null)
+                    {
+                        ConsoleLog.Log("can't find entity set for primitive");
+                        return null;
+                    }
+                    DbRectangle dbRect = new DbRectangle();
+                    if(entitySetId != null)
+                    {
+                        dbRect.ElementWithAttributesId = (int)entitySetId;
+                    }
+                    else
+                    {
+                        dbRect.ElementWithAttributes = dbEntitySet!;
+                    }
+                    dbPrimitive = dbRect;
+                    dbPrimitive.Type = "Rectangle";
+                    break;
+                case ErDiagramDiamond diamond:
+                    (int? relationshipSetId, DbRelationshipSet? dbRelationshipSet)
+                        = FindForeignKeyConstraint<DbRelationshipSet, ErRelationshipSet>(diamond.ErElement, RelationshipSetRegistry);
+                    if (relationshipSetId == null && dbRelationshipSet == null)
+                    {
+                        ConsoleLog.Log("can't find rel set for primitive");
+                        return null;
+                    }
+                    DbDiamond dbDiamond = new DbDiamond();
+                    if (relationshipSetId != null)
+                    {
+                        dbDiamond.ElementWithAttributesId = (int)relationshipSetId;
+                    }
+                    else
+                    {
+                        dbDiamond.ElementWithAttributes = dbRelationshipSet!;
+                    }
+                    dbPrimitive = dbDiamond;
+                    dbPrimitive.Type = "Diamond";
+                    break;
+                case ErDiagramEdge edge:
+                    (int? roleId, DbRole? dbRole)
+                        = FindForeignKeyConstraint<DbRole, ErRole>(edge.ErElement, RoleRegistry);
+                    if (roleId == null && dbRole == null)
+                    {
+                        ConsoleLog.Log("can't find role for primitive");
+                        return null;
+                    }
+                    DbEdge dbEdge = new DbEdge();
+                    if (roleId != null)
+                    {
+                        dbEdge.RoleId = (int)roleId;
+                    }
+                    else
+                    {
+                        dbEdge.Role = dbRole!;
+                    }
+                    dbPrimitive = dbEdge;
+                    dbPrimitive.Type = "Edge";
+                    break;
+
+            }
+            if(dbPrimitive == null)
+            {
+                return null;
+            }
+
+            // через рефлексию такое можно закодить... ну или хотя бы через макрос
+            if(diagramId != null)
+            {
+                dbPrimitive.DiagramId = (int)diagramId;
+            }
+            else
+            {
+                dbPrimitive.Diagram = dbDiagram!;
+            }
+
+            dbPrimitive.X = primitive.X;
+            dbPrimitive.Y = primitive.Y;
+            dbPrimitive.width = primitive.width;
+            dbPrimitive.height = primitive.height;
+
+            return dbPrimitive;
         }
 
         public void GetSchemaFromDb(DbSchema dbSchema)
@@ -391,6 +540,7 @@ namespace ErEditor.ErSchemaClasses
             created.AddRange(MakeCreatedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             created.AddRange(MakeCreatedDbEntriesList(AttributeRegistry, MakeDbAttribute));
             created.AddRange(MakeCreatedDbEntriesList(RoleRegistry, MakeDbRole));
+            created.AddRange(MakeCreatedDbEntriesList(PrimitiveRegistry, MakeDbPrimitive));
 
             updated.AddRange(MakeUpdatedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
             updated.AddRange(MakeUpdatedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
@@ -398,6 +548,7 @@ namespace ErEditor.ErSchemaClasses
             updated.AddRange(MakeUpdatedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             updated.AddRange(MakeUpdatedDbEntriesList(AttributeRegistry, MakeDbAttribute));
             updated.AddRange(MakeUpdatedDbEntriesList(RoleRegistry, MakeDbRole));
+            updated.AddRange(MakeUpdatedDbEntriesList(PrimitiveRegistry, MakeDbPrimitive));
 
             deleted.AddRange(MakeDeletedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
             deleted.AddRange(MakeDeletedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
@@ -405,6 +556,7 @@ namespace ErEditor.ErSchemaClasses
             deleted.AddRange(MakeDeletedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             deleted.AddRange(MakeDeletedDbEntriesList(AttributeRegistry, MakeDbAttribute));
             deleted.AddRange(MakeDeletedDbEntriesList(RoleRegistry, MakeDbRole));
+            deleted.AddRange(MakeDeletedDbEntriesList(PrimitiveRegistry, MakeDbPrimitive));
 
             changes.AddCreatedRange(created);
             changes.AddUpdatedRange(updated);
@@ -427,6 +579,7 @@ namespace ErEditor.ErSchemaClasses
             Schema.RelationshipSetWatcher.Unsubscribe(RoleRegistry);
             Schema.RelationshipSetWatcher.Unsubscribe(MappingRegistry);
             Schema.DiagramWatcher.Unsubscribe(PrimitiveRegistry);
+            Schema.DiagramWatcher.Unsubscribe(this);
         }
         private void ObserveOn()
         {
@@ -443,6 +596,7 @@ namespace ErEditor.ErSchemaClasses
             Schema.RelationshipSetWatcher.Subscribe(RoleRegistry);
             Schema.RelationshipSetWatcher.Subscribe(MappingRegistry);
             Schema.DiagramWatcher.Subscribe(PrimitiveRegistry);
+            Schema.DiagramWatcher.Subscribe(this);
         }
 
         public void FlushRegistries()
@@ -460,19 +614,25 @@ namespace ErEditor.ErSchemaClasses
         // Распаковщик уведомлений от вотчеров к общим уведомлениям реестров (чтобы реестры не менять и у них у всех
         // ожидаемое и одинаковое поведение)
         // (опять же, его можно было бы поменять и через наследование, но здесь я сделал по-другому. масштабируемо!)
+        // Это надо для сохранения внешних ключей (которые иначе надо было бы представлять обратной связью от дочерних объектов к родителям)
         public void Recieve(Notification notification)
         {
             observerLogic.Recieve(notification);
         }
         public void Visit(ObjectAddedNotification<ErElementWithAttributes, ErAttribute> notif)
         {
-            AttributeRegistry.Recieve(new ObjectCreatedNotification<ErAttribute>(notif.ObjectAdded));
+            AttributeRegistry.Visit(new ObjectCreatedNotification<ErAttribute>(notif.ObjectAdded));
             attributeForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
         }
         public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> notif)
         {
-            RoleRegistry.Recieve(new ObjectCreatedNotification<ErRole>(notif.ObjectAdded));
+            RoleRegistry.Visit(new ObjectCreatedNotification<ErRole>(notif.ObjectAdded));
             roleForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
+        }
+        public void Visit(ObjectAddedNotification<ErDiagram, ErDiagramPrimitive> notif)
+        {
+            PrimitiveRegistry.Visit(new ObjectCreatedNotification<ErDiagramPrimitive>(notif.ObjectAdded));
+            primitiveForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
         }
     }
 }
