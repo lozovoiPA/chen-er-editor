@@ -2,16 +2,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public class ErElementCollection<TErElement> : NamedObjectCollection<TErElement>
+    public class ErElementCollection<TErElement> : NamedObjectCollection<TErElement>, IListSource
         where TErElement : class, IObservable, INamedObject, new()
     {
         public readonly ErElementWatcher<TErElement> Watcher;
+        public bool ContainsListCollection => true;
 
         public ErElementCollection(ErElementWatcher<TErElement> watcher)
         {
@@ -35,6 +37,11 @@ namespace ErEditor.ErSchemaClasses
             bool removed = elements.Remove(item);
             Watcher.Visit(new ObjectDeletedNotification<TErElement>(item));
             return removed;
+        }
+
+        public IList GetList()
+        {
+            return elements.AsReadOnly();
         }
     }
 }

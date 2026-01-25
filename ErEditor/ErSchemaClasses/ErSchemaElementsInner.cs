@@ -1,6 +1,7 @@
 ﻿using ErEditor.Infrastructure;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -64,9 +65,81 @@ namespace ErEditor.ErSchemaClasses
 
     public class ErMapping : ErElement
     {
+        private List<ErRole> preImage = new();
+        private List<ErRole> image = new();
+
+        // default: 1:M relationship
+        private int minCardinalityOfImage = 0;
+        private int maxCardinalityOfImage = -1;
+        private int minCardinalityOfPreimage = 0;
+        private int maxCardinalityOfPreimage = 1;
+
+        public ErMapping() { }
         public ErMapping(string name)
         {
             this.name = name;
+        }
+
+        public ReadOnlyCollection<ErRole> PreImage
+        {
+            get
+            {
+                return preImage.AsReadOnly();
+            }
+        }
+        public ReadOnlyCollection<ErRole> Image
+        {
+            get
+            {
+                return image.AsReadOnly();
+            }
+        }
+        public int MinCardinalityOfImage
+        {
+            get { return minCardinalityOfImage; }
+            set
+            {
+                minCardinalityOfImage = value;
+                observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
+            }
+        }
+        public int MaxCardinalityOfImage
+        {
+            get { return maxCardinalityOfImage; }
+            set
+            {
+                maxCardinalityOfImage = value;
+                observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
+            }
+        }
+        public int MinCardinalityOfPreimage
+        {
+            get { return minCardinalityOfPreimage; }
+            set
+            {
+                maxCardinalityOfPreimage = value;
+                observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
+            }
+        }
+        public int MaxCardinalityOfPreimage
+        {
+            get { return maxCardinalityOfPreimage; }
+            set
+            {
+                maxCardinalityOfPreimage = value;
+                observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
+            }
+        }
+
+        public void AddToPreImage(ErRole role)
+        {
+            preImage.Add(role);
+            observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
+        }
+        public void AddToImage(ErRole role)
+        {
+            image.Add(role);
+            observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
         }
     }
 }

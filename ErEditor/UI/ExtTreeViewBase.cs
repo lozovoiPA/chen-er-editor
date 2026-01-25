@@ -91,11 +91,17 @@ namespace ErEditor.UI
             if(Nodes[node] != null)
             {
                 var extNode = (Nodes[node] as ExtTreeNodeWithNullableData<TData>);
+                var extNode2 = (Nodes[node] as ExtTreeNodeWithNotNullableData<TData>);
+
                 TData? data = default;
                 if (extNode != null)
                 {
                     data = extNode.Data;
                 }
+                if(extNode2 != null)
+                {
+                    data = extNode2.Data;
+                } 
                 return data;
             }
             return default;

@@ -37,7 +37,7 @@ namespace ErEditor.ErSchemaClasses
             dbschema.AddRelationshipSetRange(dbcontext.RelationshipSets
                 .Include(el => el.Attributes)
                 .Include(el => el.Roles)
-                .Include(el => el.Mappings)
+                .Include(el => el.Mappings).ThenInclude(x => x.MappingRoles)
                 .ToList());
             dbschema.AddValueSetRange(dbcontext.ValueSets.ToList());
             dbschema.AddDiagramRange(dbcontext.Diagrams.Include(el => el.Primitives).ToList());

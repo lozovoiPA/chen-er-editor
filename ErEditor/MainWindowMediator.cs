@@ -54,7 +54,6 @@ namespace ErEditor
         public static void OpenSchema(ErSchema schema)
         {
             Navigator.OpenSchema(schema);
-            Navigator.Enabled = true;
         }
         public static void OpenProperties<TErElement>(ErSchema schema, TErElement element)
         {

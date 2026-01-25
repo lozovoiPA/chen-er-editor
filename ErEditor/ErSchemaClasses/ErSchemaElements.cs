@@ -94,17 +94,36 @@ namespace ErEditor.ErSchemaClasses
             get { return mappings.AsReadOnly(); }
         }
 
-        public ErRole AddRole(string name = "")
+        public ErRole AddRole(string name = "", bool addMapping = false)
         {
-            var newRole = this.AddRole(ErEntitySet.Empty, name);
-
+            var newRole = this.AddRole(ErEntitySet.Empty, name, addMapping);
             return newRole;
         }
-        public ErRole AddRole(ErEntitySet entitySet, string name = "")
+        public ErRole AddRole(ErEntitySet entitySet, string name = "", bool addMapping = false)
         {
             ErRole newRole = new(entitySet, name);
-            roles.Add(newRole);
 
+            // updating existing mappings
+            foreach (var mapping in mappings)
+            {
+                mapping.AddToImage(newRole);
+            }
+
+            // add new map
+            if (addMapping && this.roles.Count >= 1)
+            {
+                ErMapping newMapping = new();
+
+                newMapping.AddToPreImage(newRole);
+                foreach (var role in roles)
+                {
+                    newMapping.AddToImage(role);
+                }
+                mappings.Add(newMapping);
+                observers.Notify(new ObjectAddedNotification<ErRelationshipSet, ErMapping>(this, newMapping));
+            }
+
+            roles.Add(newRole);
             observers.Notify(new ObjectAddedNotification<ErRelationshipSet, ErRole>(this, newRole));
 
             return newRole;
@@ -123,6 +142,7 @@ namespace ErEditor.ErSchemaClasses
         {
             ErMapping newMapping = new(name);
             mappings.Add(newMapping);
+            observers.Notify(new ObjectAddedNotification<ErRelationshipSet, ErMapping>(this, newMapping));
             return newMapping;
         }
     }

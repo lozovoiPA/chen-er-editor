@@ -1,15 +1,6 @@
-﻿using ErEditor.DbSchemaClasses;
-using ErEditor.ErSchemaClasses;
+﻿using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Configuration;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+
 
 namespace ErEditor.UI
 {
@@ -210,7 +201,7 @@ namespace ErEditor.UI
         public void Visit(ObjectDeletedNotification<ErEntitySet> notif)
         {
             ErEntitySetNode? delNode = null;
-            foreach(ErEntitySetNode node in entitySetFolder.Nodes)
+            foreach(var node in entitySetFolder.Nodes)
             {
                 if(node.Data == notif.Object)
                 {
@@ -287,6 +278,7 @@ namespace ErEditor.UI
         private void DeleteEntitySet(object? sender, EventArgs e)
         {
             ErSchema? schema = parentTree.GetNodeData<ErSchema>(this.Parent.Parent);
+            ConsoleLog.Log(this.Parent.Parent.Text);
             schema?.EntitySets.Remove(entitySet);
         }
         private ErAttributeNode AddAttributeNode(ErAttribute attribute)
@@ -314,7 +306,12 @@ namespace ErEditor.UI
         }
     }
 
-    public class ErRelationshipSetNode : NavigatorErNode<ErRelationshipSet>, IObserver, IVisitor<ObjectNameChangedNotification>
+    public class ErRelationshipSetNode : 
+        NavigatorErNode<ErRelationshipSet>, 
+        IObserver, 
+        IVisitor<ObjectNameChangedNotification>,
+        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
+        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>
     {
         private ExtTreeNodeCollection<IExtTreeNode> nodes;
         private ErRelationshipSet relationshipSet;
@@ -370,7 +367,6 @@ namespace ErEditor.UI
             roleFolder.ImageIndex = 1;
             roleFolder.SelectedImageIndex = 1;
 
-            UIHelper.AddContextMenu(mappingFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(this.AddMapping) } });
             this.nodes.Add(mappingFolder);
             mappingFolder.ImageIndex = 1;
             mappingFolder.SelectedImageIndex = 1;
@@ -385,7 +381,7 @@ namespace ErEditor.UI
             }
             foreach (var mapping in relationshipSet.Mappings)
             {
-                //this.AddMappingNode(mapping);
+                this.AddMappingNode(mapping);
             }
         }
 
@@ -412,20 +408,21 @@ namespace ErEditor.UI
         }
         private void AddRole(object? sender, EventArgs e)
         {
-            var newRole = relationshipSet.AddRole();
-            var newNode = AddRoleNode(newRole);
+            var es = parentTree.GetNodeData<ErEntitySet>(this.Parent.Parent.Nodes[0].Nodes[0]);
+            if (this.Parent.Parent.Nodes[0].Nodes.Count > 0 && es != null)
+            {
+                var newRole = relationshipSet.AddRole(es, "", true);
+                var newNode = roleFolder.Nodes[roleFolder.Nodes.Count - 1];
 
-            roleFolder.Expand();
-            parentTree.RenameNode(newNode);
+                roleFolder.Expand();
+                parentTree.RenameNode(newNode);
+            }
         }
-        private void AddMapping(object? sender, EventArgs e)
+        private ErMappingNode AddMappingNode(ErMapping mapping)
         {
-            var newMap = relationshipSet.AddMapping();
-            var newNode = new ErMappingNode(ParentSchema, newMap, parentTree);
+            var newNode = new ErMappingNode(ParentSchema, mapping, parentTree);
             mappingFolder.Nodes.Add(newNode);
-
-            mappingFolder.Expand();
-            parentTree.RenameNode(newNode);
+            return newNode;
         }
 
         public void Recieve(Notification notification)
@@ -435,6 +432,14 @@ namespace ErEditor.UI
         public void Visit(ObjectNameChangedNotification notif)
         {
             base.Name = notif.NewName;
+        }
+        public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> concreteObject)
+        {
+            this.AddRoleNode(concreteObject.ObjectAdded);
+        }
+        public void Visit(ObjectAddedNotification<ErRelationshipSet, ErMapping> concreteObject)
+        {
+            this.AddMappingNode(concreteObject.ObjectAdded);
         }
     }
 

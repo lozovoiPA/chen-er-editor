@@ -73,6 +73,24 @@ namespace ErEditor.ErSchemaClasses
                 {
                     output += $"\t ├ {role.Name} -> entity set {role.EntitySet?.Name}\n";
                 }
+
+                if (el.Mappings.Count > 0) { output += $"\t Mappings:\n"; }
+                foreach (var mapping in el.Mappings)
+                {
+                    output += $"\t ├ {mapping.Name} : ";
+                    foreach(var role in mapping.PreImage)
+                    {
+                        output += $"{role.Name} x ";
+                    }
+                    output = output.Remove(output.Length - 3);
+                    output += " -> ";
+                    foreach (var role in mapping.Image)
+                    {
+                        output += $"{role.Name} x ";
+                    }
+                    output = output.Remove(output.Length - 3);
+                    output += "\n";
+                }
             }
             output += $"Множества значений (всего - {ValueSets.Count}):\n";
             foreach (var el in ValueSets)

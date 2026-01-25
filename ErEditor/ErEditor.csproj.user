@@ -16,6 +16,9 @@
     <Compile Update="NewErSchemaWindow.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="TestForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="UI\DiagramPanel.cs">
       <SubType>Component</SubType>
     </Compile>

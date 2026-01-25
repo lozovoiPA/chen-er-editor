@@ -24,7 +24,9 @@ namespace ErEditor.DbSchemaClasses
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=" + dbFullPath);
+            optionsBuilder
+                .UseSqlite("Data Source=" + dbFullPath)
+                .EnableSensitiveDataLogging();
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,7 +34,6 @@ namespace ErEditor.DbSchemaClasses
                 .HasDiscriminator<string>("Element Type")
                 .HasValue<DbEntitySet>("Entity Set")
                 .HasValue<DbRelationshipSet>("Relationship Set");
-
 
             modelBuilder.Entity<DbAttribute>()
                 .Property(attribute => attribute.IsKey)
@@ -44,14 +45,8 @@ namespace ErEditor.DbSchemaClasses
                 .Property(link => link.IsIdDependant)
                 .HasDefaultValue(false);
 
-            modelBuilder.Entity<DbRole>().HasAlternateKey(c => new { c.EntitySetId, c.RelationshipSetId });
+            //modelBuilder.Entity<DbRole>().HasAlternateKey(c => new { c.EntitySetId, c.RelationshipSetId });
 
-            /*
-            modelBuilder.Entity<DbPrimitive>()
-                .HasDiscriminator<string>("Primitive Type")
-                .HasValue<DbShape>("Shape")
-                .HasValue<DbAssociation>("Association");
-            */
             modelBuilder.Entity<DbPrimitive>()
                 .HasDiscriminator(primitive => primitive.Type)
                 .HasValue<DbRectangle>("Rectangle")

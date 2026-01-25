@@ -51,8 +51,11 @@ namespace ErEditor.Infrastructure
         {
             return ((IEnumerable)elements).GetEnumerator();
         }
+        void ICollection<TNamedObject>.CopyTo(TNamedObject[] array, int arrayIndex)
+        {
+            elements.CopyTo(array, arrayIndex);
+        }
 
-        void ICollection<TNamedObject>.CopyTo(TNamedObject[] array, int arrayIndex) { }
         void ICollection<TNamedObject>.Add(TNamedObject item) { Add(item); }
         bool ICollection<TNamedObject>.IsReadOnly => false;
     }

@@ -42,7 +42,6 @@ namespace ErEditor.DbSchemaClasses
         public virtual DbRelationshipSet RelationshipSet { get; set; } = null!;
         public bool IsKeyEntitySet { get; set; }
         public bool IsIdDependant { get; set; }
-        public virtual ObservableCollectionListSource<DbMappingDbRole> MappingDbRoles { get; } = new();
 
         public DbRole(string? name = null)
         {
@@ -55,19 +54,20 @@ namespace ErEditor.DbSchemaClasses
     {
         public int RelationshipSetId { get; set; }
         public virtual DbRelationshipSet RelationshipSet { get; set; } = null!;
-
+        public virtual ObservableCollectionListSource<DbMappingDbRole> MappingRoles { get; set; } = new();
         public int? MinCardinalityOfImage { get; set; }
         public int? MaxCardinalityOfImage { get; set; }
-        public int? MinCardinalityOfPreimage { get; set; }
-        public int? MaxCardinalityOfPreimage { get; set; }
+        public int? MinCardinalityOfPreImage { get; set; }
+        public int? MaxCardinalityOfPreImage { get; set; }
 
         public DbMapping(string? name = null)
         {
             this.Name = name;
         }
     }
-
+    
     [PrimaryKey(nameof(MappingId), nameof(RoleId))]
+    [Table("MappingRole")]
     public class DbMappingDbRole
     {
         //[Key, Column(Order = 0)]
@@ -78,7 +78,4 @@ namespace ErEditor.DbSchemaClasses
         public virtual DbRole Role { get; set; } = null!;
         public string? Type { get; set; }
     }
-
-
-    // можно вручную сюда добавить доп сущность на таблицу если бабанову захочется только 1 таблицу M:M
 }

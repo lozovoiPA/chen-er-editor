@@ -17,6 +17,7 @@ namespace ErEditor.ErSchemaClasses
     public class ErSchemaRegistry : IObserver, 
         IVisitor<ObjectAddedNotification<ErElementWithAttributes, ErAttribute>>,
         IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
+        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>,
         IVisitor<ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>>
     {
         public readonly ErSchema Schema;
@@ -82,6 +83,11 @@ namespace ErEditor.ErSchemaClasses
             var roles = RoleRegistry.RetrieveDbEntryList(
                 dbRs.Roles.ToList(),
                 el => CreateRoleOnSchema(relationshipSet, el));
+
+            var mappings = MappingRegistry.RetrieveDbEntryList(
+                dbRs.Mappings.ToList(),
+                el => CreateMappingOnSchema(relationshipSet, el));
+
             return relationshipSet;
         }
         private ErValueSet CreateValueSetOnSchema(DbValueSet dbVs)
@@ -157,7 +163,32 @@ namespace ErEditor.ErSchemaClasses
                 primitiveForeignKeys.Add(primitive, diagram);
             }
             return primitive;
-        } 
+        }
+        private ErMapping CreateMappingOnSchema(ErRelationshipSet rs, DbMapping dbMapping)
+        {
+            ErMapping mapping = rs.AddMapping(dbMapping.Name ?? string.Empty);
+            mapping.MinCardinalityOfPreimage = (int)dbMapping.MinCardinalityOfPreImage;
+            mapping.MaxCardinalityOfPreimage = (int)dbMapping.MaxCardinalityOfPreImage;
+            mapping.MinCardinalityOfImage = (int)dbMapping.MinCardinalityOfImage;
+            mapping.MaxCardinalityOfImage = (int)dbMapping.MaxCardinalityOfImage;
+
+            mappingForeignKeys.Add(mapping, rs);
+
+            var dbMappingRoles = dbMapping.MappingRoles;
+            foreach(var dbMappingRole in dbMappingRoles)
+            {
+                var role = RoleRegistry.RetrieveDbEntry(dbMappingRole.Role, role => CreateRoleOnSchema(rs, role));
+                if(dbMappingRole.Type == "image")
+                {
+                    mapping.AddToImage(role);
+                }
+                else{
+                    mapping.AddToPreImage(role);
+                }
+            }
+
+            return mapping;
+        }
 
         private int TryToAssignId<TObject>(TObject el, Registry<TObject> registry)
             where TObject : notnull
@@ -338,6 +369,7 @@ namespace ErEditor.ErSchemaClasses
             dbRole.IsKeyEntitySet = role.IsKey;
 
             dbRole.Id = TryToAssignId(role, RoleRegistry);
+
             return dbRole;
         }
 
@@ -362,6 +394,66 @@ namespace ErEditor.ErSchemaClasses
             dbElement = (TDbRow?)registry.CreatedDbEntries[element];
 
             return (null, dbElement);
+        }
+        
+        private DbMapping? MakeDbMapping(ErMapping mapping)
+        {
+            if (!mappingForeignKeys.ContainsKey(mapping))
+            {
+                ConsoleLog.Log("Mapping foreign key entity couldn't be found in the foreign keys. Entity will not be saved in the database.");
+                return null;
+            }
+
+            ErRelationshipSet rs = mappingForeignKeys[mapping];
+            (int? rsId, DbRelationshipSet? dbRs) = FindForeignKeyConstraint<DbRelationshipSet, ErRelationshipSet>(rs, RelationshipSetRegistry);
+            if (rsId == null && dbRs == null)
+            {
+                ConsoleLog.Log("can't find rs for map");
+                return null;
+            }
+
+            DbMapping dbMap = new(mapping.Name);
+
+            if (rsId != null)
+            {
+                dbMap.RelationshipSetId = (int)rsId;
+            }
+            else
+            {
+                dbMap.RelationshipSet = dbRs!;
+            }
+
+            dbMap.MaxCardinalityOfPreImage = mapping.MaxCardinalityOfPreimage;
+            dbMap.MinCardinalityOfPreImage = mapping.MinCardinalityOfPreimage;
+            dbMap.MaxCardinalityOfImage = mapping.MaxCardinalityOfImage;
+            dbMap.MinCardinalityOfImage = mapping.MinCardinalityOfImage;
+
+            foreach (var role in mapping.Image.Concat(mapping.PreImage))
+            {
+                DbMappingDbRole pair = new();
+                (int? roleId, DbRole? dbRole) = FindForeignKeyConstraint<DbRole, ErRole>(role, RoleRegistry);
+
+                if (mapping.Image.Contains(role))
+                {
+                    pair.Type = "image";
+                }
+                else
+                {
+                    pair.Type = "preimage";
+                }
+
+                if (roleId != null)
+                {
+                    pair.RoleId = (int)roleId;
+                    dbMap.MappingRoles.Add(pair);
+                }
+                else if(dbRole != null)
+                {
+                    pair.Role = dbRole;
+                    dbMap.MappingRoles.Add(pair);
+                }
+            }
+            return dbMap;
         }
         private DbPrimitive? MakeDbPrimitive(ErDiagramPrimitive primitive)
         {
@@ -540,6 +632,7 @@ namespace ErEditor.ErSchemaClasses
             created.AddRange(MakeCreatedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             created.AddRange(MakeCreatedDbEntriesList(AttributeRegistry, MakeDbAttribute));
             created.AddRange(MakeCreatedDbEntriesList(RoleRegistry, MakeDbRole));
+            created.AddRange(MakeCreatedDbEntriesList(MappingRegistry, MakeDbMapping));
             created.AddRange(MakeCreatedDbEntriesList(PrimitiveRegistry, MakeDbPrimitive));
 
             updated.AddRange(MakeUpdatedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
@@ -548,6 +641,7 @@ namespace ErEditor.ErSchemaClasses
             updated.AddRange(MakeUpdatedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             updated.AddRange(MakeUpdatedDbEntriesList(AttributeRegistry, MakeDbAttribute));
             updated.AddRange(MakeUpdatedDbEntriesList(RoleRegistry, MakeDbRole));
+            updated.AddRange(MakeUpdatedDbEntriesList(MappingRegistry, MakeDbMapping));
             updated.AddRange(MakeUpdatedDbEntriesList(PrimitiveRegistry, MakeDbPrimitive));
 
             deleted.AddRange(MakeDeletedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
@@ -556,6 +650,7 @@ namespace ErEditor.ErSchemaClasses
             deleted.AddRange(MakeDeletedDbEntriesList(DiagramRegistry, MakeDbDiagram));
             deleted.AddRange(MakeDeletedDbEntriesList(AttributeRegistry, MakeDbAttribute));
             deleted.AddRange(MakeDeletedDbEntriesList(RoleRegistry, MakeDbRole));
+            deleted.AddRange(MakeDeletedDbEntriesList(MappingRegistry, MakeDbMapping));
             deleted.AddRange(MakeDeletedDbEntriesList(PrimitiveRegistry, MakeDbPrimitive));
 
             changes.AddCreatedRange(created);
@@ -633,6 +728,12 @@ namespace ErEditor.ErSchemaClasses
         {
             PrimitiveRegistry.Visit(new ObjectCreatedNotification<ErDiagramPrimitive>(notif.ObjectAdded));
             primitiveForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
+        }
+
+        public void Visit(ObjectAddedNotification<ErRelationshipSet, ErMapping> notif)
+        {
+            MappingRegistry.Visit(new ObjectCreatedNotification<ErMapping>(notif.ObjectAdded));
+            mappingForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
         }
     }
 }
