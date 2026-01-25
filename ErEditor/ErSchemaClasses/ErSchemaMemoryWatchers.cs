@@ -69,7 +69,8 @@ namespace ErEditor.ErSchemaClasses
     public class ErRelationshipSetWatcher : 
         ErElementWithAttributesWatcher<ErRelationshipSet>,
         IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
-        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>
+        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>,
+        IVisitor<ObjectUpdatedNotification<ErMapping>>
     {
         public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> notif)
         {
@@ -79,6 +80,10 @@ namespace ErEditor.ErSchemaClasses
         public void Visit(ObjectAddedNotification<ErRelationshipSet, ErMapping> notif)
         {
             notif.ObjectAdded.Subscribe(this);
+            observers.Notify(notif);
+        }
+        public void Visit(ObjectUpdatedNotification<ErMapping> notif)
+        {
             observers.Notify(notif);
         }
     }

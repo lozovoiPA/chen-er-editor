@@ -1,4 +1,5 @@
-﻿using ErEditor.Infrastructure;
+﻿using ErEditor.DbSchemaClasses;
+using ErEditor.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -117,7 +118,7 @@ namespace ErEditor.ErSchemaClasses
             get { return minCardinalityOfPreimage; }
             set
             {
-                maxCardinalityOfPreimage = value;
+                minCardinalityOfPreimage = value;
                 observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
             }
         }
@@ -140,6 +141,22 @@ namespace ErEditor.ErSchemaClasses
         {
             image.Add(role);
             observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
+        }
+        public string GetDefaultName()
+        {
+            string output = string.Empty;
+            foreach (var role in PreImage)
+            {
+                output += $"{role.Name} x ";
+            }
+            output = output.Remove(output.Length - 3);
+            output += " -> ";
+            foreach (var role in Image)
+            {
+                output += $"{role.Name} x ";
+            }
+            output = output.Remove(output.Length - 3);
+            return output;
         }
     }
 }

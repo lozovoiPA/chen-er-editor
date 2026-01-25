@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -112,6 +113,26 @@ namespace ErEditor.ErSchemaClasses
             // add new map
             if (addMapping && this.roles.Count >= 1)
             {
+                // В случае с числом ролей 2 у нас обратное и прямое в одном объекте, но при трех и более уже нет
+                if (this.roles.Count == 2)
+                {
+                    ErMapping newMapping2 = new();
+
+                    newMapping2.AddToPreImage(roles[0]);
+                    foreach (var role in roles)
+                    {
+                        if(role != roles[0])
+                        {
+                            newMapping2.AddToImage(role);
+                        }
+                    }
+                    newMapping2.AddToImage(newRole);
+                    newMapping2.Name = newMapping2.GetDefaultName();
+
+                    mappings.Add(newMapping2);
+                    observers.Notify(new ObjectAddedNotification<ErRelationshipSet, ErMapping>(this, newMapping2));
+                }
+
                 ErMapping newMapping = new();
 
                 newMapping.AddToPreImage(newRole);
@@ -119,6 +140,8 @@ namespace ErEditor.ErSchemaClasses
                 {
                     newMapping.AddToImage(role);
                 }
+                newMapping.Name = newMapping.GetDefaultName();
+
                 mappings.Add(newMapping);
                 observers.Notify(new ObjectAddedNotification<ErRelationshipSet, ErMapping>(this, newMapping));
             }

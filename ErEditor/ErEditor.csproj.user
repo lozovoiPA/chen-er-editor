@@ -22,13 +22,19 @@
     <Compile Update="UI\DiagramPanel.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="UI\ElementView.cs">
+    <Compile Update="UI\ElementPropertiesPanel.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="UI\ExtTreeViewBase.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Update="UI\MappingView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="UI\NavigatorTreeView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\RoleView.cs">
       <SubType>Component</SubType>
     </Compile>
   </ItemGroup>
