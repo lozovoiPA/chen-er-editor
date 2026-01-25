@@ -75,6 +75,22 @@ namespace ErEditor.ErSchemaClasses
         private int minCardinalityOfPreimage = 0;
         private int maxCardinalityOfPreimage = 1;
 
+        public override string Name
+        {
+            get 
+            {
+                return name;
+            }
+            set
+            {
+                base.Name = value;
+            }
+        }
+        public string DefaultName
+        {
+            get { return this.GetDefaultName(); }
+        }
+
         public ErMapping() { }
         public ErMapping(string name)
         {
@@ -149,6 +165,7 @@ namespace ErEditor.ErSchemaClasses
             {
                 output += $"{role.Name} x ";
             }
+            ConsoleLog.Log(output);
             output = output.Remove(output.Length - 3);
             output += " -> ";
             foreach (var role in Image)

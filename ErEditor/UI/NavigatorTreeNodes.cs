@@ -403,6 +403,7 @@ namespace ErEditor.UI
         {
             var newNode = new ErRoleNode(ParentSchema, role, parentTree);
             roleFolder.Nodes.Add(newNode);
+            role.Subscribe(this);
 
             return newNode;
         }
@@ -421,7 +422,12 @@ namespace ErEditor.UI
         private ErMappingNode AddMappingNode(ErMapping mapping)
         {
             var newNode = new ErMappingNode(ParentSchema, mapping, parentTree);
+            if(mapping.Name == "")
+            {
+                newNode.DisplayName = mapping.DefaultName;
+            }
             mappingFolder.Nodes.Add(newNode);
+
             return newNode;
         }
 
@@ -431,7 +437,22 @@ namespace ErEditor.UI
         }
         public void Visit(ObjectNameChangedNotification notif)
         {
-            base.Name = notif.NewName;
+            switch (notif.Object)
+            {
+                case ErRelationshipSet rs:
+                    base.Name = notif.NewName;
+                    break;
+                case ErRole role:
+                    foreach(var node in mappingFolder.Nodes)
+                    {
+                        if(node.Data.Name == "")
+                        {
+                            node.DisplayName = node.Data.DefaultName;
+                        }
+                    }
+                    break;
+            }
+            
         }
         public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> concreteObject)
         {
@@ -623,6 +644,12 @@ namespace ErEditor.UI
             get { return base.Name; }
             set { base.Name = value; mapping.Name = value; }
         }
+        public string DisplayName
+        {
+            get { return base.Name; }
+            set { base.Name = value; }
+        }
+
         public override ErMapping Data
         {
             get { return mapping; }

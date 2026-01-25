@@ -110,6 +110,7 @@ namespace ErEditor.ErSchemaClasses
                 mapping.AddToImage(newRole);
             }
 
+            // пока костыльно пипеццццццц...........................ну и ладно.
             // add new map
             if (addMapping && this.roles.Count >= 1)
             {
@@ -127,7 +128,6 @@ namespace ErEditor.ErSchemaClasses
                         }
                     }
                     newMapping2.AddToImage(newRole);
-                    newMapping2.Name = newMapping2.GetDefaultName();
 
                     mappings.Add(newMapping2);
                     observers.Notify(new ObjectAddedNotification<ErRelationshipSet, ErMapping>(this, newMapping2));
@@ -140,7 +140,6 @@ namespace ErEditor.ErSchemaClasses
                 {
                     newMapping.AddToImage(role);
                 }
-                newMapping.Name = newMapping.GetDefaultName();
 
                 mappings.Add(newMapping);
                 observers.Notify(new ObjectAddedNotification<ErRelationshipSet, ErMapping>(this, newMapping));
