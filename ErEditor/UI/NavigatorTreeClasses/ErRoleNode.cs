@@ -1,0 +1,52 @@
+﻿using ErEditor.ErSchemaClasses;
+using ErEditor.UI.ExtTreeClasses;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ErEditor.UI.NavigatorTreeClasses
+{
+    partial class NavigatorTreeView
+    {
+        public class ErRoleNode : NavigatorErNode<ErRole>
+        {
+            private ExtTreeNodeCollection<IExtTreeNode> nodes;
+            private ErRole role;
+            private NavigatorTreeView parentTree;
+
+            public ErRoleNode(ErSchema schema, ErRole role, NavigatorTreeView parentTree) : base(schema)
+            {
+                nodes = new(TreeNodes);
+                this.role = role;
+                base.Name = role.Name;
+                this.parentTree = parentTree;
+
+                Initialize();
+            }
+
+            public override string Name
+            {
+                get { return base.Name; }
+                set { base.Name = value; role.Name = value; }
+            }
+            public override ErRole Data
+            {
+                get { return role; }
+                set { role = value; }
+            }
+            public override ExtTreeNodeCollection<IExtTreeNode> Nodes
+            {
+                get { return nodes; }
+            }
+
+            private void Initialize()
+            {
+                ImageIndex = 7;
+                SelectedImageIndex = 7;
+                UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
+            }
+        }
+    }
+}

@@ -1,4 +1,6 @@
-﻿namespace ErEditor
+﻿using ErEditor.UI.NavigatorTreeClasses;
+
+namespace ErEditor
 {
     partial class MainWindow
     {
@@ -29,7 +31,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            navigatorTreeView1 = new ErEditor.UI.NavigatorTreeView();
+            navigatorTreeView1 = new ErEditor.UI.NavigatorTreeClasses.NavigatorTreeView();
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             createSchemaToolstripMenuItem = new ToolStripMenuItem();
@@ -39,7 +41,7 @@
             diagramPanel1 = new ErEditor.UI.DiagramPanel();
             panel1 = new Panel();
             groupBox3 = new GroupBox();
-            elementPropertiesPanel1 = new ErEditor.UI.ElementPropertiesPanel();
+            elementPropertiesPanel1 = new ErEditor.UI.ElementPropertiesPanelClasses.ElementPropertiesPanel();
             splitter2 = new Splitter();
             groupBox2 = new GroupBox();
             toolStrip3 = new ToolStrip();
@@ -245,7 +247,7 @@
 
         #endregion
 
-        private UI.NavigatorTreeView navigatorTreeView1;
+        private NavigatorTreeView navigatorTreeView1;
         private MenuStrip menuStrip1;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem createSchemaToolstripMenuItem;
@@ -261,6 +263,6 @@
         private GroupBox groupBox2;
         private ToolStrip toolStrip2;
         private ToolStrip toolStrip3;
-        private UI.ElementPropertiesPanel elementPropertiesPanel1;
+        private UI.ElementPropertiesPanelClasses.ElementPropertiesPanel elementPropertiesPanel1;
     }
 }

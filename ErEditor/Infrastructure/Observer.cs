@@ -56,7 +56,7 @@ namespace ErEditor.Infrastructure
 
     public class ObserverBase : IObserver
     {
-        private Visitor notificationVisitorLogic;
+        private NotificationVisitor notificationVisitorLogic;
 
         public ObserverBase(object wrappableVisitor)
         {

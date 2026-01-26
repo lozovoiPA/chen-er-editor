@@ -59,4 +59,3 @@ D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErE
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.pdb
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.genruntimeconfig.cache
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ref\ErEditor.dll
-D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.TestForm.resources

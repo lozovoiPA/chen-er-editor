@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ErEditor.UI
+namespace ErEditor.UI.ExtTreeClasses
 {
     public interface ITreeNodeCollection : IList
     {

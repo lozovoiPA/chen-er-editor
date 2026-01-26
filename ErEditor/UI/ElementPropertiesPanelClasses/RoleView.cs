@@ -1,13 +1,8 @@
 ﻿using ErEditor.ErSchemaClasses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ErEditor.UI
+namespace ErEditor.UI.ElementPropertiesPanelClasses
 {
-    public class RoleView : ElementView<ErRole>
+    public class RoleView : ElementPropertiesPanel.ElementView<ErRole>
     {
         // Used temporarily to draw a white border (no border)
         public class ComboBoxWithBorder : ComboBox

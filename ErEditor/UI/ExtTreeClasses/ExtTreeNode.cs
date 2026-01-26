@@ -5,7 +5,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ErEditor.UI
+namespace ErEditor.UI.ExtTreeClasses
 {
     // Class that allows you to store any data in a TreeNode
     // Children must override Data and Nodes they store
@@ -29,8 +29,8 @@ namespace ErEditor.UI
         }
         public new virtual string Name
         {
-            get { return base.Text; }
-            set { base.Name = value; base.Text = value; }
+            get { return Text; }
+            set { base.Name = value; Text = value; }
         }
         public new abstract ITreeNodeCollection Nodes { get; }
         protected TreeNodeCollection TreeNodes { get { return base.Nodes; } }
@@ -64,8 +64,8 @@ namespace ErEditor.UI
 
         public ExtTreeNode(string name = "", object? data = null)
         {
-            nodes = new(this.TreeNode.Nodes);
-            this.Name = name;
+            nodes = new(TreeNode.Nodes);
+            Name = name;
             this.data = data;
         }
 
@@ -87,8 +87,8 @@ namespace ErEditor.UI
 
         public ExtTreeNodeTyped(string name = "")
         {
-            nodes = new(this.TreeNode.Nodes);
-            this.Name = name;
+            nodes = new(TreeNode.Nodes);
+            Name = name;
         }
 
         public override T? Data

@@ -9,7 +9,7 @@ namespace ErEditor.Infrastructure
     // Посетитель в конкретный объект - тип объекта T - абстрактный 
     public interface IVisitor<T>
     {
-        public void Visit(T concreteObject);
+        public void Visit(T notification);
     }
 
     public interface IVisitor
@@ -17,25 +17,20 @@ namespace ErEditor.Infrastructure
         public void Visit<T>(T concreteObject);
     }
 
-    public class Visitor : IVisitor
+    // alternatively this is abstract-to-concrete type resolver
+    public class NotificationVisitor : IVisitor
     {
         private readonly object concreteVisitor;
 
-        public Visitor(object concreteVisitor)
+        public NotificationVisitor(object concreteVisitor)
         {
             this.concreteVisitor = concreteVisitor;
         }
 
-        public void Visit<T>(T concreteObject)
+        public void Visit<T>(T notification)
         {
-            ConsoleLog.Log($"Received object: {concreteObject}, trying to pass it to visitor {concreteVisitor}");
             IVisitor<T>? concreteVisitorCasted = concreteVisitor as IVisitor<T>;
-            concreteVisitorCasted?.Visit(concreteObject);
-
-            if(concreteVisitorCasted == null)
-            {
-                ConsoleLog.Log("Visitor couldn't be casted to the type of the object");
-            }
+            concreteVisitorCasted?.Visit(notification);
         }
     }
 

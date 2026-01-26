@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ErEditor.UI
+namespace ErEditor.UI.ExtTreeClasses
 {
     // Будет переопределять методы TreeView
     public abstract class ExtTreeViewBase : TreeView
@@ -78,7 +78,7 @@ namespace ErEditor.UI
             if (editingNode != null)
             {
                 editingNode.EndEdit(true);
-                editingNode.Name = e.Label == null ? String.Empty : e.Label;
+                editingNode.Name = e.Label == null ? string.Empty : e.Label;
 
                 SelectedNode = null;
                 editingNode = null;
@@ -90,8 +90,8 @@ namespace ErEditor.UI
         {
             if(Nodes[node] != null)
             {
-                var extNode = (Nodes[node] as ExtTreeNodeWithNullableData<TData>);
-                var extNode2 = (Nodes[node] as ExtTreeNodeWithNotNullableData<TData>);
+                var extNode = Nodes[node] as ExtTreeNodeWithNullableData<TData>;
+                var extNode2 = Nodes[node] as ExtTreeNodeWithNotNullableData<TData>;
 
                 TData? data = default;
                 if (extNode != null)

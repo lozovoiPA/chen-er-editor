@@ -160,14 +160,24 @@ namespace ErEditor.ErSchemaClasses
         }
         public string GetDefaultName()
         {
+            string output = GetPreImageName();
+            output += " -> ";
+            output += GetImageName();
+            return output;
+        }
+        public string GetPreImageName()
+        {
             string output = string.Empty;
             foreach (var role in PreImage)
             {
                 output += $"{role.Name} x ";
             }
-            ConsoleLog.Log(output);
             output = output.Remove(output.Length - 3);
-            output += " -> ";
+            return output;
+        }
+        public string GetImageName()
+        {
+            string output = string.Empty;
             foreach (var role in Image)
             {
                 output += $"{role.Name} x ";

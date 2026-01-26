@@ -1,12 +1,9 @@
-﻿using ErEditor.DbSchemaClasses;
+﻿
 using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
 using ErEditor.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ErEditor.UI.ElementPropertiesPanelClasses;
+using ErEditor.UI.NavigatorTreeClasses;
 
 namespace ErEditor
 {

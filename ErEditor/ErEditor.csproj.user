@@ -16,25 +16,52 @@
     <Compile Update="NewErSchemaWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="TestForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Update="UI\DiagramPanel.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="UI\ElementPropertiesPanel.cs">
+    <Compile Update="UI\ElementPropertiesPanelClasses\ElementPropertiesPanel.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="UI\ExtTreeViewBase.cs">
+    <Compile Update="UI\ElementPropertiesPanelClasses\ElementPropertiesPanelElementView.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="UI\MappingView.cs">
+    <Compile Update="UI\ElementPropertiesPanelClasses\MappingView.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="UI\NavigatorTreeView.cs">
+    <Compile Update="UI\ElementPropertiesPanelClasses\MappingViewCardinalNumberUpDown.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="UI\RoleView.cs">
+    <Compile Update="UI\ElementPropertiesPanelClasses\RoleView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\ExtTreeClasses\ExtTreeViewBase.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\ErAttributeNode.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\ErDiagramNode.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\ErEntitySetNode.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\ErMappingNode.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\ErRelationshipSetNode.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\ErRoleNode.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\ErSchemaNode.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\ErValueSetNode.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\NavigatorTreeClasses\NavigatorTreeView.cs">
       <SubType>Component</SubType>
     </Compile>
   </ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using ErEditor.DbSchemaClasses;
 using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
+using ErEditor.UI.ExtTreeClasses;
 using FontAwesome.Sharp;
 using System;
 using System.Collections.Generic;
@@ -8,16 +9,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ErEditor.UI
+namespace ErEditor.UI.NavigatorTreeClasses
 {
-    public class NavigatorTreeView : ExtTreeViewBase
+    public partial class NavigatorTreeView : ExtTreeViewBase
     {
+        // По сути поддерживаю ограничение внешнего ключа схема -> элемент в навигаторе.
+        // Логично потому что это пока единственное место, где может быть открыто несколько схем (не считая инфраструктурных
+        // классов которые работают только со схемой, и не работают с ее элементами, поэтому им это ограничение безразлично)
+        public abstract class NavigatorErNode<TData> : ExtTreeNodeWithNotNullableData<TData>
+        {
+            protected readonly ErSchema ParentSchema;
+
+            public NavigatorErNode(ErSchema parentSchema)
+            {
+                ParentSchema = parentSchema;
+            }
+
+            public override void Click(object? sender, MouseEventArgs e)
+            {
+                MainWindow.OpenProperties(ParentSchema, Data);
+            }
+        }
+
         private ExtTreeNodeCollection<ErSchemaNode> nodes;
 
         public NavigatorTreeView()
         {
-            nodes = new(this.TreeNodes);
-            this.Initialize();
+            nodes = new(TreeNodes);
+            Initialize();
         }
 
         public override ExtTreeNodeCollection<ErSchemaNode> Nodes
@@ -54,20 +73,20 @@ namespace ErEditor.UI
 
             ImageList = imageList;
 
-            this.NodeMouseClick += NavigatorTreeView_NodeMouseClick;
-            this.NodeMouseDoubleClick += NavigatorTreeView_NodeMouseDoubleClick;
+            NodeMouseClick += NavigatorTreeView_NodeMouseClick;
+            NodeMouseDoubleClick += NavigatorTreeView_NodeMouseDoubleClick;
         }
 
         // this requires all nodes to have access to the mediator.
         // alternatively, received node could be casted to specific types and actions can be performed depending on the type.
         private void NavigatorTreeView_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-            var args = new System.Windows.Forms.MouseEventArgs(e.Button, e.Clicks, e.X, e.Y, e.Delta);
+            var args = new MouseEventArgs(e.Button, e.Clicks, e.X, e.Y, e.Delta);
             Nodes[e.Node]?.Click(sender, e);
         }
         private void NavigatorTreeView_NodeMouseDoubleClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-            var args = new System.Windows.Forms.MouseEventArgs(e.Button, e.Clicks, e.X, e.Y, e.Delta);
+            var args = new MouseEventArgs(e.Button, e.Clicks, e.X, e.Y, e.Delta);
             Nodes[e.Node]?.DoubleClick(sender, e);
         }
 
