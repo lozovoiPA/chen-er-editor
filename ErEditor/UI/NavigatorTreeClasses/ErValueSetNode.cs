@@ -45,7 +45,17 @@ namespace ErEditor.UI.NavigatorTreeClasses
             {
                 ImageIndex = 5;
                 SelectedImageIndex = 5;
-                UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
+                UIHelper.AddContextMenu(
+                    this, 
+                    new Dictionary<string, EventHandler>() { 
+                        { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) },
+                        { "Удалить", new EventHandler(DeleteValueSet) }
+                    });
+            }
+
+            private void DeleteValueSet(object? sender, EventArgs e)
+            {
+                ParentSchema.ValueSets.Remove(valueSet);
             }
         }
     }

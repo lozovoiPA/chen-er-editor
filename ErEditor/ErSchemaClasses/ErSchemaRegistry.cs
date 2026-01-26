@@ -18,7 +18,10 @@ namespace ErEditor.ErSchemaClasses
         IVisitor<ObjectAddedNotification<ErElementWithAttributes, ErAttribute>>,
         IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
         IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>,
-        IVisitor<ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>>
+        IVisitor<ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>>,
+        IVisitor<ObjectDeletedNotification<ErEntitySet>>,
+        IVisitor<ObjectDeletedNotification<ErRelationshipSet>>,
+        IVisitor<ObjectDeletedNotification<ErDiagram>>
     {
         public readonly ErSchema Schema;
 
@@ -453,6 +456,9 @@ namespace ErEditor.ErSchemaClasses
                     dbMap.MappingRoles.Add(pair);
                 }
             }
+
+            dbMap.Id = TryToAssignId(mapping, MappingRegistry);
+
             return dbMap;
         }
         private DbPrimitive? MakeDbPrimitive(ErDiagramPrimitive primitive)
@@ -729,11 +735,41 @@ namespace ErEditor.ErSchemaClasses
             PrimitiveRegistry.Visit(new ObjectCreatedNotification<ErDiagramPrimitive>(notif.ObjectAdded));
             primitiveForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
         }
-
         public void Visit(ObjectAddedNotification<ErRelationshipSet, ErMapping> notif)
         {
             MappingRegistry.Visit(new ObjectCreatedNotification<ErMapping>(notif.ObjectAdded));
             mappingForeignKeys.Add(notif.ObjectAdded, notif.ObjectAddedTo);
+        }
+
+        // might not be useful when implementing Ctrl+Z stuff of restoring
+        public void Visit(ObjectDeletedNotification<ErEntitySet> notification)
+        {
+            foreach(var attribute in notification.Object.Attributes)
+            {
+                AttributeRegistry.RemoveRetrieved(attribute);
+            }
+        }
+        public void Visit(ObjectDeletedNotification<ErRelationshipSet> notification)
+        {
+            foreach (var attribute in notification.Object.Attributes)
+            {
+                AttributeRegistry.RemoveRetrieved(attribute);
+            }
+            foreach (var role in notification.Object.Roles)
+            {
+                RoleRegistry.RemoveRetrieved(role);
+            }
+            foreach (var mapping in notification.Object.Mappings)
+            {
+                MappingRegistry.RemoveRetrieved(mapping);
+            }
+        }
+        public void Visit(ObjectDeletedNotification<ErDiagram> notification)
+        {
+            foreach (var primitive in notification.Object)
+            {
+                PrimitiveRegistry.RemoveRetrieved(primitive);
+            }
         }
     }
 }

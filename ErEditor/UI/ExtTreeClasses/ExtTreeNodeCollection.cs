@@ -103,9 +103,17 @@ namespace ErEditor.UI.ExtTreeClasses
             ((IList)treeNodeCollection).Insert(index, value);
         }
 
-        public void Remove(object? value)
+        public void Remove(IExtTreeNode value)
         {
-            ((IList)treeNodeCollection).Remove(value);
+            ((IList)treeNodeCollection).Remove(value.TreeNode);
+            ((IList)extTreeNodeCollection).Remove(value);
+        }
+        void IList.Remove(object? value)
+        {
+            if(value is IExtTreeNode)
+            {
+                this.Remove(value as IExtTreeNode);
+            }
         }
 
         public void RemoveAt(int index)

@@ -11,7 +11,11 @@ namespace ErEditor.UI.NavigatorTreeClasses
 {
     partial class NavigatorTreeView
     {
-        public class ErEntitySetNode : NavigatorErNode<ErEntitySet>, IObserver, IVisitor<ObjectNameChangedNotification>
+        public class ErEntitySetNode : 
+            NavigatorErNode<ErEntitySet>, 
+            IObserver, 
+            IVisitor<ObjectNameChangedNotification>,
+            IVisitor<ObjectDeletedNotification<ErAttribute>>
         {
             private ExtTreeNodeCollection<IExtTreeNode> nodes;
             private ErEntitySet entitySet;
@@ -19,7 +23,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
             private ExtTreeNodeTyped<object, ErAttributeNode> attributeFolder = new("Атрибуты");
 
-            private NotificationVisitor visitorLogic;
+            private ObserverBase notificationParser;
 
             public ErEntitySetNode(ErSchema schema, ErEntitySet entitySet, NavigatorTreeView parentTree) : base(schema)
             {
@@ -30,7 +34,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
                 Initialize();
 
-                visitorLogic = new(this);
+                notificationParser = new(this);
                 entitySet.Subscribe(this);
             }
 
@@ -72,9 +76,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private void DeleteEntitySet(object? sender, EventArgs e)
             {
-                ErSchema? schema = parentTree.GetNodeData<ErSchema>(Parent.Parent);
-                ConsoleLog.Log(Parent.Parent.Text);
-                schema?.EntitySets.Remove(entitySet);
+                ParentSchema.EntitySets.Remove(entitySet);
             }
             private ErAttributeNode AddAttributeNode(ErAttribute attribute)
             {
@@ -93,11 +95,15 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
             public void Recieve(Notification notification)
             {
-                notification.Accept(visitorLogic);
+                notificationParser.Recieve(notification);
             }
             public void Visit(ObjectNameChangedNotification notif)
             {
                 base.Name = notif.NewName;
+            }
+            public void Visit(ObjectDeletedNotification<ErAttribute> notif)
+            {
+                DeleteChildNode(notif.Object, attributeFolder);
             }
         }
     }

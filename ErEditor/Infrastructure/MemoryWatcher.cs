@@ -14,6 +14,7 @@ namespace ErEditor.Infrastructure
     {
         protected ObserverBase notificationProcessor;
         protected ObservableBase observers = new();
+        public bool BlockNotifying { get => observers.BlockNotifying; set => observers.BlockNotifying = value; }
 
         public MemoryWatcher()
         {

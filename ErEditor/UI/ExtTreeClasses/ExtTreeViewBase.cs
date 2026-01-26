@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ErEditor.Infrastructure;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -54,6 +55,8 @@ namespace ErEditor.UI.ExtTreeClasses
         protected virtual void ClickNode(object? sender, TreeNodeMouseClickEventArgs e)
         {
             SelectedNode = Nodes[e.Node];
+
+            ConsoleLog.Log($"This node has {SelectedNode.Nodes.Count}");
         }
 
         // rename node by handler (selected node)

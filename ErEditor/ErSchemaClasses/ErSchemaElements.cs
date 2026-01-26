@@ -1,4 +1,5 @@
-﻿using ErEditor.Infrastructure;
+﻿using ErEditor.DbSchemaClasses;
+using ErEditor.Infrastructure;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace ErEditor.ErSchemaClasses
     {
         protected string name = string.Empty;
         protected readonly ObservableBase observers = new();
-
+        public bool BlockNotifying { get => observers.BlockNotifying; set => observers.BlockNotifying = value; }
         public virtual string Name
         {
             get { return name; }
@@ -110,7 +111,6 @@ namespace ErEditor.ErSchemaClasses
                 mapping.AddToImage(newRole);
             }
 
-            // пока костыльно пипеццццццц...........................ну и ладно.
             // add new map
             if (addMapping && this.roles.Count >= 1)
             {
@@ -118,11 +118,11 @@ namespace ErEditor.ErSchemaClasses
                 if (this.roles.Count == 2)
                 {
                     ErMapping newMapping2 = new();
-
-                    newMapping2.AddToPreImage(roles[0]);
+                    ErRole role2 = mappings[0].Image[0];
+                    newMapping2.AddToPreImage(role2);
                     foreach (var role in roles)
                     {
-                        if(role != roles[0])
+                        if(role != role2)
                         {
                             newMapping2.AddToImage(role);
                         }
@@ -152,13 +152,31 @@ namespace ErEditor.ErSchemaClasses
         }
         public bool RemoveRole(ErRole role)
         {
-            if (!roles.Contains(role))
+            bool result = roles.Remove(role);
+
+            if (result)
             {
-                return false;
+                observers.Notify(new ObjectDeletedNotification<ErRole>(role));
+
+                List<int> mappingIndicesForDeletion = new();
+                mappings.ForEach(mapping =>
+                {
+                    if (mapping.Remove(role) == null)
+                    {
+                        mappingIndicesForDeletion.Add(mappings.IndexOf(mapping));
+                        observers.Notify(new ObjectDeletedNotification<ErMapping>(mapping));
+                    }
+                });
+                mappingIndicesForDeletion.ForEach(indice => mappings.RemoveAt(indice));
+                if (mappings.Count == 2)
+                {
+                    var mapping = mappings[1];
+                    mappings.RemoveAt(1);
+                    observers.Notify(new ObjectDeletedNotification<ErMapping>(mapping));
+                }
             }
-            roles.Remove(role);
-            observers.Notify(new ObjectDeletedNotification<ErRole>(role));
-            return true;
+
+            return result;
         }
         public ErMapping AddMapping(string name = "")
         {

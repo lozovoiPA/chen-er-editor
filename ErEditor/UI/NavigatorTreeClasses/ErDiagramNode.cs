@@ -45,9 +45,18 @@ namespace ErEditor.UI.NavigatorTreeClasses
             {
                 ImageIndex = 0;
                 SelectedImageIndex = 0;
-                UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
+                UIHelper.AddContextMenu(
+                    this,
+                    new Dictionary<string, EventHandler>() {
+                        { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) },
+                        { "Удалить", new EventHandler(DeleteDiagram) }
+                    });
             }
 
+            private void DeleteDiagram(object? sender, EventArgs e)
+            {
+                ParentSchema.Diagrams.Remove(diagram);
+            }
             public override void DoubleClick(object? sender, MouseEventArgs e)
             {
                 MainWindow.OpenDiagram(ParentSchema, diagram);

@@ -9,8 +9,12 @@ namespace ErEditor.UI.NavigatorTreeClasses
     {
         // По сути этот же нод ответственен и за своих четырех детей. Нет смысла плодить дополнительные классы если они неразрывно связаны со схемой и ее коллекциями.
         public class ErSchemaNode :
-        NavigatorErNode<ErSchema>, IObserver,
-        IVisitor<ObjectDeletedNotification<ErEntitySet>>
+            NavigatorErNode<ErSchema>, 
+            IObserver,
+            IVisitor<ObjectDeletedNotification<ErEntitySet>>,
+            IVisitor<ObjectDeletedNotification<ErRelationshipSet>>,
+            IVisitor<ObjectDeletedNotification<ErValueSet>>,
+            IVisitor<ObjectDeletedNotification<ErDiagram>>
         {
             private ExtTreeNodeCollection<IExtTreeNode> nodes; // если такая коллекция значит в нодах храним разные объекты
             private ErSchema schema;
@@ -186,19 +190,19 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
             public void Visit(ObjectDeletedNotification<ErEntitySet> notif)
             {
-                ErEntitySetNode? delNode = null;
-                foreach (var node in entitySetFolder.Nodes)
-                {
-                    if (node.Data == notif.Object)
-                    {
-                        delNode = node;
-                        break;
-                    }
-                }
-                if (delNode != null)
-                {
-                    entitySetFolder.Nodes.Remove(delNode);
-                }
+                DeleteChildNode(notif.Object, entitySetFolder);
+            }
+            public void Visit(ObjectDeletedNotification<ErRelationshipSet> notif)
+            {
+                DeleteChildNode(notif.Object, relationshipSetFolder);
+            }
+            public void Visit(ObjectDeletedNotification<ErValueSet> notif)
+            {
+                DeleteChildNode(notif.Object, valueSetFolder);
+            }
+            public void Visit(ObjectDeletedNotification<ErDiagram> notif)
+            {
+                DeleteChildNode(notif.Object, diagramFolder);
             }
         }
     }

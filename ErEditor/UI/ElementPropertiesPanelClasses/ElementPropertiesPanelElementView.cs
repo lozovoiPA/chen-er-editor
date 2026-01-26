@@ -10,9 +10,15 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 {
     partial class ElementPropertiesPanel
     {
-        public class ElementView<TErElement> : TableLayoutPanel
+        public abstract class ElementView : TableLayoutPanel
         {
-            protected List<Tuple<Label, Control?>> rows = new();
+            public abstract void CloseAndSave();
+            public abstract void CloseAndDiscard(); 
+        }
+
+        public abstract class ElementView<TErElement> : ElementView
+        {
+            protected List<Tuple<Label?, Control?>> rows = new();
             protected int rowHeight = 30;
             protected TextBox nameTextBox;
 
@@ -29,7 +35,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 
                 this.CellPaint += ElementView_CellPaint;
 
-                int index = AddRow("Название");
+                int index = AddRowWithTextBox("Название");
                 nameTextBox = (rows[index].Item2 as TextBox)!;
             }
 
@@ -59,7 +65,18 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 
                 return label;
             }
-            protected int AddRow(string propertyName)
+            protected int AddRow(Control control)
+            {
+                Controls.Add(control);
+
+                rows.Add(new(null, control));
+                var row = new RowStyle(SizeType.Absolute, rowHeight);
+                RowStyles.Insert(rows.Count-1, row);
+                
+                SetColumnSpan(control, 2);
+                return rows.Count - 1;
+            }
+            protected int AddRowWithTextBox(string propertyName)
             {
                 // the correct way to do this is
                 // First add controls, then add fresh RowStyle (do not modify an existing one even if using GetRow!) and then modify the row itself.

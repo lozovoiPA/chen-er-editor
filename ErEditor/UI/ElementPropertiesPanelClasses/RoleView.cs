@@ -109,5 +109,24 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
                 element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.Empty;
             }
         }
+
+        public override void CloseAndSave()
+        {
+            if (element != null)
+            {
+                //element.Unsubscribe(this);
+                //UnsetHandlers();
+                this.element = null;
+            }
+        }
+        public override void CloseAndDiscard()
+        {
+            if (element != null)
+            {
+                //element.Unsubscribe(this);
+                //UnsetHandlers();
+                this.element = null;
+            }
+        }
     }
 }

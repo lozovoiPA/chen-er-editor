@@ -20,7 +20,7 @@ namespace ErEditor.ErSchemaClasses
 
         public ErAttribute()
         {
-            this.name = String.Empty;
+            this.name = string.Empty;
             isKey = false;
             valueSets = new List<ErValueSet>();
         }
@@ -64,7 +64,10 @@ namespace ErEditor.ErSchemaClasses
         }
     }
 
-    public class ErMapping : ErElement
+    public class ErMapping : 
+        ErElement,
+        IObserver,
+        IVisitor<ObjectNameChangedNotification>
     {
         private List<ErRole> preImage = new();
         private List<ErRole> image = new();
@@ -74,6 +77,8 @@ namespace ErEditor.ErSchemaClasses
         private int maxCardinalityOfImage = -1;
         private int minCardinalityOfPreimage = 0;
         private int maxCardinalityOfPreimage = 1;
+
+        private ObserverBase notificationParser;
 
         public override string Name
         {
@@ -91,9 +96,12 @@ namespace ErEditor.ErSchemaClasses
             get { return this.GetDefaultName(); }
         }
 
-        public ErMapping() { }
+        public ErMapping() {
+            notificationParser = new(this);
+        }
         public ErMapping(string name)
         {
+            notificationParser = new(this);
             this.name = name;
         }
 
@@ -151,12 +159,30 @@ namespace ErEditor.ErSchemaClasses
         public void AddToPreImage(ErRole role)
         {
             preImage.Add(role);
+
+            ConsoleLog.Log("\n\nTESTING\n\n");
+            role.Subscribe(this);
             observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
         }
         public void AddToImage(ErRole role)
         {
             image.Add(role);
+            role.Subscribe(this);
             observers.Notify(new ObjectUpdatedNotification<ErMapping>(this));
+        }
+        // null means either the preimage or image now has no elements, therefore the mapping is invalid
+        public bool? Remove(ErRole role)
+        {
+            bool removed = preImage.Remove(role) | image.Remove(role);
+            if (preImage.Count == 0 || image.Count == 0) { 
+                role.Unsubscribe(this); 
+                return null; 
+            }
+            if (removed) { 
+                role.Unsubscribe(this); 
+                observers.Notify(new ObjectUpdatedNotification<ErMapping>(this)); 
+            } 
+            return removed;
         }
         public string GetDefaultName()
         {
@@ -168,22 +194,54 @@ namespace ErEditor.ErSchemaClasses
         public string GetPreImageName()
         {
             string output = string.Empty;
-            foreach (var role in PreImage)
+            foreach (var role in preImage)
             {
                 output += $"{role.Name} x ";
             }
-            output = output.Remove(output.Length - 3);
-            return output;
+            if(output.Length >= 3)
+            {
+                output = output.Remove(output.Length - 3);
+            }
+            else
+            {
+                ConsoleLog.Log("\n\n>>>>>>>>>>>>>>>>>>>>>SOMETHING WENT WRONG HERE<<<<<<<<<<<<<<<<<<\n\n");
+            }
+
+                return output;
         }
         public string GetImageName()
         {
             string output = string.Empty;
-            foreach (var role in Image)
+            foreach (var role in image)
             {
                 output += $"{role.Name} x ";
             }
-            output = output.Remove(output.Length - 3);
+            if (output.Length > 3)
+            {
+                output = output.Remove(output.Length - 3);
+            }
+
             return output;
+        }
+
+        public void Recieve(Notification notification)
+        {
+            //notificationParser.Recieve(notification);
+            switch (notification)
+            {
+                case ObjectNameChangedNotification objectNameChangedNotification:
+                    observers.Notify(new ObjectNameChangedNotification(this, this.Name));
+                    break;
+            }
+        }
+        public void Visit(ObjectNameChangedNotification notification)
+        {
+            
+        }
+
+        public override string ToString()
+        {
+            return (name == "" && preImage.Count > 0 && image.Count > 0) ? GetDefaultName() : name; 
         }
     }
 }

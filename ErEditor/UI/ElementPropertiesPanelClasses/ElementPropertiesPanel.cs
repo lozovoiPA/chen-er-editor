@@ -13,6 +13,8 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         private RoleView roleView = new();
         private MappingView mappingView = new MappingView();
 
+        private ElementView? activeView;
+
         public ElementPropertiesPanel()
         {
             roleView.Visible = false;
@@ -45,16 +47,25 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 
             if (elementView != null)
             {
-                elementView.Schema = schema;
-                elementView.Visible = true;
+                activeView = elementView;
+                activeView.Visible = true;
             }
         }
         public void CloseProperties()
         {
-            roleView.CommitChanges();
-
-            roleView.Visible = false;
-            mappingView.Visible = false;
+            if(activeView != null)
+            {
+                activeView.CloseAndSave();
+                activeView.Visible = false;
+            }
+        }
+        public void CloseAndDiscardProperties()
+        {
+            if (activeView != null)
+            {
+                activeView.CloseAndDiscard();
+                activeView.Visible = false;
+            }
         }
     }
 }

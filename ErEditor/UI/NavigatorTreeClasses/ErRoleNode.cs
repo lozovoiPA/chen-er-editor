@@ -1,4 +1,5 @@
-﻿using ErEditor.ErSchemaClasses;
+﻿using ErEditor.DbSchemaClasses;
+using ErEditor.ErSchemaClasses;
 using ErEditor.UI.ExtTreeClasses;
 using System;
 using System.Collections.Generic;
@@ -15,13 +16,15 @@ namespace ErEditor.UI.NavigatorTreeClasses
             private ExtTreeNodeCollection<IExtTreeNode> nodes;
             private ErRole role;
             private NavigatorTreeView parentTree;
+            private ErRelationshipSet parentRelationshipSet;
 
-            public ErRoleNode(ErSchema schema, ErRole role, NavigatorTreeView parentTree) : base(schema)
+            public ErRoleNode(ErSchema schema, ErRelationshipSet parent, ErRole role, NavigatorTreeView parentTree) : base(schema)
             {
                 nodes = new(TreeNodes);
                 this.role = role;
                 base.Name = role.Name;
                 this.parentTree = parentTree;
+                this.parentRelationshipSet = parent;
 
                 Initialize();
             }
@@ -45,7 +48,17 @@ namespace ErEditor.UI.NavigatorTreeClasses
             {
                 ImageIndex = 7;
                 SelectedImageIndex = 7;
-                UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
+                UIHelper.AddContextMenu(
+                    this,
+                    new Dictionary<string, EventHandler>() {
+                        { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) },
+                        { "Удалить", new EventHandler(DeleteRole) }
+                    });
+            }
+
+            private void DeleteRole(object? sender, EventArgs e)
+            {
+                parentRelationshipSet.RemoveRole(role);
             }
         }
     }

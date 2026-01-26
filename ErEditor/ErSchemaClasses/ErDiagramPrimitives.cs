@@ -20,9 +20,11 @@ namespace ErEditor.ErSchemaClasses
         public int height;
 
         protected readonly ObservableBase observers = new();
+        public bool BlockNotifying { get => observers.BlockNotifying; set => observers.BlockNotifying = value; }
 
         public abstract string Label { get; set; }
         public abstract ErElement ErElement { get; }
+
 
         public abstract void Draw(Graphics g);
         public abstract bool Intersects(Point point);

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ErEditor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7013f26a59826a98fe1c102b26a74edc9566ed2e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+737fd8fd323ebf238ea974ffbaf4a2c620341da2")]
 [assembly: System.Reflection.AssemblyProductAttribute("ErEditor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ErEditor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

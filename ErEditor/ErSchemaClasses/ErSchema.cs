@@ -24,6 +24,7 @@ namespace ErEditor.ErSchemaClasses
         public readonly ErRelationshipSetWatcher RelationshipSetWatcher = new();
         public readonly ErValueSetWatcher ValueSetWatcher = new();
         public readonly ErDiagramWatcher DiagramWatcher = new();
+        bool IObservable.BlockNotifying { get => false; set {; } }
 
         public ErSchema(string name = "") 
         {

@@ -17,8 +17,10 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         IVisitor<ObjectNameChangedNotification>,
         IVisitor<ObjectUpdatedNotification<ErMapping>>
     {
-        private Label preImageLabel = new();
-        private Label imageLabel = new();
+        private Label preImageNameLabel;
+        private Label imageNameLabel;
+        private Label preImageLabel;
+        private Label imageLabel;
         private CardinalNumberUpDown maxPreImageNumericUpDown = new();
         private CardinalNumberUpDown minPreImageNumericUpDown = new();
         private CardinalNumberUpDown maxImageNumericUpDown = new();
@@ -27,23 +29,19 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         private ObserverBase notificationParser;
         public MappingView()
         {
-            AddRow("Область\nопределения", preImageLabel = GetCenteredPropertyLabel(""));
-            AddRow("Область\nзначений", imageLabel = GetCenteredPropertyLabel(""));
+            AddRow("Область\nопределения", preImageNameLabel = GetCenteredPropertyLabel(""));
+            AddRow("Область\nзначений", imageNameLabel = GetCenteredPropertyLabel(""));
 
-            var label = GetCenteredPropertyLabel("Прямое отображение");
-            label.Font = new(label.Font, FontStyle.Bold);
-            Controls.Add(label);
-            RowStyles.Add(new(SizeType.Absolute, 30));
-            SetColumnSpan(label, 2);
+            preImageLabel = GetCenteredPropertyLabel("Прямое отображение");
+            preImageLabel.Font = new(preImageLabel.Font, FontStyle.Bold);
+            AddRow(preImageLabel);
 
             AddRow("Макс. кардинальное\nчисло", maxImageNumericUpDown);
             AddRow("Мин. кардинальное\nчисло", minImageNumericUpDown);
 
-            label = GetCenteredPropertyLabel("Обратное отображение");
-            label.Font = new(label.Font, FontStyle.Bold);
-            Controls.Add(label);
-            RowStyles.Add(new(SizeType.Absolute, 30));
-            SetColumnSpan(label, 2);
+            imageLabel = GetCenteredPropertyLabel("Обратное отображение");
+            imageLabel.Font = new(imageLabel.Font, FontStyle.Bold);
+            AddRow(imageLabel);
 
             AddRow("Макс. кардинальное\nчисло", maxPreImageNumericUpDown);
             AddRow("Мин. кардинальное\nчисло", minPreImageNumericUpDown);
@@ -95,20 +93,12 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             this.nameTextBox.ForeColor = Color.Gray;
         }
 
-        public void Open(ErMapping mapping)
+        private void LoadFrom(ErMapping mapping)
         {
-            if (element != null)
-            {
-                element.Unsubscribe(this);
-                UnsetHandlers();
-                this.element = null;
-            }
-
-            // set properties
             this.nameTextBox.PlaceholderText = mapping.DefaultName;
             this.nameTextBox.Text = mapping.Name;
-            preImageLabel.Text = mapping.GetPreImageName();
-            imageLabel.Text = mapping.GetImageName();
+            preImageNameLabel.Text = mapping.GetPreImageName();
+            imageNameLabel.Text = mapping.GetImageName();
             if (mapping.Name == "")
             {
                 SetDefaultNameStyle();
@@ -121,10 +111,58 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             this.maxPreImageNumericUpDown.Value = mapping.MaxCardinalityOfPreimage;
             this.minPreImageNumericUpDown.Value = mapping.MinCardinalityOfPreimage;
             this.minImageNumericUpDown.Value = mapping.MinCardinalityOfImage;
+        }
 
-            this.element = mapping;
-            SetHandlers();
-            mapping.Subscribe(this);
+        public void Open(ErMapping mapping)
+        {
+            if(mapping != element)
+            {
+                this.CloseAndDiscard();
+                LoadFrom(mapping);
+
+                this.element = mapping;
+                SetHandlers();
+                mapping.Subscribe(this);
+            }
+            else
+            {
+                LoadFrom(element);
+            }
+        }
+        public override void CloseAndSave()
+        {
+            if(element != null)
+            {
+                ErMapping mapping = element;
+                element.Unsubscribe(this);
+                UnsetHandlers();
+                this.element = null;
+
+                // alternatively (and possibly better) pack all changes into a new ErMapping object and send it to mapping
+                mapping.BlockNotifying = true;
+                mapping.MaxCardinalityOfImage = maxImageNumericUpDown.Value;
+                mapping.MaxCardinalityOfPreimage = maxPreImageNumericUpDown.Value;
+                mapping.MinCardinalityOfPreimage = minPreImageNumericUpDown.Value;
+                mapping.MinCardinalityOfImage = minImageNumericUpDown.Value;
+                mapping.BlockNotifying = false;
+                if (nameTextBox.Text == mapping.DefaultName || nameTextBox.Text == "")
+                {
+                    mapping.Name = "";
+                }
+                else
+                {
+                    mapping.Name = nameTextBox.Text;
+                }
+            }
+        }
+        public override void CloseAndDiscard()
+        {
+            if (element != null)
+            {
+                element.Unsubscribe(this);
+                UnsetHandlers();
+                this.element = null;
+            }
         }
 
         private void NameTextBox_TextChanged(object? sender, EventArgs e)
@@ -173,16 +211,22 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 
         public void Recieve(Notification notification)
         {
-            notificationParser.Recieve(notification);
+            switch (notification)
+            {
+                case ObjectNameChangedNotification nameChangedNotif:
+                case ObjectUpdatedNotification<ErMapping> updatedNotif:
+                    this.LoadFrom(element);
+                    break;
+            }
         }
 
         public void Visit(ObjectNameChangedNotification notification)
-        {
-            this.Open(element);   
+        {   
+
         }
         public void Visit(ObjectUpdatedNotification<ErMapping> notification)
-        {
-            this.Open(element);   
+        { 
+
         }
     }
 }

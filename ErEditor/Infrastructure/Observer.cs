@@ -10,6 +10,8 @@ namespace ErEditor.Infrastructure
     {
         public bool Subscribe(IObserver observer);
         public bool Unsubscribe(IObserver observer);
+
+        public bool BlockNotifying { get; set; }
     }
     public interface IObserver
     {
@@ -19,6 +21,8 @@ namespace ErEditor.Infrastructure
     public class ObservableBase : IObservable
     {
         protected List<IObserver> observers = new();
+        protected List<IObserver> doNotNotify = new();
+        public bool BlockNotifying { get; set; } = false;
 
         public virtual bool Subscribe(IObserver observer)
         {
@@ -44,12 +48,13 @@ namespace ErEditor.Infrastructure
         }
         public virtual void Notify(Notification notification)
         {
-            ConsoleLog.Log("I am GOING to notify observers, but they might not exist");
-            ConsoleLog.Log("Total observers: " + observers.Count);
-            foreach (var observer in observers)
+            if (!BlockNotifying)
             {
-                ConsoleLog.Log("I am notifying observer " + observer.ToString());
-                observer.Recieve(notification);
+                foreach (var observer in observers)
+                {
+                    ConsoleLog.Log("I am notifying observer " + observer.ToString());
+                    observer.Recieve(notification);
+                }
             }
         }
     }

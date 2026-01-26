@@ -12,11 +12,15 @@ namespace ErEditor.UI.NavigatorTreeClasses
     partial class NavigatorTreeView
     {
         public class ErRelationshipSetNode :
-        NavigatorErNode<ErRelationshipSet>,
-        IObserver,
-        IVisitor<ObjectNameChangedNotification>,
-        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
-        IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>
+            NavigatorErNode<ErRelationshipSet>,
+            IObserver,
+            IVisitor<ObjectNameChangedNotification>,
+            IVisitor<ObjectAddedNotification<ErRelationshipSet, ErAttribute>>,
+            IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
+            IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>,
+            IVisitor<ObjectDeletedNotification<ErAttribute>>,
+            IVisitor<ObjectDeletedNotification<ErRole>>,
+            IVisitor<ObjectDeletedNotification<ErMapping>>
         {
             private ExtTreeNodeCollection<IExtTreeNode> nodes;
             private ErRelationshipSet relationshipSet;
@@ -60,7 +64,12 @@ namespace ErEditor.UI.NavigatorTreeClasses
             {
                 ImageIndex = 4;
                 SelectedImageIndex = 4;
-                UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
+                UIHelper.AddContextMenu(
+                    this,
+                    new Dictionary<string, EventHandler>() {
+                        { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) },
+                        { "Удалить", new EventHandler(DeleteRelationshipSet) }
+                    });
 
                 UIHelper.AddContextMenu(attributeFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(AddAttribute) } });
                 nodes.Add(attributeFolder);
@@ -90,6 +99,10 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 }
             }
 
+            private void DeleteRelationshipSet(object? sender, EventArgs e)
+            {
+                ParentSchema.RelationshipSets.Remove(relationshipSet);
+            }
             private ErAttributeNode AddAttributeNode(ErAttribute attribute)
             {
                 var newNode = new ErAttributeNode(ParentSchema, attribute, parentTree);
@@ -106,7 +119,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private ErRoleNode AddRoleNode(ErRole role)
             {
-                var newNode = new ErRoleNode(ParentSchema, role, parentTree);
+                var newNode = new ErRoleNode(ParentSchema, relationshipSet, role, parentTree);
                 roleFolder.Nodes.Add(newNode);
                 role.Subscribe(this);
 
@@ -159,13 +172,29 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 }
 
             }
-            public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> concreteObject)
+            public void Visit(ObjectAddedNotification<ErRelationshipSet, ErAttribute> notification)
             {
-                AddRoleNode(concreteObject.ObjectAdded);
+                AddAttributeNode(notification.ObjectAdded);
             }
-            public void Visit(ObjectAddedNotification<ErRelationshipSet, ErMapping> concreteObject)
+            public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> notification)
             {
-                AddMappingNode(concreteObject.ObjectAdded);
+                AddRoleNode(notification.ObjectAdded);
+            }
+            public void Visit(ObjectAddedNotification<ErRelationshipSet, ErMapping> notification)
+            {
+                AddMappingNode(notification.ObjectAdded);
+            }
+            public void Visit(ObjectDeletedNotification<ErAttribute> notif)
+            {
+                DeleteChildNode(notif.Object, attributeFolder);
+            }
+            public void Visit(ObjectDeletedNotification<ErRole> notif)
+            {
+                DeleteChildNode(notif.Object, roleFolder);
+            }
+            public void Visit(ObjectDeletedNotification<ErMapping> notif)
+            {
+                DeleteChildNode(notif.Object, mappingFolder);
             }
         }
     }

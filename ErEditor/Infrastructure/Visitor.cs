@@ -29,6 +29,7 @@ namespace ErEditor.Infrastructure
 
         public void Visit<T>(T notification)
         {
+            ConsoleLog.Log($"Sending notif {notification.GetType()} to {concreteVisitor.GetType()}");
             IVisitor<T>? concreteVisitorCasted = concreteVisitor as IVisitor<T>;
             concreteVisitorCasted?.Visit(notification);
         }

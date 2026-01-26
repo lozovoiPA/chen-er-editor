@@ -101,7 +101,7 @@ namespace ErEditor.Infrastructure
             return null;
         }
 
-        private bool AddRetrieved(int id, TObject entry)
+        public bool AddRetrieved(int id, TObject entry)
         {
             if (retrievedIdMap.ContainsKey(id))
             {
@@ -111,7 +111,7 @@ namespace ErEditor.Infrastructure
             retrievedIdMap.Add(id, entry);
             return true;
         }
-        private bool RemoveRetrieved(TObject entry)
+        public bool RemoveRetrieved(TObject entry)
         {
             int? id = FindId(entry);
             if (id == null)

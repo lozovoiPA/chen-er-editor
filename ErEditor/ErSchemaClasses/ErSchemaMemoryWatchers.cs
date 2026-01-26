@@ -10,6 +10,7 @@ namespace ErEditor.ErSchemaClasses
     public abstract class ErElementWatcher<TErElement> : CollectionWatcher<TErElement>,
         IVisitor<ObjectNameChangedNotification>,
         IVisitor<ObjectCreatedNotification<TErElement>>,
+        IVisitor<ObjectUpdatedNotification<TErElement>>,
         IVisitor<ObjectDeletedNotification<TErElement>>
 
         where TErElement : class, IObservable
@@ -29,6 +30,10 @@ namespace ErEditor.ErSchemaClasses
             base.Visit(notif);
             notif.Object.Subscribe(notificationProcessor);
         }
+        public void Visit(ObjectUpdatedNotification<TErElement> notification)
+        {
+            observers.Notify(notification);
+        }
         public override void Visit(ObjectDeletedNotification<TErElement> notif)
         {
             base.Visit(notif);
@@ -37,7 +42,9 @@ namespace ErEditor.ErSchemaClasses
     }
 
     public abstract class ErElementWithAttributesWatcher<TErElement> : ErElementWatcher<TErElement>,
-        IVisitor<ObjectAddedNotification<ErElementWithAttributes, ErAttribute>>
+        IVisitor<ObjectAddedNotification<ErElementWithAttributes, ErAttribute>>,
+        IVisitor<ObjectUpdatedNotification<ErAttribute>>,
+        IVisitor<ObjectDeletedNotification<ErAttribute>>
         
         where TErElement : ErElementWithAttributes
     {
@@ -64,13 +71,25 @@ namespace ErEditor.ErSchemaClasses
 
             observers.Notify(notif);
         }
+        public void Visit(ObjectUpdatedNotification<ErAttribute> notification)
+        {
+            observers.Notify(notification);
+        }
+        public void Visit(ObjectDeletedNotification<ErAttribute> notification)
+        {
+            observers.Notify(notification);
+            notification.Object.Unsubscribe(this);
+        }
     }
     public class ErEntitySetWatcher : ErElementWithAttributesWatcher<ErEntitySet> { }
     public class ErRelationshipSetWatcher : 
         ErElementWithAttributesWatcher<ErRelationshipSet>,
         IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
         IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>,
-        IVisitor<ObjectUpdatedNotification<ErMapping>>
+        IVisitor<ObjectUpdatedNotification<ErRole>>,
+        IVisitor<ObjectUpdatedNotification<ErMapping>>,
+        IVisitor<ObjectDeletedNotification<ErRole>>,
+        IVisitor<ObjectDeletedNotification<ErMapping>>
     {
         public void Visit(ObjectAddedNotification<ErRelationshipSet, ErRole> notif)
         {
@@ -82,20 +101,40 @@ namespace ErEditor.ErSchemaClasses
             notif.ObjectAdded.Subscribe(this);
             observers.Notify(notif);
         }
+        public void Visit(ObjectUpdatedNotification<ErRole> notification)
+        {
+            observers.Notify(notification);
+        }
         public void Visit(ObjectUpdatedNotification<ErMapping> notif)
         {
             observers.Notify(notif);
+        }
+        public void Visit(ObjectDeletedNotification<ErRole> notification)
+        {
+            observers.Notify(notification);
+            notification.Object.Unsubscribe(this);
+        }
+        public void Visit(ObjectDeletedNotification<ErMapping> notification)
+        {
+            observers.Notify(notification);
+            notification.Object.Unsubscribe(this);
         }
     }
     public class ErValueSetWatcher : ErElementWatcher<ErValueSet> { }
     public class ErDiagramWatcher 
         : ErElementWatcher<ErDiagram>,
-        IVisitor<ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>>
+        IVisitor<ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>>,
+        IVisitor<ObjectUpdatedNotification<ErDiagramPrimitive>>,
+        IVisitor<ObjectDeletedNotification<ErDiagramPrimitive>>
     {
         public void Visit(ObjectAddedNotification<ErDiagram, ErDiagramPrimitive> notif)
         {
             notif.ObjectAdded.Subscribe(this);
             observers.Notify(notif);
+        }
+        public void Visit(ObjectUpdatedNotification<ErDiagramPrimitive> notification)
+        {
+            observers.Notify(notification);
         }
         public void Visit(ObjectDeletedNotification<ErDiagramPrimitive> notif)
         {

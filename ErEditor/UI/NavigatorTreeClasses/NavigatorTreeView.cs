@@ -25,6 +25,24 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 ParentSchema = parentSchema;
             }
 
+            protected static void DeleteChildNode<TEntity, TNode>(TEntity entity, ExtTreeNodeTyped<object, TNode> folder)
+                where TNode : ExtTreeNodeWithNotNullableData<TEntity>
+            {
+                ConsoleLog.Log($"{folder.Nodes.Count}");
+                TNode? delNode = default;
+                foreach (var node in folder.Nodes)
+                {
+                    if (node.Data.Equals(entity))
+                    {
+                        delNode = node;
+                        break;
+                    }
+                }
+                if (delNode != null)
+                {
+                    folder.Nodes.Remove(delNode);
+                }
+            }
             public override void Click(object? sender, MouseEventArgs e)
             {
                 MainWindow.OpenProperties(ParentSchema, Data);

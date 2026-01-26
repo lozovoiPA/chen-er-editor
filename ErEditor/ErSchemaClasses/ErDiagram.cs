@@ -12,9 +12,10 @@ namespace ErEditor.ErSchemaClasses
     public class ErDiagram : IObservable, INamedObject, IEnumerable<ErDiagramPrimitive>
     {
         private string name = string.Empty;
-        private List<ErDiagramPrimitive> primitives     = new();
+        private List<ErDiagramPrimitive> primitives = new();
 
         private readonly ObservableBase observers = new();
+        public bool BlockNotifying { get => observers.BlockNotifying; set => observers.BlockNotifying = value; }
 
         public ErDiagram() { }
         public ErDiagram(string name)
