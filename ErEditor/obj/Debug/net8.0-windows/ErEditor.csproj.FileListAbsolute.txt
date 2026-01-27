@@ -47,6 +47,7 @@ D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErE
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.MainWindow.resources
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.MsaglTestsForm.resources
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.NewErSchemaWindow.resources
+D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.UI.ComboBoxWithBorder.resources
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.csproj.GenerateResource.cache
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.GeneratedMSBuildEditorConfig.editorconfig
 D:\04 STUDIES IN TSU\4 курс 1 семестр\НИР\NewErEditor\ErEditor\ErEditor\obj\Debug\net8.0-windows\ErEditor.AssemblyInfoInputs.cache

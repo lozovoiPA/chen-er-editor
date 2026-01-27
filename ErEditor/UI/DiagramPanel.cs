@@ -186,7 +186,7 @@ namespace ErEditor.UI
                                 ?? (clickedPrimitive as ErDiagramRectangle)?.ErElement;
                             if(relationshipSet != null && entitySet != null)
                             {
-                                ErRole role = relationshipSet.AddRole(entitySet);
+                                ErRole role = relationshipSet.AddRole(entitySet, "", true);
                                 diagram.AddEdge(role, selectedPrimitive!, clickedPrimitive, 
                                     new Point(selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y), 
                                     new Point(selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height));

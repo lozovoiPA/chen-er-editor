@@ -1,4 +1,5 @@
-﻿using ErEditor.ErSchemaClasses;
+﻿using ErEditor.DbSchemaClasses;
+using ErEditor.ErSchemaClasses;
 using ErEditor.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -10,17 +11,16 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 {
     public partial class ElementPropertiesPanel : Panel
     {
+        private ValueSetView valueSetView = new();
         private RoleView roleView = new();
         private MappingView mappingView = new MappingView();
+
 
         private ElementView? activeView;
 
         public ElementPropertiesPanel()
         {
-            roleView.Visible = false;
-            mappingView.Visible = false;
-            roleView.Dock = DockStyle.Fill;
-            mappingView.Dock = DockStyle.Fill;
+            Controls.Add(valueSetView);
             Controls.Add(roleView);
             Controls.Add(mappingView);
 
@@ -29,24 +29,27 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 
         // Этот объект и MainWindow не интересует конкретный тип TErElement. Они с ним не работают, они его перенапрявлют туда, куда надо.
         public void OpenProperties<TErElement>(ErSchema schema, TErElement element)
+            where TErElement : class, IObservable
         {
             CloseProperties();
             ElementView<TErElement>? elementView = null;
 
             switch (element)
             {
+                case ErValueSet valueSet:
+                    elementView = valueSetView as ElementView<TErElement>;
+                    break;
                 case ErRole role:
                     elementView = roleView as ElementView<TErElement>;
-                    roleView.Open(schema, role);
                     break;
                 case ErMapping mapping:
                     elementView = mappingView as ElementView<TErElement>;
-                    mappingView.Open(mapping);
                     break;
             }
 
             if (elementView != null)
             {
+                elementView.Open(schema, element);
                 activeView = elementView;
                 activeView.Visible = true;
             }

@@ -53,6 +53,7 @@ namespace ErEditor
             Navigator.OpenSchema(schema);
         }
         public static void OpenProperties<TErElement>(ErSchema schema, TErElement element)
+            where TErElement : class, IObservable
         {
             PropertiesPanel.OpenProperties(schema, element);
         }

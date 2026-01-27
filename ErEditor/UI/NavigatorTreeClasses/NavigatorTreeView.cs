@@ -17,6 +17,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
         // Логично потому что это пока единственное место, где может быть открыто несколько схем (не считая инфраструктурных
         // классов которые работают только со схемой, и не работают с ее элементами, поэтому им это ограничение безразлично)
         public abstract class NavigatorErNode<TData> : ExtTreeNodeWithNotNullableData<TData>
+            where TData : class, IObservable
         {
             protected readonly ErSchema ParentSchema;
 

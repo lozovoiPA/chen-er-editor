@@ -96,6 +96,7 @@ namespace ErEditor.ErSchemaClasses
         private ErValueSet CreateValueSetOnSchema(DbValueSet dbVs)
         {
             ErValueSet valueSet = Schema.ValueSets.Add(dbVs.Name == null ? "" : dbVs.Name);
+            valueSet.BaseValueType = dbVs.BaseType;
             return valueSet;
         }
         private ErDiagram CreateDiagramOnSchema(DbDiagram dbDgr)
@@ -217,6 +218,7 @@ namespace ErEditor.ErSchemaClasses
         public DbValueSet MakeDbValueSet(ErValueSet vs)
         {
             DbValueSet dbVs = new(vs.Name == "" ? null : vs.Name);
+            dbVs.BaseType = vs.BaseValueType;
             dbVs.Id = TryToAssignId(vs, ValueSetRegistry);
 
             return dbVs;
@@ -299,8 +301,27 @@ namespace ErEditor.ErSchemaClasses
             dbAttr.MinValue = attr.minValue;
             dbAttr.MaxValue = attr.maxValue;
             dbAttr.AllowedValues = attr.allowedValues;
-
             dbAttr.Id = TryToAssignId(attr, AttributeRegistry);
+
+            foreach (var valueSet in attr.valueSets)
+            {
+                DbAttributeDbValueSet pair = new();
+                (int? valueSetId, DbValueSet? dbValueSet) = FindForeignKeyConstraint<DbValueSet, ErValueSet>(valueSet, ValueSetRegistry);
+
+                if (valueSetId != null)
+                {
+                    pair.AttributeId = dbAttr.Id;
+                    pair.ValueSetId = (int)valueSetId;
+                    dbAttr.AttributeValueSets.Add(pair);
+                }
+                else if (dbValueSet != null)
+                {
+                    pair.AttributeId = dbAttr.Id;
+                    pair.ValueSet = dbValueSet;
+                    dbAttr.ValueSets.Add(dbValueSet);
+                }
+
+            }
 
             return dbAttr;
         }

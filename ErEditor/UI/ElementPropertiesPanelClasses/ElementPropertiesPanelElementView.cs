@@ -2,6 +2,7 @@
 using ErEditor.Infrastructure;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,18 +13,25 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
     {
         public abstract class ElementView : TableLayoutPanel
         {
+            protected ErSchema? schema;
+            protected abstract void UnsetHandlers();
+            protected abstract void SetHandlers();
             public abstract void CloseAndSave();
-            public abstract void CloseAndDiscard(); 
+            public abstract void CloseAndDiscard();
         }
 
-        public abstract class ElementView<TErElement> : ElementView
+        public abstract class ElementView<TErElement> : 
+            ElementView,
+            IObserver
+
+            where TErElement : class, IObservable
         {
             protected List<Tuple<Label?, Control?>> rows = new();
             protected int rowHeight = 30;
             protected TextBox nameTextBox;
 
-            protected ErSchema? schema;
             protected TErElement? element;
+            protected ObserverBase notificationParser;
 
             public ElementView()
             {
@@ -37,17 +45,59 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 
                 int index = AddRowWithTextBox("Название");
                 nameTextBox = (rows[index].Item2 as TextBox)!;
+
+                notificationParser = new(this);
+
+                Visible = false;
+                Dock = DockStyle.Fill;
             }
 
-            public virtual ErSchema? Schema
+            protected abstract void LoadFromElement(ErSchema schema, TErElement element);
+            protected abstract void SaveIntoElement(TErElement element);
+
+            public void Open(ErSchema schema, TErElement tElement)
             {
-                get { return schema; }
-                set { schema = value; }
+                if (tElement != element)
+                {
+                    CloseAndDiscard();
+
+                    LoadFromElement(schema, tElement);
+
+                    this.element = tElement;
+                    this.schema = schema;
+                    tElement.Subscribe(this);
+                    schema.Subscribe(this);
+                    SetHandlers();
+                }
+                else
+                {
+                    LoadFromElement(schema, tElement);
+                }
             }
-            public virtual TErElement? Element
+            public override void CloseAndSave()
             {
-                get { return element; }
-                set { element = value; }
+                if(element != null)
+                {
+                    TErElement tElement = CloseElement(); 
+                    SaveIntoElement(tElement);
+                }
+            }
+            public override void CloseAndDiscard()
+            {
+                if (element != null)
+                {
+                    CloseElement();
+                }
+            }
+            protected virtual TErElement? CloseElement()
+            {
+                TErElement? tElement = element;
+                element.Unsubscribe(this);
+                schema.Unsubscribe(this);
+                this.element = null;
+                this.schema = null;
+                UnsetHandlers();
+                return tElement;
             }
 
             protected Label GetCenteredPropertyLabel(string propertyName)
@@ -123,6 +173,11 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
                 if (e.Column == 1 && e.Row != RowStyles.Count - 1)
                     using (SolidBrush brush = new SolidBrush(Color.White))
                         e.Graphics.FillRectangle(brush, e.CellBounds);
+            }
+
+            public virtual void Recieve(Notification notification)
+            {
+                notificationParser.Recieve(notification);
             }
         }
     }

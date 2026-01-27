@@ -25,8 +25,6 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         private CardinalNumberUpDown minPreImageNumericUpDown = new();
         private CardinalNumberUpDown maxImageNumericUpDown = new();
         private CardinalNumberUpDown minImageNumericUpDown = new();
-
-        private ObserverBase notificationParser;
         public MappingView()
         {
             AddRow("Область\nопределения", preImageNameLabel = GetCenteredPropertyLabel(""));
@@ -64,7 +62,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
                     e.Graphics.FillRectangle(brush, e.CellBounds);
         }
 
-        private void UnsetHandlers()
+        protected override void UnsetHandlers()
         {
             nameTextBox.TextChanged -= NameTextBox_TextChanged;
 
@@ -73,7 +71,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             minImageNumericUpDown.ValueChanged -= MinImageNumericUpDown_ValueChanged;
             minPreImageNumericUpDown.ValueChanged -= MinPreImageNumericUpDown_ValueChanged;
         }
-        private void SetHandlers()
+        protected override void SetHandlers()
         {
             nameTextBox.TextChanged += NameTextBox_TextChanged;
 
@@ -93,7 +91,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             this.nameTextBox.ForeColor = Color.Gray;
         }
 
-        private void LoadFrom(ErMapping mapping)
+        protected override void LoadFromElement(ErSchema schema, ErMapping mapping)
         {
             UnsetHandlers();
             this.nameTextBox.PlaceholderText = mapping.DefaultName;
@@ -114,56 +112,21 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             this.minImageNumericUpDown.Value = mapping.MinCardinalityOfImage;
             SetHandlers();
         }
-
-        public void Open(ErMapping mapping)
+        protected override void SaveIntoElement(ErMapping mapping)
         {
-            if(mapping != element)
+            mapping.BlockNotifying = true;
+            mapping.MaxCardinalityOfImage = maxImageNumericUpDown.Value;
+            mapping.MaxCardinalityOfPreimage = maxPreImageNumericUpDown.Value;
+            mapping.MinCardinalityOfPreimage = minPreImageNumericUpDown.Value;
+            mapping.MinCardinalityOfImage = minImageNumericUpDown.Value;
+            mapping.BlockNotifying = false;
+            if (nameTextBox.Text == mapping.DefaultName || nameTextBox.Text == "")
             {
-                this.CloseAndDiscard();
-                LoadFrom(mapping);
-
-                this.element = mapping;
-                SetHandlers();
-                mapping.Subscribe(this);
+                mapping.Name = "";
             }
             else
             {
-                LoadFrom(element);
-            }
-        }
-        public override void CloseAndSave()
-        {
-            if(element != null)
-            {
-                ErMapping mapping = element;
-                element.Unsubscribe(this);
-                UnsetHandlers();
-                this.element = null;
-
-                // alternatively (and possibly better) pack all changes into a new ErMapping object and send it to mapping
-                mapping.BlockNotifying = true;
-                mapping.MaxCardinalityOfImage = maxImageNumericUpDown.Value;
-                mapping.MaxCardinalityOfPreimage = maxPreImageNumericUpDown.Value;
-                mapping.MinCardinalityOfPreimage = minPreImageNumericUpDown.Value;
-                mapping.MinCardinalityOfImage = minImageNumericUpDown.Value;
-                mapping.BlockNotifying = false;
-                if (nameTextBox.Text == mapping.DefaultName || nameTextBox.Text == "")
-                {
-                    mapping.Name = "";
-                }
-                else
-                {
-                    mapping.Name = nameTextBox.Text;
-                }
-            }
-        }
-        public override void CloseAndDiscard()
-        {
-            if (element != null)
-            {
-                element.Unsubscribe(this);
-                UnsetHandlers();
-                this.element = null;
+                mapping.Name = nameTextBox.Text;
             }
         }
 
@@ -217,7 +180,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             {
                 case ObjectNameChangedNotification nameChangedNotif:
                 case ObjectUpdatedNotification<ErMapping> updatedNotif:
-                    this.LoadFrom(element);
+                    this.LoadFromElement(schema, element);
                     break;
             }
         }

@@ -21,9 +21,7 @@ namespace ErEditor.DbSchemaClasses
         public bool IsKey { get; set; }
 
         public virtual ObservableCollectionListSource<DbValueSet> ValueSets { get; set; } = new();
-
-        [NotMapped]
-        public EntityState State { get; set; }
+        public virtual ObservableCollectionListSource<DbAttributeDbValueSet> AttributeValueSets { get; set; } = new();
 
         public DbAttribute(string? name = null)
         {
@@ -77,5 +75,15 @@ namespace ErEditor.DbSchemaClasses
         public int RoleId { get; set; }
         public virtual DbRole Role { get; set; } = null!;
         public string? Type { get; set; }
+    }
+
+    [PrimaryKey(nameof(AttributeId), nameof(ValueSetId))]
+    [Table("AttributeValueSet")]
+    public class DbAttributeDbValueSet
+    {
+        public int AttributeId { get; set; }
+        public virtual DbAttribute Attribute { get; set; } = null!;
+        public int ValueSetId { get; set; }
+        public virtual DbValueSet ValueSet { get; set; } = null!;
     }
 }

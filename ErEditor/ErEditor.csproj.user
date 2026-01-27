@@ -16,6 +16,9 @@
     <Compile Update="NewErSchemaWindow.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="UI\ComboBoxWithBorder.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="UI\DiagramPanel.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -32,6 +35,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="UI\ElementPropertiesPanelClasses\RoleView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\ElementPropertiesPanelClasses\ValueSetView.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="UI\ExtTreeClasses\ExtTreeViewBase.cs">

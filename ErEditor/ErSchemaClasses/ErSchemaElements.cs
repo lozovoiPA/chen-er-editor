@@ -199,10 +199,32 @@ namespace ErEditor.ErSchemaClasses
 
     public class ErValueSet : ErElement
     {
+        private string baseValueType = "int";
         public ErValueSet() { }
         public ErValueSet(string name)
         {
             this.name = name;
+        }
+
+        public string BaseValueType
+        {
+            get
+            {
+                return baseValueType;
+            }
+            set
+            {
+                switch (value)
+                {
+                    case "int":
+                    case "float":
+                    case "text":
+                    case "bool":
+                        baseValueType = value;
+                        observers.Notify(new ObjectUpdatedNotification<ErValueSet>(this));
+                        break;
+                }
+            }
         }
     }
 }
