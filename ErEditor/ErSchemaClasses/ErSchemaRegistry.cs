@@ -431,6 +431,9 @@ namespace ErEditor.ErSchemaClasses
             dbMap.MaxCardinalityOfImage = mapping.MaxCardinalityOfImage;
             dbMap.MinCardinalityOfImage = mapping.MinCardinalityOfImage;
 
+            dbMap.Id = TryToAssignId(mapping, MappingRegistry);
+
+
             foreach (var role in mapping.Image.Concat(mapping.PreImage))
             {
                 DbMappingDbRole pair = new();
@@ -447,17 +450,20 @@ namespace ErEditor.ErSchemaClasses
 
                 if (roleId != null)
                 {
+                    pair.MappingId = dbMap.Id;
                     pair.RoleId = (int)roleId;
+                    ConsoleLog.Log($"Role Id: {pair.RoleId}");
                     dbMap.MappingRoles.Add(pair);
                 }
                 else if(dbRole != null)
                 {
+                    pair.MappingId = dbMap.Id;
                     pair.Role = dbRole;
                     dbMap.MappingRoles.Add(pair);
                 }
-            }
 
-            dbMap.Id = TryToAssignId(mapping, MappingRegistry);
+            }
+            ConsoleLog.Log($"\tMapping Id: {dbMap.Id}");
 
             return dbMap;
         }
@@ -632,6 +638,8 @@ namespace ErEditor.ErSchemaClasses
             List<IDbEntry> updated = new();
             List<IDbEntry> deleted = new();
 
+            ConsoleLog.Log("CREATING");
+
             created.AddRange(MakeCreatedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
             created.AddRange(MakeCreatedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
             created.AddRange(MakeCreatedDbEntriesList(ValueSetRegistry, MakeDbValueSet));
@@ -641,6 +649,8 @@ namespace ErEditor.ErSchemaClasses
             created.AddRange(MakeCreatedDbEntriesList(MappingRegistry, MakeDbMapping));
             created.AddRange(MakeCreatedDbEntriesList(PrimitiveRegistry, MakeDbPrimitive));
 
+            ConsoleLog.Log("UPDATING");
+
             updated.AddRange(MakeUpdatedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
             updated.AddRange(MakeUpdatedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));
             updated.AddRange(MakeUpdatedDbEntriesList(ValueSetRegistry, MakeDbValueSet));
@@ -649,6 +659,8 @@ namespace ErEditor.ErSchemaClasses
             updated.AddRange(MakeUpdatedDbEntriesList(RoleRegistry, MakeDbRole));
             updated.AddRange(MakeUpdatedDbEntriesList(MappingRegistry, MakeDbMapping));
             updated.AddRange(MakeUpdatedDbEntriesList(PrimitiveRegistry, MakeDbPrimitive));
+
+            ConsoleLog.Log("DELETING");
 
             deleted.AddRange(MakeDeletedDbEntriesList(EntitySetRegistry, MakeDbEntitySet));
             deleted.AddRange(MakeDeletedDbEntriesList(RelationshipSetRegistry, MakeDbRelationshipSet));

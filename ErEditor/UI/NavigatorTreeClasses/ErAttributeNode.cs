@@ -1,4 +1,5 @@
-﻿using ErEditor.ErSchemaClasses;
+﻿using ErEditor.DbSchemaClasses;
+using ErEditor.ErSchemaClasses;
 using ErEditor.UI.ExtTreeClasses;
 using System;
 using System.Collections.Generic;
@@ -14,12 +15,14 @@ namespace ErEditor.UI.NavigatorTreeClasses
         {
             private ExtTreeNodeCollection<IExtTreeNode> nodes;
             private ErAttribute attribute;
+            private ErElementWithAttributes parentElement;
             private NavigatorTreeView parentTree;
 
-            public ErAttributeNode(ErSchema schema, ErAttribute attribute, NavigatorTreeView parentTree) : base(schema)
+            public ErAttributeNode(ErSchema schema, ErElementWithAttributes parentElement, ErAttribute attribute, NavigatorTreeView parentTree) : base(schema)
             {
                 nodes = new(TreeNodes);
                 this.attribute = attribute;
+                this.parentElement = parentElement;
                 base.Name = attribute.Name;
                 this.parentTree = parentTree;
 
@@ -45,7 +48,16 @@ namespace ErEditor.UI.NavigatorTreeClasses
             {
                 ImageIndex = 6;
                 SelectedImageIndex = 6;
-                UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
+                UIHelper.AddContextMenu(
+                    this,
+                    new Dictionary<string, EventHandler>() {
+                    { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) },
+                    { "Удалить", new EventHandler(DeleteAttribute) }
+                    });
+            }
+            private void DeleteAttribute(object? sender, EventArgs e)
+            {
+                parentElement.RemoveAttribute(attribute);
             }
         }
     }

@@ -80,7 +80,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private ErAttributeNode AddAttributeNode(ErAttribute attribute)
             {
-                var newNode = new ErAttributeNode(ParentSchema, attribute, parentTree);
+                var newNode = new ErAttributeNode(ParentSchema, entitySet, attribute, parentTree);
                 attributeFolder.Nodes.Add(newNode);
                 return newNode;
             }

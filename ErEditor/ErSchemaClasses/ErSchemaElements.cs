@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -58,6 +59,15 @@ namespace ErEditor.ErSchemaClasses
             {
                 this.AddAttribute(attr.Name);
             }
+        }
+        public bool RemoveAttribute(ErAttribute attribute)
+        {
+            bool result = attributes.Remove(attribute);
+            if (result)
+            {
+                observers.Notify(new ObjectDeletedNotification<ErAttribute>(attribute));
+            }
+            return result;
         }
         public ReadOnlyCollection<ErAttribute> Attributes
         {
