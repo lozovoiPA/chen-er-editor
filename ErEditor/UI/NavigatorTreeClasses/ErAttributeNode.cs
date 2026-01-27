@@ -27,6 +27,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 this.parentTree = parentTree;
 
                 Initialize();
+                attribute.Subscribe(this);
             }
 
             public override string Name

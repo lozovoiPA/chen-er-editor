@@ -16,14 +16,27 @@ namespace ErEditor.UI.NavigatorTreeClasses
         // По сути поддерживаю ограничение внешнего ключа схема -> элемент в навигаторе.
         // Логично потому что это пока единственное место, где может быть открыто несколько схем (не считая инфраструктурных
         // классов которые работают только со схемой, и не работают с ее элементами, поэтому им это ограничение безразлично)
-        public abstract class NavigatorErNode<TData> : ExtTreeNodeWithNotNullableData<TData>
+        public abstract class NavigatorErNode<TData> 
+            : ExtTreeNodeWithNotNullableData<TData>,
+            IObserver,
+            IVisitor<ObjectNameChangedNotification>
+
             where TData : class, IObservable
         {
-            protected readonly ErSchema ParentSchema;
+            protected readonly ErSchema parentSchema;
+            protected ObserverBase notificationParser;
 
             public NavigatorErNode(ErSchema parentSchema)
             {
-                ParentSchema = parentSchema;
+                this.parentSchema = parentSchema;
+
+                notificationParser = new(this);
+            }
+
+            public string DisplayName
+            {
+                get { return base.Name; }
+                set { base.Name = value; }
             }
 
             protected static void DeleteChildNode<TEntity, TNode>(TEntity entity, ExtTreeNodeTyped<object, TNode> folder)
@@ -46,7 +59,16 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             public override void Click(object? sender, MouseEventArgs e)
             {
-                MainWindow.OpenProperties(ParentSchema, Data);
+                MainWindow.OpenProperties(parentSchema, Data);
+            }
+
+            public virtual void Recieve(Notification notification)
+            {
+                notificationParser.Recieve(notification);
+            }
+            public virtual void Visit(ObjectNameChangedNotification notification)
+            {
+                DisplayName = notification.NewName;
             }
         }
 

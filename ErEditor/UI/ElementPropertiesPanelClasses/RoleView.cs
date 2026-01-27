@@ -32,7 +32,6 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 
         protected override void LoadFromElement(ErSchema schema, ErRole role)
         {
-            UnsetHandlers();
             nameTextBox.Text = role.Name;
 
             entitySetComboBox.DataSource = null;
@@ -41,7 +40,6 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             entitySetComboBox.SelectedItem = role.EntitySet;
 
             this.Refresh();
-            SetHandlers();
         }
         protected override void SaveIntoElement(ErRole element)
         {
@@ -85,18 +83,21 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         }
         public void Visit(ObjectUpdatedNotification<ErRole> notification)
         {
+            UnsetHandlers();
             LoadFromElement(schema, element);
+            SetHandlers();
         }
         public void Visit(ObjectCreatedNotification<ErEntitySet> notification)
         {
-            ConsoleLog.Log("I received a message es was crewated");
+            entitySetComboBox.SelectionChangeCommitted -= EntitySetComboBox_SelectionChangeCommitted;
             entitySetComboBox.DataSource = schema.EntitySets;
             entitySetComboBox.DisplayMember = "Name";
             entitySetComboBox.SelectedItem = element.EntitySet;
+            entitySetComboBox.SelectionChangeCommitted += EntitySetComboBox_SelectionChangeCommitted;
         }
         public void Visit(ObjectDeletedNotification<ErEntitySet> notification)
         {
-            ConsoleLog.Log("I received a message es was delwed");
+            entitySetComboBox.SelectionChangeCommitted -= EntitySetComboBox_SelectionChangeCommitted;
             if (notification.Object == element.EntitySet)
             {
                 element.Unsubscribe(this);
@@ -106,6 +107,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             entitySetComboBox.DataSource = schema.EntitySets;
             entitySetComboBox.DisplayMember = "Name";
             entitySetComboBox.SelectedItem = element.EntitySet;
+            entitySetComboBox.SelectionChangeCommitted += EntitySetComboBox_SelectionChangeCommitted;
         }
     }
 }

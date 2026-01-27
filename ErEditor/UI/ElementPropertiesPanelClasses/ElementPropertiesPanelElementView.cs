@@ -55,7 +55,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             protected abstract void LoadFromElement(ErSchema schema, TErElement element);
             protected abstract void SaveIntoElement(TErElement element);
 
-            public void Open(ErSchema schema, TErElement tElement)
+            public virtual void Open(ErSchema schema, TErElement tElement)
             {
                 if (tElement != element)
                 {

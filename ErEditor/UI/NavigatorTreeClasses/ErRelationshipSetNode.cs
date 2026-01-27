@@ -13,8 +13,6 @@ namespace ErEditor.UI.NavigatorTreeClasses
     {
         public class ErRelationshipSetNode :
             NavigatorErNode<ErRelationshipSet>,
-            IObserver,
-            IVisitor<ObjectNameChangedNotification>,
             IVisitor<ObjectAddedNotification<ErRelationshipSet, ErAttribute>>,
             IVisitor<ObjectAddedNotification<ErRelationshipSet, ErRole>>,
             IVisitor<ObjectAddedNotification<ErRelationshipSet, ErMapping>>,
@@ -30,8 +28,6 @@ namespace ErEditor.UI.NavigatorTreeClasses
             private ExtTreeNodeTyped<object, ErRoleNode> roleFolder = new("Роли");
             private ExtTreeNodeTyped<object, ErMappingNode> mappingFolder = new("Отображения");
 
-            private NotificationVisitor visitorLogic;
-
             public ErRelationshipSetNode(ErSchema schema, ErRelationshipSet relationshipSet, NavigatorTreeView parentTree) : base(schema)
             {
                 nodes = new(TreeNodes);
@@ -41,7 +37,6 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
                 Initialize();
 
-                visitorLogic = new(this);
                 relationshipSet.Subscribe(this);
             }
 
@@ -101,11 +96,11 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
             private void DeleteRelationshipSet(object? sender, EventArgs e)
             {
-                ParentSchema.RelationshipSets.Remove(relationshipSet);
+                parentSchema.RelationshipSets.Remove(relationshipSet);
             }
             private ErAttributeNode AddAttributeNode(ErAttribute attribute)
             {
-                var newNode = new ErAttributeNode(ParentSchema, relationshipSet, attribute, parentTree);
+                var newNode = new ErAttributeNode(parentSchema, relationshipSet, attribute, parentTree);
                 attributeFolder.Nodes.Add(newNode);
                 return newNode;
             }
@@ -119,7 +114,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private ErRoleNode AddRoleNode(ErRole role)
             {
-                var newNode = new ErRoleNode(ParentSchema, relationshipSet, role, parentTree);
+                var newNode = new ErRoleNode(parentSchema, relationshipSet, role, parentTree);
                 roleFolder.Nodes.Add(newNode);
                 role.Subscribe(this);
 
@@ -139,7 +134,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private ErMappingNode AddMappingNode(ErMapping mapping)
             {
-                var newNode = new ErMappingNode(ParentSchema, mapping, parentTree);
+                var newNode = new ErMappingNode(parentSchema, mapping, parentTree);
                 if (mapping.Name == "")
                 {
                     newNode.DisplayName = mapping.DefaultName;
@@ -149,11 +144,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 return newNode;
             }
 
-            public void Recieve(Notification notification)
-            {
-                notification.Accept(visitorLogic);
-            }
-            public void Visit(ObjectNameChangedNotification notif)
+            public override void Visit(ObjectNameChangedNotification notif)
             {
                 switch (notif.Object)
                 {

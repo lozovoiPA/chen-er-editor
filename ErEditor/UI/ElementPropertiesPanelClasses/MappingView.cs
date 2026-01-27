@@ -91,9 +91,14 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             this.nameTextBox.ForeColor = Color.Gray;
         }
 
+
+        public override void Open(ErSchema schema, ErMapping tElement)
+        {
+            base.Open(schema, tElement);
+            schema.Unsubscribe(this);
+        }
         protected override void LoadFromElement(ErSchema schema, ErMapping mapping)
         {
-            UnsetHandlers();
             this.nameTextBox.PlaceholderText = mapping.DefaultName;
             this.nameTextBox.Text = mapping.Name;
             preImageNameLabel.Text = mapping.GetPreImageName();
@@ -110,7 +115,6 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             this.maxPreImageNumericUpDown.Value = mapping.MaxCardinalityOfPreimage;
             this.minPreImageNumericUpDown.Value = mapping.MinCardinalityOfPreimage;
             this.minImageNumericUpDown.Value = mapping.MinCardinalityOfImage;
-            SetHandlers();
         }
         protected override void SaveIntoElement(ErMapping mapping)
         {
@@ -180,7 +184,9 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             {
                 case ObjectNameChangedNotification nameChangedNotif:
                 case ObjectUpdatedNotification<ErMapping> updatedNotif:
+                    UnsetHandlers();
                     this.LoadFromElement(schema, element);
+                    SetHandlers();
                     break;
             }
         }

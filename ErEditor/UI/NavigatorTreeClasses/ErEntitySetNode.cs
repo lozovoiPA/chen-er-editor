@@ -13,8 +13,6 @@ namespace ErEditor.UI.NavigatorTreeClasses
     {
         public class ErEntitySetNode : 
             NavigatorErNode<ErEntitySet>, 
-            IObserver, 
-            IVisitor<ObjectNameChangedNotification>,
             IVisitor<ObjectDeletedNotification<ErAttribute>>
         {
             private ExtTreeNodeCollection<IExtTreeNode> nodes;
@@ -22,8 +20,6 @@ namespace ErEditor.UI.NavigatorTreeClasses
             private NavigatorTreeView parentTree;
 
             private ExtTreeNodeTyped<object, ErAttributeNode> attributeFolder = new("Атрибуты");
-
-            private ObserverBase notificationParser;
 
             public ErEntitySetNode(ErSchema schema, ErEntitySet entitySet, NavigatorTreeView parentTree) : base(schema)
             {
@@ -34,7 +30,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
                 Initialize();
 
-                notificationParser = new(this);
+                // notificationParser = new(this); we can actually do this for nonabstract hierarchies of observers
                 entitySet.Subscribe(this);
             }
 
@@ -76,11 +72,11 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private void DeleteEntitySet(object? sender, EventArgs e)
             {
-                ParentSchema.EntitySets.Remove(entitySet);
+                parentSchema.EntitySets.Remove(entitySet);
             }
             private ErAttributeNode AddAttributeNode(ErAttribute attribute)
             {
-                var newNode = new ErAttributeNode(ParentSchema, entitySet, attribute, parentTree);
+                var newNode = new ErAttributeNode(parentSchema, entitySet, attribute, parentTree);
                 attributeFolder.Nodes.Add(newNode);
                 return newNode;
             }
@@ -93,13 +89,13 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 parentTree.RenameNode(newNode);
             }
 
-            public void Recieve(Notification notification)
+            public override void Recieve(Notification notification)
             {
                 notificationParser.Recieve(notification);
             }
-            public void Visit(ObjectNameChangedNotification notif)
+            public override void Visit(ObjectNameChangedNotification notification)
             {
-                base.Name = notif.NewName;
+                DisplayName = notification.NewName;
             }
             public void Visit(ObjectDeletedNotification<ErAttribute> notif)
             {

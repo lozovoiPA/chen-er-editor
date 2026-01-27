@@ -105,25 +105,25 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
             private ErEntitySetNode AddEntitySetNode(ErEntitySet es)
             {
-                var newNode = new ErEntitySetNode(ParentSchema, es, parentTree);
+                var newNode = new ErEntitySetNode(parentSchema, es, parentTree);
                 entitySetFolder.Nodes.Add(newNode);
                 return newNode;
             }
             private ErRelationshipSetNode AddRelationshipSetNode(ErRelationshipSet rs)
             {
-                var newNode = new ErRelationshipSetNode(ParentSchema, rs, parentTree);
+                var newNode = new ErRelationshipSetNode(parentSchema, rs, parentTree);
                 relationshipSetFolder.Nodes.Add(newNode);
                 return newNode;
             }
             private ErValueSetNode AddValueSetNode(ErValueSet vs)
             {
-                var newNode = new ErValueSetNode(ParentSchema, vs, parentTree);
+                var newNode = new ErValueSetNode(parentSchema, vs, parentTree);
                 valueSetFolder.Nodes.Add(newNode);
                 return newNode;
             }
             private ErDiagramNode AddDiagramNode(ErDiagram dgr)
             {
-                var newNode = new ErDiagramNode(ParentSchema, dgr, parentTree);
+                var newNode = new ErDiagramNode(parentSchema, dgr, parentTree);
                 diagramFolder.Nodes.Add(newNode);
                 return newNode;
             }

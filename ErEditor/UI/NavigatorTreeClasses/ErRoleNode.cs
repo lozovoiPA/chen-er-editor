@@ -27,6 +27,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 this.parentRelationshipSet = parent;
 
                 Initialize();
+                role.Subscribe(this);
             }
 
             public override string Name

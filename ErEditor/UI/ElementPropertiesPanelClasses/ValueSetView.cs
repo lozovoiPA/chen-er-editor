@@ -16,8 +16,6 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         IVisitor<ObjectUpdatedNotification<ErValueSet>>
     {
         private ComboBoxWithBorder baseValueTypeComboBox = new();
-
-
         public class BaseValueType
         {
             private readonly string name;
@@ -93,12 +91,16 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             get { return types.AsReadOnly(); }
         }
 
+        public override void Open(ErSchema schema, ErValueSet tElement)
+        {
+            base.Open(schema, tElement);
+            schema.Unsubscribe(this);
+        }
+
         protected override void LoadFromElement(ErSchema schema, ErValueSet valueSet)
         {
-            UnsetHandlers();
             nameTextBox.Text = valueSet.Name;
             baseValueTypeComboBox.SelectedValue = valueSet.BaseValueType;
-            SetHandlers();
         }
         protected override void SaveIntoElement(ErValueSet valueSet)
         {
@@ -131,7 +133,6 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             element.Subscribe(this);
         }
 
-
         public void Recieve(Notification notification)
         {
             notificationParser.Recieve(notification);
@@ -144,7 +145,9 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         }
         public void Visit(ObjectUpdatedNotification<ErValueSet> notification)
         {
+            UnsetHandlers();
             LoadFromElement(schema, element);
+            SetHandlers();
         }
     }
 }

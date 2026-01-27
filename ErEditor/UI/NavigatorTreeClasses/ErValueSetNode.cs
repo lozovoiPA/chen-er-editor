@@ -1,4 +1,5 @@
 ﻿using ErEditor.ErSchemaClasses;
+using ErEditor.Infrastructure;
 using ErEditor.UI.ExtTreeClasses;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 this.parentTree = parentTree;
 
                 Initialize();
+                valueSet.Subscribe(this);
             }
 
             public override string Name
@@ -55,7 +57,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
             private void DeleteValueSet(object? sender, EventArgs e)
             {
-                ParentSchema.ValueSets.Remove(valueSet);
+                parentSchema.ValueSets.Remove(valueSet);
             }
         }
     }

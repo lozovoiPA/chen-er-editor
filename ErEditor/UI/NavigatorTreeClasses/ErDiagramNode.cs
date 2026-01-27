@@ -55,11 +55,11 @@ namespace ErEditor.UI.NavigatorTreeClasses
 
             private void DeleteDiagram(object? sender, EventArgs e)
             {
-                ParentSchema.Diagrams.Remove(diagram);
+                parentSchema.Diagrams.Remove(diagram);
             }
             public override void DoubleClick(object? sender, MouseEventArgs e)
             {
-                MainWindow.OpenDiagram(ParentSchema, diagram);
+                MainWindow.OpenDiagram(parentSchema, diagram);
             }
         }
     }

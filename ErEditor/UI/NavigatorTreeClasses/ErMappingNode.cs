@@ -15,15 +15,11 @@ namespace ErEditor.UI.NavigatorTreeClasses
     {
         public class ErMappingNode 
             : NavigatorErNode<ErMapping>,
-            IObserver,
-            IVisitor<ObjectNameChangedNotification>,
             IVisitor<ObjectUpdatedNotification<ErMapping>>
         {
             private ExtTreeNodeCollection<IExtTreeNode> nodes;
             private ErMapping mapping;
             private NavigatorTreeView parentTree;
-
-            private ObserverBase notificationParser;
 
             public ErMappingNode(ErSchema schema, ErMapping mapping, NavigatorTreeView parentTree) : base(schema)
             {
@@ -41,11 +37,6 @@ namespace ErEditor.UI.NavigatorTreeClasses
             {
                 get { return base.Name; }
                 set { base.Name = value; mapping.Name = value; }
-            }
-            public string DisplayName
-            {
-                get { return base.Name; }
-                set { base.Name = value; }
             }
 
             public override ErMapping Data
@@ -69,15 +60,14 @@ namespace ErEditor.UI.NavigatorTreeClasses
                     });
             }
 
-            public void Recieve(Notification notification)
+            public override void Recieve(Notification notification)
             {
-                //notificationParser.Recieve(notification);
                 if(notification is ObjectNameChangedNotification || notification is ObjectUpdatedNotification<ErMapping>)
                 {
-                    this.DisplayName = (mapping.Name == "") ? mapping.DefaultName : mapping.Name;
+                    base.Name = (mapping.Name == "") ? mapping.DefaultName : mapping.Name;
                 }
             }
-            public void Visit(ObjectNameChangedNotification notification)
+            public override void Visit(ObjectNameChangedNotification notification)
             {
                 
             }
