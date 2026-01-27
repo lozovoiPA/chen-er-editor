@@ -33,24 +33,42 @@ namespace ErEditor.ErSchemaClasses
         }
     }
 
-    public class ErRole : ErElement
+    public class ErRole 
+        : ErElement,
+        IObserver
     {
         private ErEntitySet entitySet;
 
         private bool isIdDependency = false;
         private bool isKey = false;
 
+        private ObserverBase notificationParser;
+
         public ErRole(ErEntitySet entitySet, string name = "")
         {
             this.name = name;
             this.entitySet = entitySet;
+
+            entitySet.Subscribe(this);
+            notificationParser = new(this);
         }
 
         // сделать проверку что схема та же
         public ErEntitySet EntitySet
         {
             get {  return entitySet; }
-            set { entitySet = value; }
+            set { 
+                if(entitySet != ErEntitySet.Empty)
+                {
+                    entitySet.Unsubscribe(this);
+                }
+                entitySet = value;
+                if(value != ErEntitySet.Empty)
+                {
+                    value.Subscribe(this);
+                }
+                observers.Notify(new ObjectUpdatedNotification<ErRole>(this));
+            }
         }
         public bool IsIdDependency
         {
@@ -61,6 +79,11 @@ namespace ErEditor.ErSchemaClasses
         {
             get { return isKey; }
             set { isKey = value; }
+        }
+
+        public void Recieve(Notification notification)
+        {
+            
         }
     }
 

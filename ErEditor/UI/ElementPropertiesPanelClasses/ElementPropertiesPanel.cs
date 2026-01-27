@@ -57,6 +57,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             {
                 activeView.CloseAndSave();
                 activeView.Visible = false;
+                activeView = null;
             }
         }
         public void CloseAndDiscardProperties()
@@ -65,6 +66,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             {
                 activeView.CloseAndDiscard();
                 activeView.Visible = false;
+                activeView = null;
             }
         }
     }

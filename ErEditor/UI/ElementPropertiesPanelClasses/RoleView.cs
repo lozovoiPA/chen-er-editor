@@ -1,8 +1,16 @@
 ﻿using ErEditor.ErSchemaClasses;
+using ErEditor.Infrastructure;
+using System.Data;
 
 namespace ErEditor.UI.ElementPropertiesPanelClasses
 {
-    public class RoleView : ElementPropertiesPanel.ElementView<ErRole>
+    public class RoleView : 
+        ElementPropertiesPanel.ElementView<ErRole>,
+        IObserver,
+        IVisitor<ObjectNameChangedNotification>,
+        IVisitor<ObjectUpdatedNotification<ErRole>>,
+        IVisitor<ObjectCreatedNotification<ErEntitySet>>,
+        IVisitor<ObjectDeletedNotification<ErEntitySet>>
     {
         // Used temporarily to draw a white border (no border)
         public class ComboBoxWithBorder : ComboBox
@@ -47,6 +55,8 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             }
         }
         private ComboBoxWithBorder entitySetComboBox = new();
+
+        private ObserverBase notificationParser;
         public RoleView() : base()
         {
             entitySetComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -63,16 +73,80 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             AddRow("Множество сущностей", entitySetComboBox);
 
             AddEmptyRow();
+
+            notificationParser = new(this);
+        }
+
+        private void LoadFrom(ErSchema schema, ErRole role)
+        {
+            UnsetHandlers();
+            nameTextBox.Text = role.Name;
+
+            entitySetComboBox.DataSource = null;
+            entitySetComboBox.DataSource = schema.EntitySets;
+            entitySetComboBox.DisplayMember = "Name";
+            entitySetComboBox.SelectedItem = role.EntitySet;
+
+            this.Refresh();
+            SetHandlers();
         }
 
         public void Open(ErSchema schema, ErRole role)
         {
-            this.schema = null;
-            this.element = null;
-            entitySetComboBox.DataSource = schema.EntitySets;
-            entitySetComboBox.DisplayMember = "Name";
-            entitySetComboBox.SelectedItem = role.EntitySet;
-            this.element = role;
+            if(role != element)
+            {
+                CloseAndDiscard();
+
+                LoadFrom(schema, role);
+
+                this.element = role;
+                this.schema = schema;
+                role.Subscribe(this);
+                schema.Subscribe(this);
+                SetHandlers();
+            }
+            else
+            {
+                LoadFrom(schema, role);
+            }
+        }
+
+        private void UnsetHandlers()
+        {
+            nameTextBox.TextChanged -= NameTextBox_TextChanged;
+            entitySetComboBox.SelectionChangeCommitted -= EntitySetComboBox_SelectionChangeCommitted;
+        }
+        private void SetHandlers()
+        {
+            nameTextBox.TextChanged += NameTextBox_TextChanged;
+            entitySetComboBox.SelectionChangeCommitted += EntitySetComboBox_SelectionChangeCommitted;
+        }
+
+        public override void CloseAndSave()
+        {
+            if (element != null)
+            {
+                ErRole role = element;
+                element.Unsubscribe(this);
+                schema.Unsubscribe(this);
+                this.element = null;
+                this.schema = null;
+                UnsetHandlers();
+
+                role.Name = role.Name;
+                role.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.Empty;
+            }
+        }
+        public override void CloseAndDiscard()
+        {
+            if (element != null)
+            {
+                element.Unsubscribe(this);
+                schema.Unsubscribe(this);
+                this.element = null;
+                this.schema = null;
+                UnsetHandlers();
+            }
         }
 
         // see above what it's used for
@@ -94,39 +168,50 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             tBrush.Dispose();
             e.DrawFocusRectangle();
         }
-
+        private void NameTextBox_TextChanged(object? sender, EventArgs e)
+        {
+            element.Unsubscribe(this);
+            element.Name = nameTextBox.Text;
+            element.Subscribe(this);
+        }
         private void EntitySetComboBox_SelectionChangeCommitted(object? sender, EventArgs e)
         {
-            if (element != null)
-            {
-                element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.Empty;
-            }
-        }
-        public void CommitChanges()
-        {
-            if (element != null)
-            {
-                element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.Empty;
-            }
+            element.Unsubscribe(this);
+            element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.Empty;
+            element.Subscribe(this);
         }
 
-        public override void CloseAndSave()
+        public void Recieve(Notification notification)
         {
-            if (element != null)
-            {
-                //element.Unsubscribe(this);
-                //UnsetHandlers();
-                this.element = null;
-            }
+            notificationParser.Recieve(notification);
         }
-        public override void CloseAndDiscard()
+        public void Visit(ObjectNameChangedNotification notification)
         {
-            if (element != null)
+            nameTextBox.Text = notification.NewName;
+        }
+        public void Visit(ObjectUpdatedNotification<ErRole> notification)
+        {
+            LoadFrom(schema, element);
+        }
+        public void Visit(ObjectCreatedNotification<ErEntitySet> notification)
+        {
+            ConsoleLog.Log("I received a message es was crewated");
+            entitySetComboBox.DataSource = schema.EntitySets;
+            entitySetComboBox.DisplayMember = "Name";
+            entitySetComboBox.SelectedItem = element.EntitySet;
+        }
+        public void Visit(ObjectDeletedNotification<ErEntitySet> notification)
+        {
+            ConsoleLog.Log("I received a message es was delwed");
+            if (notification.Object == element.EntitySet)
             {
-                //element.Unsubscribe(this);
-                //UnsetHandlers();
-                this.element = null;
+                element.Unsubscribe(this);
+                element.EntitySet = ErEntitySet.Empty;
+                element.Subscribe(this);
             }
+            entitySetComboBox.DataSource = schema.EntitySets;
+            entitySetComboBox.DisplayMember = "Name";
+            entitySetComboBox.SelectedItem = element.EntitySet;
         }
     }
 }

@@ -95,6 +95,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
 
         private void LoadFrom(ErMapping mapping)
         {
+            UnsetHandlers();
             this.nameTextBox.PlaceholderText = mapping.DefaultName;
             this.nameTextBox.Text = mapping.Name;
             preImageNameLabel.Text = mapping.GetPreImageName();
@@ -111,6 +112,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             this.maxPreImageNumericUpDown.Value = mapping.MaxCardinalityOfPreimage;
             this.minPreImageNumericUpDown.Value = mapping.MinCardinalityOfPreimage;
             this.minImageNumericUpDown.Value = mapping.MinCardinalityOfImage;
+            SetHandlers();
         }
 
         public void Open(ErMapping mapping)
