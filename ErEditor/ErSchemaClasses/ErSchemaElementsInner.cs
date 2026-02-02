@@ -31,6 +31,32 @@ namespace ErEditor.ErSchemaClasses
             isKey = false;
             valueSets = new List<ErValueSet>();
         }
+
+        public void AddValueSet(ErValueSet valueSet)
+        {
+            if (valueSets.Count > 0)
+            {
+                valueSets[0] = valueSet;
+            }
+            else
+            {
+                valueSets.Add(valueSet);
+            }
+            observers.Notify(new ObjectUpdatedNotification<ErAttribute>(this));
+        }
+        public void RemoveValueSet(ErValueSet valueSet)
+        {
+            valueSets.Remove(valueSet);
+            observers.Notify(new ObjectUpdatedNotification<ErAttribute>(this));
+        }
+        public void RemoveFirstValueSet()
+        {
+            if(valueSets.Count > 0)
+            {
+                valueSets.RemoveAt(0);
+                observers.Notify(new ObjectUpdatedNotification<ErAttribute>(this));
+            }
+        }
     }
 
     public class ErRole 
@@ -58,12 +84,12 @@ namespace ErEditor.ErSchemaClasses
         {
             get {  return entitySet; }
             set { 
-                if(entitySet != ErEntitySet.Empty)
+                if(entitySet != ErEntitySet.None)
                 {
                     entitySet.Unsubscribe(this);
                 }
                 entitySet = value;
-                if(value != ErEntitySet.Empty)
+                if(value != ErEntitySet.None)
                 {
                     value.Subscribe(this);
                 }

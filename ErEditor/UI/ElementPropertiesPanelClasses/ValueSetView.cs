@@ -101,11 +101,15 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         {
             nameTextBox.Text = valueSet.Name;
             baseValueTypeComboBox.SelectedValue = valueSet.BaseValueType;
+            wereChangesMade = false;
         }
         protected override void SaveIntoElement(ErValueSet valueSet)
         {
-            valueSet.Name = nameTextBox.Text;
-            valueSet.BaseValueType = (string)baseValueTypeComboBox.SelectedValue;
+            if (wereChangesMade)
+            {
+                valueSet.Name = nameTextBox.Text;
+                valueSet.BaseValueType = (string)baseValueTypeComboBox.SelectedValue;
+            }
         }
         
         protected override void UnsetHandlers()
@@ -123,6 +127,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         {
             element.Unsubscribe(this);
             element.Name = nameTextBox.Text;
+            wereChangesMade = true;
             element.Subscribe(this);
         }
         private void BaseValueTypeComboBox_SelectionChangeCommitted(object? sender, EventArgs e)
@@ -130,6 +135,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             ConsoleLog.Log($"{baseValueTypeComboBox.SelectedValue}");
             element.Unsubscribe(this);
             element.BaseValueType = (string)baseValueTypeComboBox.SelectedValue;
+            wereChangesMade = true;
             element.Subscribe(this);
         }
 

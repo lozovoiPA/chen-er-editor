@@ -46,6 +46,9 @@ namespace ErEditor.DbSchemaClasses
     {
         public string BaseType { get; set; } = "int";
 
+        public virtual ObservableCollectionListSource<DbAttribute> Attributes { get; } = new();
+        //public virtual ObservableCollectionListSource<DbAttributeDbValueSet> AttributeValueSets { get; } = new();
+
         public DbValueSet(string? name = null)
         {
             this.Name = name;

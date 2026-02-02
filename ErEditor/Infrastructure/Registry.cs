@@ -29,8 +29,8 @@ namespace ErEditor.Infrastructure
         protected Dictionary<int, TObject> retrievedIdMap = new();
 
         // Must only contain entries that exist in retrievedIdMap
-        protected List<TObject> updated = new();
-        protected List<TObject> deleted = new();
+        protected Dictionary<TObject, IDbEntry?> updated = new();
+        protected Dictionary<TObject, IDbEntry?> deleted = new();
 
         protected Dictionary<TObject, IDbEntry?> created = new(); // these entries will be used to get ids when flushing
 
@@ -43,6 +43,10 @@ namespace ErEditor.Infrastructure
 
         public ReadOnlyCollection<TObject> Updated
         {
+            get { return updated.Keys.ToList().AsReadOnly(); }
+        }
+        public ReadOnlyDictionary<TObject, IDbEntry?> UpdatedDbEntries
+        {
             get { return updated.AsReadOnly(); }
         }
         public ReadOnlyCollection<TObject> Created
@@ -54,6 +58,10 @@ namespace ErEditor.Infrastructure
             get { return created.AsReadOnly(); }
         }
         public ReadOnlyCollection<TObject> Deleted
+        {
+            get { return deleted.Keys.ToList().AsReadOnly(); }
+        }
+        public ReadOnlyDictionary<TObject, IDbEntry?> DeletedDbEntries
         {
             get { return deleted.AsReadOnly(); }
         }
@@ -71,7 +79,7 @@ namespace ErEditor.Infrastructure
             var entries = retrievedIdMap.Where(x => x.Value?.Equals(entry) ?? false).ToList();
             if (entries.Count > 1)
             {
-                ConsoleLog.Log("Registry contains several of the same value. This shouldn't be the case.", this, "ERROR");
+                ConsoleLog.Log("Registry contains several of the same value. This shouldn't be the case.", this);
                 return null;
             }
             return entries[0].Key;
@@ -90,11 +98,11 @@ namespace ErEditor.Infrastructure
             {
                 return EntityState.Added;
             }
-            if (updated.Contains(entry))
+            if (updated.ContainsKey(entry))
             {
                 return EntityState.Modified;
             }
-            if (deleted.Contains(entry))
+            if (deleted.ContainsKey(entry))
             {
                 return EntityState.Deleted;
             }
@@ -105,7 +113,7 @@ namespace ErEditor.Infrastructure
         {
             if (retrievedIdMap.ContainsKey(id))
             {
-                ConsoleLog.Log($"Entry with id {id} already exists in the registry. It will not be added.", this, "WARNING");
+                ConsoleLog.Log($"Entry with id {id} already exists in the registry. It will not be added.", this);
                 return false;
             }
             retrievedIdMap.Add(id, entry);
@@ -116,7 +124,7 @@ namespace ErEditor.Infrastructure
             int? id = FindId(entry);
             if (id == null)
             {
-                ConsoleLog.Log($"Entry {entry} doesn't exist in the registry.", this, "WARNING");
+                ConsoleLog.Log($"Entry {entry} doesn't exist in the registry.", this);
                 return false;
             }
             retrievedIdMap.Remove((int)id);
@@ -125,24 +133,24 @@ namespace ErEditor.Infrastructure
 
         public bool AddCreated(TObject entry, IDbEntry? dbentry = null)
         {
-            if (this.deleted.Contains(entry))
+            if (deleted.ContainsKey(entry))
             {
                 deleted.Remove(entry);
             }
-            if (this.updated.Contains(entry))
+            if (updated.ContainsKey(entry))
             {
                 updated.Remove(entry);
             }
-            if (this.created.ContainsKey(entry))
+            if (created.ContainsKey(entry))
             {
                 return false;
             }
-            if (this.FindId(entry) != null)
+            if (FindId(entry) != null)
             {
-                ConsoleLog.Log($"Skipped adding entry {entry} already retrieved", this, "INFO");
+                ConsoleLog.Log($"Skipped adding entry {entry} already retrieved", this);
                 return false;
             }
-            ConsoleLog.Log($"Adding new {entry} to the created list.", this, "INFO");
+            ConsoleLog.Log($"Adding new {entry} to the created list.", this);
             created.Add(entry, dbentry);
             return true;
         }
@@ -153,24 +161,31 @@ namespace ErEditor.Infrastructure
                 created[entry] = dbentry;
             }
         }
-        public bool AddUpdated(TObject entry)
+        public bool AddUpdated(TObject entry, IDbEntry? dbentry = null)
         {
-            if (this.deleted.Contains(entry) || this.created.ContainsKey(entry) || this.updated.Contains(entry))
+            if (deleted.ContainsKey(entry) || this.created.ContainsKey(entry) || updated.ContainsKey(entry))
             {
                 return false;
             }
             if (this.FindId(entry) == null)
             {
-                ConsoleLog.Log("Aborted trying to update entity not in registry.", this, "ERROR");
+                ConsoleLog.Log("Aborted trying to update entity not in registry.", this);
                 return false;
             }
-            ConsoleLog.Log($"Adding updated {entry} to the updated list.", this, "INFO");
-            this.updated.Add(entry);
+            ConsoleLog.Log($"Adding updated {entry} to the updated list.", this);
+            this.updated.Add(entry, dbentry);
             return true;
         }
-        public bool AddDeleted(TObject entry)
+        public void AddUpdatedDbEntry(TObject entry, IDbEntry dbentry)
         {
-            if (this.updated.Contains(entry))
+            if (updated.ContainsKey(entry))
+            {
+                updated[entry] = dbentry;
+            }
+        }
+        public bool AddDeleted(TObject entry, IDbEntry? dbentry = null)
+        {
+            if (updated.ContainsKey(entry))
             {
                 updated.Remove(entry);
             }
@@ -179,18 +194,25 @@ namespace ErEditor.Infrastructure
                 created.Remove(entry);
                 return false;
             }
-            if (this.deleted.Contains(entry))
+            if (deleted.ContainsKey(entry))
             {
                 return false;
             }
             if (this.FindId(entry) == null)
             {
-                ConsoleLog.Log("Aborted trying to delete entity not in registry.", this, "ERROR");
+                ConsoleLog.Log("Aborted trying to delete entity not in registry.", this);
                 return false;
             }
-            ConsoleLog.Log($"Adding deleted {entry} to the deleted list.", this, "INFO");
-            deleted.Add(entry);
+            ConsoleLog.Log($"Adding deleted {entry} to the deleted list.", this);
+            deleted.Add(entry, dbentry);
             return true;
+        }
+        public void AddDeletedDbEntry(TObject entry, IDbEntry dbentry)
+        {
+            if (deleted.ContainsKey(entry))
+            {
+                deleted[entry] = dbentry;
+            }
         }
 
 
@@ -227,7 +249,7 @@ namespace ErEditor.Infrastructure
         {
             foreach (var entry in deleted)
             {
-                this.RemoveRetrieved(entry);
+                this.RemoveRetrieved(entry.Key);
             }
             foreach (var entryKeyPair in created)
             {
@@ -251,7 +273,7 @@ namespace ErEditor.Infrastructure
                 res += $"\t{entry.Value.ToString()}: {entry.Key}\n";
             }
             res += "\nUpdated:\n";
-            foreach (var entry in updated)
+            foreach (var entry in updated.Keys)
             {
                 res += $"\t{entry.ToString()}\n";
             }
@@ -261,7 +283,7 @@ namespace ErEditor.Infrastructure
                 res += $"\t{entry.ToString()}\n";
             }
             res += "\nDeleted:\n";
-            foreach (var entry in deleted)
+            foreach (var entry in deleted.Keys)
             {
                 res += $"\t{entry.ToString()}\n";
             }

@@ -10,6 +10,14 @@ namespace ErEditor.Infrastructure
 {
     public abstract class Notification : IVisitable
     {
+        public readonly object? Sender;
+
+        public Notification() { }
+        public Notification(object sender)
+        {
+            Sender = sender;
+        }
+
         public virtual void Accept(IVisitor visitor) { }
     }
 

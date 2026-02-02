@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,25 +21,33 @@ namespace ErEditor.Infrastructure
 
     public class ObservableBase : IObservable
     {
+        private readonly string parentName = "[parent class not specified]";
+
         protected List<IObserver> observers = new();
         protected List<IObserver> doNotNotify = new();
         public bool BlockNotifying { get; set; } = false;
 
+        public ObservableBase() { }
+        public ObservableBase(object @object)
+        {
+            parentName = ConsoleLog.GetShortTypeName(@object);
+        }
+
         public virtual bool Subscribe(IObserver observer)
         {
-            ConsoleLog.Log("Observable Base received observer " + observer.ToString() + ", trying to subscribe");
+            //ConsoleLog.Log("Observable Base received observer " + observer.ToString() + ", trying to subscribe");
             if (!observers.Contains(observer))
             {
                 observers.Add(observer);
-                ConsoleLog.Log("The observer was added.");
+                //ConsoleLog.Log("The observer was added.");
                 return true;
             }
-            ConsoleLog.Log("The observer wasn't added.");
+            //ConsoleLog.Log("The observer wasn't added.");
             return false;
         }
         public virtual bool Unsubscribe(IObserver observer)
         {
-            ConsoleLog.Log("An observer is unsubscribed.");
+            //ConsoleLog.Log("An observer is unsubscribed.");
             if (observers.Contains(observer))
             {
                 observers.Remove(observer);
@@ -52,7 +61,7 @@ namespace ErEditor.Infrastructure
             {
                 foreach (var observer in observers)
                 {
-                    ConsoleLog.Log("I am notifying observer " + observer.ToString());
+                    //ConsoleLog.Log("I am notifying observer " + observer.ToString());
                     observer.Recieve(notification);
                 }
             }

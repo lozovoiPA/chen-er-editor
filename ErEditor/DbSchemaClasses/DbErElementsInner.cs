@@ -20,8 +20,8 @@ namespace ErEditor.DbSchemaClasses
         public string? AllowedValues { get; set; }
         public bool IsKey { get; set; }
 
-        public virtual ObservableCollectionListSource<DbValueSet> ValueSets { get; set; } = new();
-        public virtual ObservableCollectionListSource<DbAttributeDbValueSet> AttributeValueSets { get; set; } = new();
+        public virtual ObservableCollectionListSource<DbValueSet> ValueSets { get; } = new();
+        //public virtual ObservableCollectionListSource<DbAttributeDbValueSet> AttributeValueSets { get; } = new();
 
         public DbAttribute(string? name = null)
         {
@@ -82,8 +82,8 @@ namespace ErEditor.DbSchemaClasses
     public class DbAttributeDbValueSet
     {
         public int AttributeId { get; set; }
-        public virtual DbAttribute Attribute { get; set; } = null!;
+        //public virtual DbAttribute Attribute { get; set; } = null!;
         public int ValueSetId { get; set; }
-        public virtual DbValueSet ValueSet { get; set; } = null!;
+        //public virtual DbValueSet ValueSet { get; set; } = null!;
     }
 }

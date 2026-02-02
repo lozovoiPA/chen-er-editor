@@ -77,7 +77,7 @@ namespace ErEditor.ErSchemaClasses
 
     public class ErEntitySet : ErElementWithAttributes
     {
-        public static readonly ErEntitySet Empty = new ErEntitySet();
+        public static readonly ErEntitySet None = new ErEntitySet();
 
         public ErEntitySet() { }
         public ErEntitySet(string name)
@@ -108,7 +108,7 @@ namespace ErEditor.ErSchemaClasses
 
         public ErRole AddRole(string name = "", bool addMapping = false)
         {
-            var newRole = this.AddRole(ErEntitySet.Empty, name, addMapping);
+            var newRole = this.AddRole(ErEntitySet.None, name, addMapping);
             return newRole;
         }
         public ErRole AddRole(ErEntitySet entitySet, string name = "", bool addMapping = false)
@@ -199,6 +199,7 @@ namespace ErEditor.ErSchemaClasses
 
     public class ErValueSet : ErElement
     {
+        public static readonly ErValueSet None = new ErValueSet();
         private string baseValueType = "int";
         public ErValueSet() { }
         public ErValueSet(string name)

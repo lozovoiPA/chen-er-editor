@@ -26,7 +26,7 @@ namespace ErEditor.UI
 
         public DiagramPanel()
         {
-            ConsoleLog.Log("Started constructor", this, "INFO");
+            ConsoleLog.Log("Started constructor", this);
             Console.WriteLine(this);
             Initialize();
         }
@@ -50,7 +50,7 @@ namespace ErEditor.UI
         }
         private void InitializeDrawingContextMenu()
         {
-            ConsoleLog.Log("Started InitializeDrawingContextMenu()", this, "INFO");
+            ConsoleLog.Log("Started InitializeDrawingContextMenu()", this);
             ToolStripMenuItem createPrimitiveDropdown = new();
             createPrimitiveDropdown.Text = "Создать...";
 
@@ -126,7 +126,7 @@ namespace ErEditor.UI
         }
         private void CreateRelationshipSet_Handler(object? sender, EventArgs e)
         {
-            ConsoleLog.Log("New relationship set creation (diagram) handler was called", this, "INFO");
+            ConsoleLog.Log("New relationship set creation (diagram) handler was called", this);
             Point point = PointToClient(new Point(panelContextMenu.Bounds.X, panelContextMenu.Bounds.Y));
 
             if (diagram != null && schema != null)

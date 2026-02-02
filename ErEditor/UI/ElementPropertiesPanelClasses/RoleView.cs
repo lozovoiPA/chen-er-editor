@@ -16,7 +16,6 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         public RoleView() : base()
         {
             entitySetComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            //entitySetComboBox.Margin = new Padding(0);
             entitySetComboBox.AutoSize = false;
             entitySetComboBox.Height = rowHeight;
             entitySetComboBox.BackColor = SystemColors.Window;
@@ -37,14 +36,23 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             entitySetComboBox.DataSource = null;
             entitySetComboBox.DataSource = schema.EntitySets;
             entitySetComboBox.DisplayMember = "Name";
-            entitySetComboBox.SelectedItem = role.EntitySet;
-
-            this.Refresh();
+            if(role.EntitySet != ErEntitySet.None && schema.EntitySets.Count > 0)
+            {
+                entitySetComboBox.SelectedItem = role.EntitySet;
+            }
+            else
+            {
+                entitySetComboBox.SelectedItem = null;
+            }
+            wereChangesMade = false;
         }
         protected override void SaveIntoElement(ErRole element)
         {
-            element.Name = nameTextBox.Text;
-            element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.Empty;
+            if (wereChangesMade)
+            {
+                element.Name = nameTextBox.Text;
+                element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.None;
+            }
         }
 
         protected override void UnsetHandlers()
@@ -57,17 +65,18 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             nameTextBox.TextChanged += NameTextBox_TextChanged;
             entitySetComboBox.SelectionChangeCommitted += EntitySetComboBox_SelectionChangeCommitted;
         }
-
         private void NameTextBox_TextChanged(object? sender, EventArgs e)
         {
             element.Unsubscribe(this);
             element.Name = nameTextBox.Text;
+            wereChangesMade = true;
             element.Subscribe(this);
         }
         private void EntitySetComboBox_SelectionChangeCommitted(object? sender, EventArgs e)
         {
             element.Unsubscribe(this);
-            element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.Empty;
+            element.EntitySet = entitySetComboBox.SelectedValue as ErEntitySet ?? ErEntitySet.None;
+            wereChangesMade = true;
             element.Subscribe(this);
         }
 
@@ -92,7 +101,14 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             entitySetComboBox.SelectionChangeCommitted -= EntitySetComboBox_SelectionChangeCommitted;
             entitySetComboBox.DataSource = schema.EntitySets;
             entitySetComboBox.DisplayMember = "Name";
-            entitySetComboBox.SelectedItem = element.EntitySet;
+            if (element.EntitySet != ErEntitySet.None)
+            {
+                entitySetComboBox.SelectedItem = element.EntitySet;
+            }
+            else
+            {
+                entitySetComboBox.SelectedItem = null;
+            }
             entitySetComboBox.SelectionChangeCommitted += EntitySetComboBox_SelectionChangeCommitted;
         }
         public void Visit(ObjectDeletedNotification<ErEntitySet> notification)
@@ -101,7 +117,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             if (notification.Object == element.EntitySet)
             {
                 element.Unsubscribe(this);
-                element.EntitySet = ErEntitySet.Empty;
+                element.EntitySet = ErEntitySet.None;
                 element.Subscribe(this);
             }
             entitySetComboBox.DataSource = schema.EntitySets;

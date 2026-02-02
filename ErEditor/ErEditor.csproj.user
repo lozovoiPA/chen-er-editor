@@ -22,6 +22,9 @@
     <Compile Update="UI\DiagramPanel.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Update="UI\ElementPropertiesPanelClasses\AttributeView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="UI\ElementPropertiesPanelClasses\ElementPropertiesPanel.cs">
       <SubType>Component</SubType>
     </Compile>

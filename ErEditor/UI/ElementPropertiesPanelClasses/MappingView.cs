@@ -115,22 +115,26 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             this.maxPreImageNumericUpDown.Value = mapping.MaxCardinalityOfPreimage;
             this.minPreImageNumericUpDown.Value = mapping.MinCardinalityOfPreimage;
             this.minImageNumericUpDown.Value = mapping.MinCardinalityOfImage;
+            wereChangesMade = false;
         }
         protected override void SaveIntoElement(ErMapping mapping)
         {
-            mapping.BlockNotifying = true;
-            mapping.MaxCardinalityOfImage = maxImageNumericUpDown.Value;
-            mapping.MaxCardinalityOfPreimage = maxPreImageNumericUpDown.Value;
-            mapping.MinCardinalityOfPreimage = minPreImageNumericUpDown.Value;
-            mapping.MinCardinalityOfImage = minImageNumericUpDown.Value;
-            mapping.BlockNotifying = false;
-            if (nameTextBox.Text == mapping.DefaultName || nameTextBox.Text == "")
+            if (wereChangesMade)
             {
-                mapping.Name = "";
-            }
-            else
-            {
-                mapping.Name = nameTextBox.Text;
+                mapping.BlockNotifying = true;
+                mapping.MaxCardinalityOfImage = maxImageNumericUpDown.Value;
+                mapping.MaxCardinalityOfPreimage = maxPreImageNumericUpDown.Value;
+                mapping.MinCardinalityOfPreimage = minPreImageNumericUpDown.Value;
+                mapping.MinCardinalityOfImage = minImageNumericUpDown.Value;
+                mapping.BlockNotifying = false;
+                if (nameTextBox.Text == mapping.DefaultName || nameTextBox.Text == "")
+                {
+                    mapping.Name = "";
+                }
+                else
+                {
+                    mapping.Name = nameTextBox.Text;
+                }
             }
         }
 
@@ -151,30 +155,35 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
                 element.Name = nameTextBox.Text;
                 SetNormalNameStyle();
             }
+            wereChangesMade = true;
             element.Subscribe(this);
         }
         private void MaxImageNumericUpDown_ValueChanged(object? sender, EventArgs e)
         {
             element.Unsubscribe(this);
             element.MaxCardinalityOfImage = maxImageNumericUpDown.Value;
+            wereChangesMade = true;
             element.Subscribe(this);
         }
         private void MaxPreImageNumericUpDown_ValueChanged(object? sender, EventArgs e)
         {
             element.Unsubscribe(this);
             element.MaxCardinalityOfPreimage = maxPreImageNumericUpDown.Value;
+            wereChangesMade = true;
             element.Subscribe(this);
         }
         private void MinPreImageNumericUpDown_ValueChanged(object? sender, EventArgs e)
         {
             element.Unsubscribe(this);
             element.MinCardinalityOfPreimage = minPreImageNumericUpDown.Value;
+            wereChangesMade = true;
             element.Subscribe(this);
         }
         private void MinImageNumericUpDown_ValueChanged(object? sender, EventArgs e)
         {
             element.Unsubscribe(this);
             element.MinCardinalityOfImage = minImageNumericUpDown.Value;
+            wereChangesMade = true;
             element.Subscribe(this);
         }
 

@@ -12,8 +12,9 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
     public partial class ElementPropertiesPanel : Panel
     {
         private ValueSetView valueSetView = new();
+        private AttributeView attributeView = new();
         private RoleView roleView = new();
-        private MappingView mappingView = new MappingView();
+        private MappingView mappingView = new();
 
 
         private ElementView? activeView;
@@ -21,6 +22,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         public ElementPropertiesPanel()
         {
             Controls.Add(valueSetView);
+            Controls.Add(attributeView);
             Controls.Add(roleView);
             Controls.Add(mappingView);
 
@@ -38,6 +40,9 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
             {
                 case ErValueSet valueSet:
                     elementView = valueSetView as ElementView<TErElement>;
+                    break;
+                case ErAttribute attribute:
+                    elementView = attributeView as ElementView<TErElement>;
                     break;
                 case ErRole role:
                     elementView = roleView as ElementView<TErElement>;

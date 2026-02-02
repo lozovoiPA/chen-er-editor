@@ -17,7 +17,7 @@ namespace ErEditor.ErSchemaClasses
     {
         public virtual void Visit(ObjectNameChangedNotification notif)
         {
-            ConsoleLog.Log($"Name of {notif.Object.GetType()} was changed", this, "INFO");
+            ConsoleLog.Log($"Name of {notif.Object.GetType()} was changed", this);
             TErElement? castedEl = notif.Object as TErElement;
             if (castedEl != null)
             {
@@ -50,7 +50,7 @@ namespace ErEditor.ErSchemaClasses
     {
         public override void Visit(ObjectNameChangedNotification notif)
         {
-            ConsoleLog.Log($"Name of {notif.Object.GetType()} was changed", this, "INFO");
+            ConsoleLog.Log($"Name of {notif.Object.GetType()} was changed", this);
             TErElement? castedEl = notif.Object as TErElement;
             if(castedEl != null)
             {
@@ -66,7 +66,7 @@ namespace ErEditor.ErSchemaClasses
         }
         public virtual void Visit(ObjectAddedNotification<ErElementWithAttributes, ErAttribute> notif)
         {
-            ConsoleLog.Log($"New attribute was added to the element", this, "INFO");
+            ConsoleLog.Log($"New attribute was added to the element", this);
             notif.ObjectAdded.Subscribe(this);
 
             observers.Notify(notif);

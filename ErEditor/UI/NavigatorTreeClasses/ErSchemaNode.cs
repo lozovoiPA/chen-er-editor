@@ -129,7 +129,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private void AddEntitySet(object? sender, EventArgs e)
             {
-                ConsoleLog.Log("Adding new entity set in the navigator", this, "INFO");
+                ConsoleLog.Log("Adding new entity set in the navigator", this);
                 acceptNotifications = false;
 
                 var newEl = schema.EntitySets.Add();
@@ -141,7 +141,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private void AddRelationshipSet(object? sender, EventArgs e)
             {
-                ConsoleLog.Log("Adding new relationship set in the navigator", this, "INFO");
+                ConsoleLog.Log("Adding new relationship set in the navigator", this);
                 acceptNotifications = false;
 
                 var newEl = schema.RelationshipSets.Add();
@@ -153,7 +153,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private void AddValueSet(object? sender, EventArgs e)
             {
-                ConsoleLog.Log("Adding new value set in the navigator", this, "INFO");
+                ConsoleLog.Log("Adding new value set in the navigator", this);
                 var newEl = schema.ValueSets.Add();
                 var newNode = AddValueSetNode(newEl);
 
@@ -162,7 +162,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private void AddDiagram(object? sender, EventArgs e)
             {
-                ConsoleLog.Log("Adding new diagram in the navigator", this, "INFO");
+                ConsoleLog.Log("Adding new diagram in the navigator", this);
                 var newEl = schema.Diagrams.Add();
                 var newNode = AddDiagramNode(newEl);
 

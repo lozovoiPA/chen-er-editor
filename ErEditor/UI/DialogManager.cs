@@ -38,20 +38,20 @@ namespace ErEditor.UI
                     }
             }
         }
-        public static ErSchema OpenSchemaWindow()
+        public static ErSchema? OpenSchemaWindow()
         {
             OpenFileDialog ofd = new OpenFileDialog();
             DialogResult dr = ofd.ShowDialog();
-            ErSchema schema = new();
             switch (dr)
             {
                 case DialogResult.OK:
-                    schema = ErSchemaFileManager.OpenErSchema(ofd.FileName);
-                    //cur_path = Path.GetDirectoryName(ofd.FileName);
-                    //erEditor.ActivateControls();
-                    break;
+                    var schema = ErSchemaFileManager.OpenErSchema(ofd.FileName);
+                    return schema;
+
+                default:
+                    return null;
             }
-            return schema;
+            
         }
     }
 }

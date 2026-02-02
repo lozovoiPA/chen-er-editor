@@ -21,15 +21,17 @@ namespace ErEditor.Infrastructure
     public class NotificationVisitor : IVisitor
     {
         private readonly object concreteVisitor;
+        private readonly string concreteVisitorName = "[parent class not specified]";
 
         public NotificationVisitor(object concreteVisitor)
         {
             this.concreteVisitor = concreteVisitor;
+            concreteVisitorName = ConsoleLog.GetShortTypeName(concreteVisitor);
         }
 
         public void Visit<T>(T notification)
         {
-            ConsoleLog.Log($"Sending notif {notification.GetType()} to {concreteVisitor.GetType()}");
+            //ConsoleLog.Log($"Sending notif {notification.GetType()} to {concreteVisitor.GetType()}");
             IVisitor<T>? concreteVisitorCasted = concreteVisitor as IVisitor<T>;
             concreteVisitorCasted?.Visit(notification);
         }

@@ -41,12 +41,12 @@ namespace ErEditor.Infrastructure
     {
         public virtual void Visit(ObjectCreatedNotification<TObject> notif)
         {
-            ConsoleLog.Log($"New {notif.Object.GetType()} was added", this, "INFO");
+            ConsoleLog.Log($"New {notif.Object.GetType()} was added", this);
             observers.Notify(notif);
         }
         public virtual void Visit(ObjectDeletedNotification<TObject> notif)
         {
-            ConsoleLog.Log($"{notif.Object.GetType()} was deleted", this, "INFO");
+            ConsoleLog.Log($"{notif.Object.GetType()} was deleted", this);
             observers.Notify(notif);
         }
     }

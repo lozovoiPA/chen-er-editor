@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public class ErSchema : IObservable, INamedObject
+    public class ErSchema : 
+        IObservable, IObserver, INamedObject,
+        IVisitor<ObjectDeletedNotification<ErValueSet>>,
+        IVisitor<ObjectDeletedNotification<ErEntitySet>>
     {
         private string name = string.Empty;
 
@@ -26,6 +29,8 @@ namespace ErEditor.ErSchemaClasses
         public readonly ErDiagramWatcher DiagramWatcher = new();
         bool IObservable.BlockNotifying { get => false; set {; } }
 
+        private ObserverBase notificationParser;
+
         public ErSchema(string name = "") 
         {
             this.name = name;
@@ -34,6 +39,12 @@ namespace ErEditor.ErSchemaClasses
             RelationshipSets = new(RelationshipSetWatcher);
             ValueSets = new(ValueSetWatcher);
             Diagrams = new(DiagramWatcher);
+
+            notificationParser = new(this);
+            EntitySetWatcher.Subscribe(this);
+            RelationshipSetWatcher.Subscribe(this);
+            ValueSetWatcher.Subscribe(this);
+            DiagramWatcher.Subscribe(this);
         }
 
         public string Name
@@ -123,6 +134,59 @@ namespace ErEditor.ErSchemaClasses
                 && RelationshipSetWatcher.Unsubscribe(observer)
                 && ValueSetWatcher.Unsubscribe(observer)
                 && DiagramWatcher.Unsubscribe(observer);
+        }
+
+        public void Recieve(Notification notification)
+        {
+            switch (notification)
+            {
+                case ObjectDeletedNotification<ErValueSet> notifValueSet:
+                    this.Visit(notifValueSet);
+                    break;
+                case ObjectDeletedNotification<ErEntitySet> notifEntitySet:
+                    this.Visit(notifEntitySet);
+                    break;
+            }
+        }
+        public void Visit(ObjectDeletedNotification<ErValueSet> notification)
+        {
+            ConsoleLog.Log(notification, notification.Object, this);
+            foreach (var entitySet in EntitySets)
+            {
+                foreach (var attribute in entitySet.Attributes)
+                {
+                    if (attribute.valueSets.Contains(notification.Object))
+                    {
+                        attribute.valueSets.Remove(notification.Object);
+                    }
+                }
+            }
+
+            foreach (var relationshipSet in RelationshipSets)
+            {
+                foreach (var attribute in relationshipSet.Attributes)
+                {
+                    if (attribute.valueSets.Contains(notification.Object))
+                    {
+                        attribute.valueSets.Remove(notification.Object);
+                    }
+                }
+            }
+        }
+
+        public void Visit(ObjectDeletedNotification<ErEntitySet> notification)
+        {
+            ConsoleLog.Log(notification, notification.Object, this);
+            foreach(var relationshipSet in RelationshipSets)
+            {
+                foreach(var role in relationshipSet.Roles)
+                {
+                    if(notification.Object == role.EntitySet)
+                    {
+                        role.EntitySet = ErEntitySet.None;
+                    }
+                }
+            }
         }
     }
 }

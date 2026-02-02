@@ -305,22 +305,17 @@ namespace ErEditor.ErSchemaClasses
 
             foreach (var valueSet in attr.valueSets)
             {
-                DbAttributeDbValueSet pair = new();
+                //DbAttributeDbValueSet pair = new();
                 (int? valueSetId, DbValueSet? dbValueSet) = FindForeignKeyConstraint<DbValueSet, ErValueSet>(valueSet, ValueSetRegistry);
-
-                if (valueSetId != null)
+                if (dbValueSet != null)
                 {
-                    pair.AttributeId = dbAttr.Id;
-                    pair.ValueSetId = (int)valueSetId;
-                    dbAttr.AttributeValueSets.Add(pair);
-                }
-                else if (dbValueSet != null)
-                {
-                    pair.AttributeId = dbAttr.Id;
-                    pair.ValueSet = dbValueSet;
                     dbAttr.ValueSets.Add(dbValueSet);
                 }
-
+                else if (valueSetId != null)
+                {
+                    dbValueSet = MakeDbValueSet(valueSet);
+                    dbAttr.ValueSets.Add(dbValueSet);
+                }
             }
 
             return dbAttr;
@@ -405,19 +400,25 @@ namespace ErEditor.ErSchemaClasses
             int? elementId = registry.FindId(element);
             TDbRow? dbElement = null;
 
-            if(elementId != null)
+            //dbElement = (TDbRow?)registry.CreatedDbEntries[element] ?? (TDbRow?)registry.UpdatedDbEntries[element] ?? (TDbRow?)registry.DeletedDbEntries[element];
+            if (registry.CreatedDbEntries.ContainsKey(element))
             {
-                return (elementId, null);
+                dbElement = (TDbRow?)registry.CreatedDbEntries[element];
             }
-
-            if (!registry.CreatedDbEntries.ContainsKey(element))
+            else if (registry.UpdatedDbEntries.ContainsKey(element))
             {
-                ConsoleLog.Log("Foreign key constraint couldn't be found in the registry. Entity will not be saved in the database.");
-                return (null, null);
+                dbElement = (TDbRow?)registry.UpdatedDbEntries[element];
             }
-            dbElement = (TDbRow?)registry.CreatedDbEntries[element];
-
-            return (null, dbElement);
+            else if (registry.DeletedDbEntries.ContainsKey(element))
+            {
+                dbElement = (TDbRow?)registry.DeletedDbEntries[element];
+            }
+            if (elementId == null && dbElement == null)
+            {
+                ConsoleLog.Log("Foreign key constraint couldn't be found in the registry. " +
+                    "Entity will not be saved in the database.", this);
+            }
+            return (elementId, dbElement);
         }
         
         private DbMapping? MakeDbMapping(ErMapping mapping)
@@ -473,7 +474,6 @@ namespace ErEditor.ErSchemaClasses
                 {
                     pair.MappingId = dbMap.Id;
                     pair.RoleId = (int)roleId;
-                    ConsoleLog.Log($"Role Id: {pair.RoleId}");
                     dbMap.MappingRoles.Add(pair);
                 }
                 else if(dbRole != null)
@@ -593,7 +593,7 @@ namespace ErEditor.ErSchemaClasses
             return dbPrimitive;
         }
 
-        public void GetSchemaFromDb(DbSchema dbSchema)
+        public void GetSchemaFromDb(ErSchemaDbObjects dbSchema)
         {
             ObserveOff();
 
@@ -631,6 +631,7 @@ namespace ErEditor.ErSchemaClasses
                 var dbEl = mapFunc(el);
                 if (dbEl != null)
                 {
+                    registry.AddUpdatedDbEntry(el, dbEl);
                     updated.Add(dbEl);
                 }
             }
@@ -646,6 +647,7 @@ namespace ErEditor.ErSchemaClasses
                 var dbEl = mapFunc(el);
                 if (dbEl != null)
                 {
+                    registry.AddDeletedDbEntry(el, dbEl);
                     deleted.Add(dbEl);
                 }
             }

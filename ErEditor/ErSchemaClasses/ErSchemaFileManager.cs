@@ -3,6 +3,7 @@ using ErEditor.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,6 +11,93 @@ using System.Threading.Tasks;
 
 namespace ErEditor.ErSchemaClasses
 {
+
+    // Используется для передачи данных из БД один раз. По сути, результат запроса к БД для получения всех элементов схемы.
+    public class ErSchemaDbObjects
+    {
+        private List<DbEntitySet> dbEntitySets = new();
+        private List<DbRelationshipSet> dbRelationshipSets = new();
+        private List<DbValueSet> dbValueSets = new();
+        private List<DbDiagram> dbDiagrams = new();
+
+        public ReadOnlyCollection<DbEntitySet> DbEntitySets
+        {
+            get { return dbEntitySets.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<DbRelationshipSet> DbRelationshipSets
+        {
+            get { return dbRelationshipSets.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<DbValueSet> DbValueSets
+        {
+            get { return dbValueSets.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<DbDiagram> DbDiagrams
+        {
+            get { return dbDiagrams.AsReadOnly(); }
+        }
+
+        private void AddRange<TDbEntity>(List<TDbEntity> entities, IEnumerable<TDbEntity> range)
+        {
+            entities.AddRange(range);
+        }
+        public void AddEntitySetRange(List<DbEntitySet> range)
+        {
+            AddRange(dbEntitySets, range);
+        }
+        public void AddRelationshipSetRange(List<DbRelationshipSet> range)
+        {
+            AddRange(dbRelationshipSets, range);
+        }
+        public void AddValueSetRange(List<DbValueSet> range)
+        {
+            AddRange(dbValueSets, range);
+        }
+        public void AddDiagramRange(List<DbDiagram> range)
+        {
+            AddRange(dbDiagrams, range);
+        }
+    }
+
+    // Используется для передачи данных в БД один раз.
+    public class DbSchemaChanges
+    {
+        private List<IDbEntry> created = new();
+        private List<IDbEntry> updated = new();
+        private List<IDbEntry> deleted = new();
+
+        public ReadOnlyCollection<IDbEntry> Created
+        {
+            get { return created.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<IDbEntry> Updated
+        {
+            get { return updated.AsReadOnly(); }
+        }
+        public ReadOnlyCollection<IDbEntry> Deleted
+        {
+            get { return deleted.AsReadOnly(); }
+        }
+
+        private void AddRange<TDbEntity>(List<TDbEntity> entities, IEnumerable<TDbEntity> range)
+        {
+            entities.AddRange(range);
+        }
+        public void AddCreatedRange(List<IDbEntry> range)
+        {
+            AddRange(created, range);
+        }
+        public void AddUpdatedRange(List<IDbEntry> range)
+        {
+            AddRange(updated, range);
+        }
+        public void AddDeletedRange(List<IDbEntry> range)
+        {
+            AddRange(deleted, range);
+        }
+    }
+
+
     public class ErSchemaDbData
     {
         public readonly ErSchemaRegistry SchemaRegistry;
@@ -32,10 +120,12 @@ namespace ErEditor.ErSchemaClasses
                 return Schema;
             }
 
-            DbSchema dbschema = new();
-            dbschema.AddEntitySetRange(dbcontext.EntitySets.Include(el => el.Attributes).ToList());
+            ErSchemaDbObjects dbschema = new();
+            dbschema.AddEntitySetRange(dbcontext.EntitySets
+                .Include(el => el.Attributes).ThenInclude(x => x.ValueSets)
+                .ToList());
             dbschema.AddRelationshipSetRange(dbcontext.RelationshipSets
-                .Include(el => el.Attributes)
+                .Include(el => el.Attributes).ThenInclude(x => x.ValueSets)
                 .Include(el => el.Roles)
                 .Include(el => el.Mappings).ThenInclude(x => x.MappingRoles)
                 .ToList());
@@ -54,7 +144,7 @@ namespace ErEditor.ErSchemaClasses
             {
                 ConsoleLog.Log($"Saving schema {Schema.Name} failed because the database connection couldn't be established." +
                     $"Please check whether there is another open connection.",
-                    "ErSchemaFileManager", "ERROR");
+                    "ErSchemaFileManager");
                 return false;
             }
             ConsoleLog.Log("[0/3] Initiating mapping to database.", this);
@@ -85,7 +175,7 @@ namespace ErEditor.ErSchemaClasses
             string fullPath = Path.Combine(folderPath, schemaFileName + ".db");
             if (File.Exists(fullPath))
             {
-                ConsoleLog.Log("File already exists, it will be deleted and recreated", "ErSchemaFileManager", "WARNING");
+                ConsoleLog.Log("File already exists, it will be deleted and recreated", "ErSchemaFileManager");
             }
 
             ErDbContext dbcontext = new ErDbContext(fullPath);
@@ -108,7 +198,7 @@ namespace ErEditor.ErSchemaClasses
                 ConsoleLog.Log($"You are trying to save schema that doesn't have a corresponding file data ({schema.Name})." +
                     $"This may be because schema wasn't created through the Schema File Manager." +
                     $"Schema won't be saved, you can save this schema by using a different overload of this method.", 
-                    "ErSchemaFileManager", "ERROR");
+                    "ErSchemaFileManager");
                 return false;
             }
 
@@ -116,7 +206,7 @@ namespace ErEditor.ErSchemaClasses
             if (!File.Exists(data.Filepath))
             {
                 ConsoleLog.Log($"Saving schema failed because the file specified in this schema file data doesn't exist ({data.Filepath}).",
-                    "ErSchemaFileManager", "ERROR");
+                    "ErSchemaFileManager");
                 return false;
             }
 
@@ -132,7 +222,7 @@ namespace ErEditor.ErSchemaClasses
             if (!File.Exists(filepath))
             {
                 ConsoleLog.Log($"Opening schema failed because the file specified doesn't exist ({filepath}).",
-                    "ErSchemaFileManager", "ERROR");
+                    "ErSchemaFileManager");
                 return null;
             }
 

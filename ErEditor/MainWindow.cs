@@ -58,12 +58,15 @@ namespace ErEditor
         }
         private void openSchemaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ErSchema schema = DialogManager.OpenSchemaWindow();
-            if (navigatorTreeView1.Schemas.Count == 0)
+            ErSchema? schema = DialogManager.OpenSchemaWindow();
+            if(schema != null)
             {
-                EnableSchemaControls();
+                if (navigatorTreeView1.Schemas.Count == 0)
+                {
+                    EnableSchemaControls();
+                }
+                OpenSchema(schema);
             }
-            OpenSchema(schema);
         }
     }
 }

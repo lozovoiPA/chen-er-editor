@@ -14,6 +14,7 @@ namespace ErEditor.UI.ElementPropertiesPanelClasses
         public abstract class ElementView : TableLayoutPanel
         {
             protected ErSchema? schema;
+            protected bool wereChangesMade = false;
             protected abstract void UnsetHandlers();
             protected abstract void SetHandlers();
             public abstract void CloseAndSave();
