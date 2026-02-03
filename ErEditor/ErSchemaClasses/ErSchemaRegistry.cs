@@ -215,11 +215,27 @@ namespace ErEditor.ErSchemaClasses
 
             return dbRs;
         }
+
+        private Registry<DbValueSet> dbVsRegistryTemp = new(); 
         public DbValueSet MakeDbValueSet(ErValueSet vs)
         {
-            DbValueSet dbVs = new(vs.Name == "" ? null : vs.Name);
-            dbVs.BaseType = vs.BaseValueType;
-            dbVs.Id = TryToAssignId(vs, ValueSetRegistry);
+            int id = TryToAssignId(vs, ValueSetRegistry);
+            DbValueSet? dbVs = null;
+            if (id != default)
+            {
+                dbVs = dbVsRegistryTemp.FindById(id);
+            }
+            if(dbVs == null)
+            {
+                dbVs = new(vs.Name == "" ? null : vs.Name);
+                dbVs.BaseType = vs.BaseValueType;
+                dbVs.Id = id;
+
+                if(id != default)
+                {
+                    dbVsRegistryTemp.AddRetrieved(dbVs.Id, dbVs);
+                }
+            }
 
             return dbVs;
         }

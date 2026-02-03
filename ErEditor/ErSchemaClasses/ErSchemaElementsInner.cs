@@ -15,6 +15,7 @@ namespace ErEditor.ErSchemaClasses
         public double? maxValue;
         public string? allowedValues;
         public bool isKey;
+        public bool allowsManyValues = false;
 
         public List<ErValueSet> valueSets;
 
