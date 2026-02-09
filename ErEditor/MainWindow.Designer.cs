@@ -31,7 +31,7 @@ namespace ErEditor
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            navigatorTreeView1 = new ErEditor.UI.NavigatorTreeClasses.NavigatorTreeView();
+            navigatorTreeView1 = new NavigatorTreeView();
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             createSchemaToolstripMenuItem = new ToolStripMenuItem();
@@ -48,11 +48,35 @@ namespace ErEditor
             splitter1 = new Splitter();
             groupBox1 = new GroupBox();
             toolStrip2 = new ToolStrip();
+            правкаToolStripMenuItem = new ToolStripMenuItem();
+            iconDropDownButton1 = new FontAwesome.Sharp.IconDropDownButton();
+            iconDropDownButton2 = new FontAwesome.Sharp.IconDropDownButton();
+            iconToolStripButton1 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton2 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton3 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton4 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton5 = new FontAwesome.Sharp.IconToolStripButton();
+            toolStripSeparator1 = new ToolStripSeparator();
+            iconToolStripButton6 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton7 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton8 = new FontAwesome.Sharp.IconToolStripButton();
+            toolStripSeparator2 = new ToolStripSeparator();
+            iconToolStripButton9 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton10 = new FontAwesome.Sharp.IconToolStripButton();
+            toolStripSeparator3 = new ToolStripSeparator();
+            iconToolStripButton11 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton12 = new FontAwesome.Sharp.IconToolStripButton();
+            iconToolStripButton13 = new FontAwesome.Sharp.IconToolStripButton();
+            toolStripSeparator4 = new ToolStripSeparator();
+            iconToolStripButton14 = new FontAwesome.Sharp.IconToolStripButton();
             menuStrip1.SuspendLayout();
+            toolStrip1.SuspendLayout();
             panel1.SuspendLayout();
             groupBox3.SuspendLayout();
             groupBox2.SuspendLayout();
+            toolStrip3.SuspendLayout();
             groupBox1.SuspendLayout();
+            toolStrip2.SuspendLayout();
             SuspendLayout();
             // 
             // navigatorTreeView1
@@ -62,16 +86,16 @@ namespace ErEditor
             navigatorTreeView1.Dock = DockStyle.Fill;
             navigatorTreeView1.Enabled = false;
             navigatorTreeView1.ImageIndex = 0;
-            navigatorTreeView1.Location = new Point(27, 16);
+            navigatorTreeView1.Location = new Point(25, 16);
             navigatorTreeView1.Name = "navigatorTreeView1";
             navigatorTreeView1.SelectedImageIndex = 0;
             navigatorTreeView1.SelectedNode = null;
-            navigatorTreeView1.Size = new Size(270, 602);
+            navigatorTreeView1.Size = new Size(272, 602);
             navigatorTreeView1.TabIndex = 0;
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, правкаToolStripMenuItem });
             menuStrip1.Location = new Point(3, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1249, 24);
@@ -108,6 +132,7 @@ namespace ErEditor
             // 
             // toolStrip1
             // 
+            toolStrip1.Items.AddRange(new ToolStripItem[] { iconDropDownButton1, iconDropDownButton2, iconToolStripButton1 });
             toolStrip1.Location = new Point(3, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(1249, 25);
@@ -118,9 +143,9 @@ namespace ErEditor
             // 
             diagramPanel1.BackColor = SystemColors.ControlLight;
             diagramPanel1.Dock = DockStyle.Fill;
-            diagramPanel1.Location = new Point(29, 16);
+            diagramPanel1.Location = new Point(27, 16);
             diagramPanel1.Name = "diagramPanel1";
-            diagramPanel1.Size = new Size(570, 602);
+            diagramPanel1.Size = new Size(572, 602);
             diagramPanel1.TabIndex = 4;
             // 
             // panel1
@@ -184,9 +209,10 @@ namespace ErEditor
             // 
             toolStrip3.BackColor = SystemColors.Control;
             toolStrip3.Dock = DockStyle.Left;
+            toolStrip3.Items.AddRange(new ToolStripItem[] { iconToolStripButton10, toolStripSeparator3, iconToolStripButton11, iconToolStripButton12, iconToolStripButton13, toolStripSeparator4, iconToolStripButton14 });
             toolStrip3.Location = new Point(3, 16);
             toolStrip3.Name = "toolStrip3";
-            toolStrip3.Size = new Size(26, 602);
+            toolStrip3.Size = new Size(24, 602);
             toolStrip3.TabIndex = 5;
             toolStrip3.Text = "toolStrip3";
             // 
@@ -215,11 +241,225 @@ namespace ErEditor
             // 
             toolStrip2.BackColor = SystemColors.Control;
             toolStrip2.Dock = DockStyle.Left;
+            toolStrip2.Items.AddRange(new ToolStripItem[] { iconToolStripButton2, iconToolStripButton3, iconToolStripButton4, iconToolStripButton5, toolStripSeparator1, iconToolStripButton6, iconToolStripButton7, iconToolStripButton8, toolStripSeparator2, iconToolStripButton9 });
             toolStrip2.Location = new Point(1, 16);
             toolStrip2.Name = "toolStrip2";
-            toolStrip2.Size = new Size(26, 602);
+            toolStrip2.Size = new Size(24, 602);
             toolStrip2.TabIndex = 1;
             toolStrip2.Text = "toolStrip2";
+            // 
+            // правкаToolStripMenuItem
+            // 
+            правкаToolStripMenuItem.Name = "правкаToolStripMenuItem";
+            правкаToolStripMenuItem.Size = new Size(59, 20);
+            правкаToolStripMenuItem.Text = "Правка";
+            // 
+            // iconDropDownButton1
+            // 
+            iconDropDownButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconDropDownButton1.IconChar = FontAwesome.Sharp.IconChar.File;
+            iconDropDownButton1.IconColor = Color.Black;
+            iconDropDownButton1.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconDropDownButton1.ImageTransparentColor = Color.Magenta;
+            iconDropDownButton1.Name = "iconDropDownButton1";
+            iconDropDownButton1.Size = new Size(29, 22);
+            iconDropDownButton1.Text = "iconDropDownButton1";
+            // 
+            // iconDropDownButton2
+            // 
+            iconDropDownButton2.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconDropDownButton2.IconChar = FontAwesome.Sharp.IconChar.FolderOpen;
+            iconDropDownButton2.IconColor = Color.Orange;
+            iconDropDownButton2.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconDropDownButton2.IconSize = 60;
+            iconDropDownButton2.ImageTransparentColor = Color.Magenta;
+            iconDropDownButton2.Name = "iconDropDownButton2";
+            iconDropDownButton2.Size = new Size(29, 22);
+            iconDropDownButton2.Text = "iconDropDownButton2";
+            // 
+            // iconToolStripButton1
+            // 
+            iconToolStripButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton1.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            iconToolStripButton1.IconChar = FontAwesome.Sharp.IconChar.Save;
+            iconToolStripButton1.IconColor = Color.Black;
+            iconToolStripButton1.IconFont = FontAwesome.Sharp.IconFont.Regular;
+            iconToolStripButton1.IconSize = 60;
+            iconToolStripButton1.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton1.Name = "iconToolStripButton1";
+            iconToolStripButton1.Size = new Size(23, 22);
+            iconToolStripButton1.Text = "iconToolStripButton1";
+            // 
+            // iconToolStripButton2
+            // 
+            iconToolStripButton2.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton2.IconChar = FontAwesome.Sharp.IconChar.Add;
+            iconToolStripButton2.IconColor = Color.Black;
+            iconToolStripButton2.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton2.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton2.Name = "iconToolStripButton2";
+            iconToolStripButton2.Size = new Size(29, 20);
+            iconToolStripButton2.Text = "iconToolStripButton2";
+            // 
+            // iconToolStripButton3
+            // 
+            iconToolStripButton3.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton3.IconChar = FontAwesome.Sharp.IconChar.E;
+            iconToolStripButton3.IconColor = Color.Black;
+            iconToolStripButton3.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton3.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton3.Name = "iconToolStripButton3";
+            iconToolStripButton3.Size = new Size(29, 20);
+            iconToolStripButton3.Text = "iconToolStripButton3";
+            // 
+            // iconToolStripButton4
+            // 
+            iconToolStripButton4.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton4.IconChar = FontAwesome.Sharp.IconChar.R;
+            iconToolStripButton4.IconColor = Color.Black;
+            iconToolStripButton4.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton4.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton4.Name = "iconToolStripButton4";
+            iconToolStripButton4.Size = new Size(29, 20);
+            iconToolStripButton4.Text = "iconToolStripButton4";
+            // 
+            // iconToolStripButton5
+            // 
+            iconToolStripButton5.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton5.IconChar = FontAwesome.Sharp.IconChar.V;
+            iconToolStripButton5.IconColor = Color.Black;
+            iconToolStripButton5.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton5.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton5.Name = "iconToolStripButton5";
+            iconToolStripButton5.Size = new Size(29, 20);
+            iconToolStripButton5.Text = "iconToolStripButton5";
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(29, 6);
+            // 
+            // iconToolStripButton6
+            // 
+            iconToolStripButton6.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton6.IconChar = FontAwesome.Sharp.IconChar.Copy;
+            iconToolStripButton6.IconColor = Color.Black;
+            iconToolStripButton6.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton6.IconSize = 60;
+            iconToolStripButton6.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton6.Name = "iconToolStripButton6";
+            iconToolStripButton6.Size = new Size(29, 20);
+            iconToolStripButton6.Text = "iconToolStripButton6";
+            // 
+            // iconToolStripButton7
+            // 
+            iconToolStripButton7.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton7.IconChar = FontAwesome.Sharp.IconChar.FileClipboard;
+            iconToolStripButton7.IconColor = Color.Black;
+            iconToolStripButton7.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton7.IconSize = 60;
+            iconToolStripButton7.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton7.Name = "iconToolStripButton7";
+            iconToolStripButton7.Size = new Size(29, 20);
+            iconToolStripButton7.Text = "iconToolStripButton7";
+            // 
+            // iconToolStripButton8
+            // 
+            iconToolStripButton8.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton8.IconChar = FontAwesome.Sharp.IconChar.Clone;
+            iconToolStripButton8.IconColor = Color.Black;
+            iconToolStripButton8.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton8.IconSize = 60;
+            iconToolStripButton8.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton8.Name = "iconToolStripButton8";
+            iconToolStripButton8.Size = new Size(21, 20);
+            iconToolStripButton8.Text = "iconToolStripButton8";
+            // 
+            // toolStripSeparator2
+            // 
+            toolStripSeparator2.Name = "toolStripSeparator2";
+            toolStripSeparator2.Size = new Size(29, 6);
+            // 
+            // iconToolStripButton9
+            // 
+            iconToolStripButton9.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton9.IconChar = FontAwesome.Sharp.IconChar.Trash;
+            iconToolStripButton9.IconColor = Color.Black;
+            iconToolStripButton9.IconFont = FontAwesome.Sharp.IconFont.Solid;
+            iconToolStripButton9.IconSize = 60;
+            iconToolStripButton9.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton9.Name = "iconToolStripButton9";
+            iconToolStripButton9.Size = new Size(29, 20);
+            iconToolStripButton9.Text = "iconToolStripButton9";
+            // 
+            // iconToolStripButton10
+            // 
+            iconToolStripButton10.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton10.IconChar = FontAwesome.Sharp.IconChar.MousePointer;
+            iconToolStripButton10.IconColor = Color.Black;
+            iconToolStripButton10.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton10.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton10.Name = "iconToolStripButton10";
+            iconToolStripButton10.Size = new Size(29, 20);
+            iconToolStripButton10.Text = "iconToolStripButton10";
+            // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new Size(29, 6);
+            // 
+            // iconToolStripButton11
+            // 
+            iconToolStripButton11.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton11.IconChar = FontAwesome.Sharp.IconChar.SquareFull;
+            iconToolStripButton11.IconColor = Color.Black;
+            iconToolStripButton11.IconFont = FontAwesome.Sharp.IconFont.Solid;
+            iconToolStripButton11.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton11.Name = "iconToolStripButton11";
+            iconToolStripButton11.Size = new Size(29, 20);
+            iconToolStripButton11.Text = "iconToolStripButton11";
+            // 
+            // iconToolStripButton12
+            // 
+            iconToolStripButton12.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton12.Font = new Font("Arial Narrow", 9F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            iconToolStripButton12.IconChar = FontAwesome.Sharp.IconChar.Diamond;
+            iconToolStripButton12.IconColor = Color.Black;
+            iconToolStripButton12.IconFont = FontAwesome.Sharp.IconFont.Solid;
+            iconToolStripButton12.IconSize = 60;
+            iconToolStripButton12.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton12.Name = "iconToolStripButton12";
+            iconToolStripButton12.Size = new Size(29, 20);
+            iconToolStripButton12.Text = "iconToolStripButton12";
+            // 
+            // iconToolStripButton13
+            // 
+            iconToolStripButton13.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton13.IconChar = FontAwesome.Sharp.IconChar.Slash;
+            iconToolStripButton13.IconColor = Color.Black;
+            iconToolStripButton13.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton13.IconSize = 60;
+            iconToolStripButton13.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton13.Name = "iconToolStripButton13";
+            iconToolStripButton13.Size = new Size(21, 20);
+            iconToolStripButton13.Text = "iconToolStripButton13";
+            // 
+            // toolStripSeparator4
+            // 
+            toolStripSeparator4.Name = "toolStripSeparator4";
+            toolStripSeparator4.Size = new Size(29, 6);
+            // 
+            // iconToolStripButton14
+            // 
+            iconToolStripButton14.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            iconToolStripButton14.IconChar = FontAwesome.Sharp.IconChar.X;
+            iconToolStripButton14.IconColor = Color.Black;
+            iconToolStripButton14.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            iconToolStripButton14.IconSize = 60;
+            iconToolStripButton14.ImageTransparentColor = Color.Magenta;
+            iconToolStripButton14.Name = "iconToolStripButton14";
+            iconToolStripButton14.Size = new Size(21, 20);
+            iconToolStripButton14.Text = "iconToolStripButton14";
             // 
             // MainWindow
             // 
@@ -235,12 +475,18 @@ namespace ErEditor
             Text = "Редактор ER-схем";
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
+            toolStrip1.ResumeLayout(false);
+            toolStrip1.PerformLayout();
             panel1.ResumeLayout(false);
             groupBox3.ResumeLayout(false);
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
+            toolStrip3.ResumeLayout(false);
+            toolStrip3.PerformLayout();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            toolStrip2.ResumeLayout(false);
+            toolStrip2.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -264,5 +510,26 @@ namespace ErEditor
         private ToolStrip toolStrip2;
         private ToolStrip toolStrip3;
         private UI.ElementPropertiesPanelClasses.ElementPropertiesPanel elementPropertiesPanel1;
+        private ToolStripMenuItem правкаToolStripMenuItem;
+        private FontAwesome.Sharp.IconDropDownButton iconDropDownButton1;
+        private FontAwesome.Sharp.IconDropDownButton iconDropDownButton2;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton1;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton2;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton3;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton4;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton5;
+        private ToolStripSeparator toolStripSeparator1;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton6;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton7;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton8;
+        private ToolStripSeparator toolStripSeparator2;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton9;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton10;
+        private ToolStripSeparator toolStripSeparator3;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton11;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton12;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton13;
+        private ToolStripSeparator toolStripSeparator4;
+        private FontAwesome.Sharp.IconToolStripButton iconToolStripButton14;
     }
 }
