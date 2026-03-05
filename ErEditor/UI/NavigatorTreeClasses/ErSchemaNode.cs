@@ -14,6 +14,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
             IVisitor<ObjectDeletedNotification<ErEntitySet>>,
             IVisitor<ObjectDeletedNotification<ErRelationshipSet>>,
             IVisitor<ObjectDeletedNotification<ErValueSet>>,
+            IVisitor<ObjectCreatedNotification<ErDiagram>>,
             IVisitor<ObjectDeletedNotification<ErDiagram>>
         {
             private ExtTreeNodeCollection<IExtTreeNode> nodes; // если такая коллекция значит в нодах храним разные объекты
@@ -199,6 +200,10 @@ namespace ErEditor.UI.NavigatorTreeClasses
             public void Visit(ObjectDeletedNotification<ErValueSet> notif)
             {
                 DeleteChildNode(notif.Object, valueSetFolder);
+            }
+            public void Visit(ObjectCreatedNotification<ErDiagram> notif)
+            {
+                AddDiagramNode(notif.Object);
             }
             public void Visit(ObjectDeletedNotification<ErDiagram> notif)
             {

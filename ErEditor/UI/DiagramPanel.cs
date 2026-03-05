@@ -29,6 +29,8 @@ namespace ErEditor.UI
             ConsoleLog.Log("Started constructor", this);
             Console.WriteLine(this);
             Initialize();
+
+            this.DoubleBuffered = true;
         }
 
         private void Initialize()

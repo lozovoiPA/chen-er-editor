@@ -53,6 +53,10 @@
               "target": "Package",
               "version": "[6.6.0, )"
             },
+            "GraphX": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
             "Microsoft.Data.SqlClient": {
               "target": "Package",
               "version": "[6.1.4, )"
@@ -64,6 +68,10 @@
             "Microsoft.Msagl": {
               "target": "Package",
               "version": "[1.1.6, )"
+            },
+            "QuikGraph.Graphviz": {
+              "target": "Package",
+              "version": "[2.5.0, )"
             },
             "System.Data.SqlClient": {
               "target": "Package",

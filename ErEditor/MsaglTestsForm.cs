@@ -154,6 +154,7 @@ namespace ErEditor
 
         static internal GeometryGraph CreateAndLayoutGraph()
         {
+            if (MainWindow.MsaglGraph != null) return MainWindow.MsaglGraph;
             double w = 30;
             double h = 20;
             GeometryGraph graph = new GeometryGraph();
@@ -222,7 +223,7 @@ namespace ErEditor
             graph.Edges.Add(new Edge(patientDiagnosis, diagnosis) { Length = 3 });
 
             //var settings1 = new Microsoft.Msagl.Layout.MDS.MdsLayoutSettings();
-            var settings2 = new Microsoft.Msagl.Layout.Incremental.FastIncrementalLayoutSettings();
+            var settings2 = new Microsoft.Msagl.Layout.Layered.SugiyamaLayoutSettings();
             settings2.EdgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.StraightLine;
 
             //LayoutHelpers.CalculateLayout(graph, settings1, null);

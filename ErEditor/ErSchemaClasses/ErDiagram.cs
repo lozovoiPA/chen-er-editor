@@ -37,7 +37,7 @@ namespace ErEditor.ErSchemaClasses
             observers.Notify(new ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>(this, primitive));
             return primitive;
         }
-        public ErDiagramDiamond AddDiamond(ErRelationshipSet relationshipSet, int x, int y, int w = 100, int h = 30)
+        public ErDiagramDiamond AddDiamond(ErRelationshipSet relationshipSet, int x, int y, int w = 120, int h = 40)
         {
             ErDiagramDiamond primitive = new ErDiagramDiamond(relationshipSet, x, y, w, h);
             primitives.Add(primitive);
@@ -90,7 +90,8 @@ namespace ErEditor.ErSchemaClasses
 
         public void Draw(Graphics g)
         {
-            foreach (var primitive in primitives)
+            var drawpr = primitives.OrderBy(x => x.Z).ToList();
+            foreach (var primitive in drawpr)
             {
                 primitive.Draw(g);
             }

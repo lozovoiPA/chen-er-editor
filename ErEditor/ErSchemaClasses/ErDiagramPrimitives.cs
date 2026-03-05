@@ -15,14 +15,18 @@ namespace ErEditor.ErSchemaClasses
     {
         public int X;
         public int Y;
+        public int Z;
 
         public int width;
         public int height;
+
+        protected string displayName;
 
         protected readonly ObservableBase observers = new();
         public bool BlockNotifying { get => observers.BlockNotifying; set => observers.BlockNotifying = value; }
 
         public abstract string Label { get; set; }
+        
         public abstract ErElement ErElement { get; }
 
 
@@ -57,6 +61,8 @@ namespace ErEditor.ErSchemaClasses
             this.margin2 = margin2;
 
             this.role = role;
+
+            Z = -1;
         }
 
         public override string Label
@@ -76,6 +82,7 @@ namespace ErEditor.ErSchemaClasses
             Y = pr1.Y + margin1.Y;
             width = pr2.X + margin2.X;
             height = pr2.Y + margin2.Y;
+            g.SmoothingMode = SmoothingMode.HighQuality;
             g.DrawLine(new Pen(brush1), X, Y, width, height);
             brush1.Dispose();
         }
@@ -102,6 +109,8 @@ namespace ErEditor.ErSchemaClasses
             this.height = height;
 
             this.entitySet = entitySet;
+
+            Z = 0;
         }
 
         public override string Label
@@ -120,11 +129,11 @@ namespace ErEditor.ErSchemaClasses
             SolidBrush fillBrush = new SolidBrush(Color.White);
 
             g.DrawRectangle(new Pen(outlineBrush), X, Y, width, height);
-            g.FillRectangle(fillBrush, X + 1, Y + 1, width - 2, height - 2);
+            g.FillRectangle(fillBrush, X, Y, width, height);
 
             Font font = new Font(FontFamily.GenericSansSerif, 10);
             SizeF labelSize = g.MeasureString(this.Label, font);
-            g.DrawString(this.Label, new Font(FontFamily.GenericSansSerif, 10), outlineBrush, X + width / 2 - labelSize.Width / 2, Y + height / 2 - labelSize.Height / 2);
+            g.DrawString(this.Label, new Font(FontFamily.GenericSansSerif, 10), outlineBrush, X + width / 2 - labelSize.Width / 2 + 3, Y + height / 2 - labelSize.Height / 2);
 
             outlineBrush.Dispose();
             fillBrush.Dispose();
@@ -142,7 +151,7 @@ namespace ErEditor.ErSchemaClasses
     {
         private ErRelationshipSet relationshipSet;
 
-        public ErDiagramDiamond(ErRelationshipSet relationshipSet, int x, int y, int width = 100, int height = 50)
+        public ErDiagramDiamond(ErRelationshipSet relationshipSet, int x, int y, int width = 100, int height = 30)
         {
             X = x;
             Y = y;
@@ -150,7 +159,9 @@ namespace ErEditor.ErSchemaClasses
             base.width = width;
             base.height = height;
 
-            this.relationshipSet = relationshipSet; 
+            this.relationshipSet = relationshipSet;
+
+            Z = 0;
         }
 
         public override string Label
@@ -170,32 +181,67 @@ namespace ErEditor.ErSchemaClasses
 
             Point[] points =
                 [
-                new Point(X + width / 2, Y + 1),
+                new Point(X + width / 2, Y),
                 new Point(X + width - 2, Y + height / 2),
                 new Point(X + width / 2, Y + height - 2),
-                new Point(X + 1, Y + height / 2),
-                new Point(X + width / 2, Y + 1)
+                new Point(X, Y + height / 2),
+                new Point(X + width / 2, Y)
                 ];
             byte[] point_types = [(byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line];
             GraphicsPath line = new GraphicsPath(points, point_types);
             Region shape = new Region(line);
 
+            g.SmoothingMode = SmoothingMode.HighQuality;
             g.DrawLines(new Pen(outlineBrush, 2), points);
             g.FillRegion(fillBrush, shape);
 
             Font font = new Font(FontFamily.GenericSansSerif, 10);
             SizeF size = g.MeasureString(this.Label, font);
-            g.DrawString(this.Label, font, outlineBrush, X + width / 2 - size.Width / 2, Y + height / 2 - size.Height / 2);
+            if(size.Width >= 0.8 * width)
+            {
+                var split_strings = Label.Split(' ');
+                double total_h = 0;
+                double max_w = 0;
+                foreach(var str in split_strings)
+                {
+                    var size_t = g.MeasureString(str, font);
+                    total_h += size_t.Height + 1;
+                    if(max_w < size_t.Width)
+                    {
+                        max_w = size_t.Width;
+                    }
+                }
+                int text_y = (int)(Y + height / 2 - total_h / 2 + 1);
 
-
+                foreach (var str in split_strings)
+                {
+                    var size_t = g.MeasureString(str, font);
+                    g.FillRectangle(fillBrush, X + width / 2 - size_t.Width / 2 + 5, text_y + 2, size_t.Width - 2, size_t.Height-2);
+                    g.DrawString(str, font, outlineBrush, 
+                        X + width / 2 - size_t.Width / 2 + 3, 
+                        text_y);
+                    text_y += 1 + (int)size_t.Height;
+                }
+                
+            }
+            else
+            {
+                g.DrawString(this.Label, font, outlineBrush, X + width / 2 - size.Width / 2 + 3, Y + height / 2 - size.Height / 2);
+            }
             outlineBrush.Dispose();
             fillBrush.Dispose();
         }
         public override bool Intersects(Point point)
         {
+            /*
             double parallelLine1 = ((double)(point.X - X - 5) / (width)) - ((double)(point.Y - Y + 5) / (height));
             double parallelLine2 = ((double)(point.X - X + 5) / (width)) - ((double)(point.Y - Y - 5) / (height));
             if (parallelLine1 * parallelLine2 < 0)
+            {
+                return true;
+            }*/
+
+            if ((X < point.X) && (X + width > point.X) && (Y < point.Y) && (Y + height > point.Y))
             {
                 return true;
             }

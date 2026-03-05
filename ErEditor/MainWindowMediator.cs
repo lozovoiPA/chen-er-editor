@@ -4,6 +4,7 @@ using ErEditor.Infrastructure;
 using ErEditor.UI;
 using ErEditor.UI.ElementPropertiesPanelClasses;
 using ErEditor.UI.NavigatorTreeClasses;
+using Microsoft.Msagl.Core.Layout;
 
 namespace ErEditor
 {
@@ -47,6 +48,8 @@ namespace ErEditor
                 return Instance.diagramPanel1;
             }
         }
+
+        public static GeometryGraph? MsaglGraph = null;
 
         public static void OpenSchema(ErSchema schema)
         {
