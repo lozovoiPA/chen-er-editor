@@ -12,24 +12,60 @@ using System.Windows.Media.Media3D;
 
 namespace ErEditor.ErSchemaClasses
 {
-    public class ErDiagram : IObservable, INamedObject, IEnumerable<ErDiagramPrimitive>
+    public class ErDiagram : IObservable, INamedObject, IEnumerable<ErDiagramPrimitive>, 
+        IObserver,
+        IVisitor<ObjectDeletedNotification<ErEntitySet>>,
+        IVisitor<ObjectDeletedNotification<ErRelationshipSet>>,
+        IVisitor<ObjectDeletedNotification<ErRole>>
     {
+        public ObserverBase observerLogic;
+
         private string name = string.Empty;
-        private List<ErDiagramPrimitive> primitives = new();
+        public List<ErDiagramPrimitive> primitives = new();
 
         private readonly ObservableBase observers = new();
         public bool BlockNotifying { get => observers.BlockNotifying; set => observers.BlockNotifying = value; }
 
-        public ErDiagram() { }
+        public ErDiagram() { observerLogic = new(this); }
         public ErDiagram(string name)
         {
             this.name = name;
+            observerLogic = new(this);
         }
 
         public string Name
         {
             get { return name; }
             set { name = value; observers.Notify(new ObjectNameChangedNotification(this, name)); }
+        }
+
+        public void Recieve(Notification notification)
+        {
+            observerLogic.Recieve(notification);
+        }
+        public void Visit(ObjectDeletedNotification<ErEntitySet> notif)
+        {
+            var prims = primitives.Where(x => x.ErElement == notif.Object).ToList();
+            foreach (var pr in prims)
+            {
+                Remove(pr);
+            }
+        }
+        public void Visit(ObjectDeletedNotification<ErRelationshipSet> notif)
+        {
+            var prims = primitives.Where(x => x.ErElement == notif.Object).ToList();
+            foreach (var pr in prims)
+            {
+                Remove(pr);
+            }
+        }
+        public void Visit(ObjectDeletedNotification<ErRole> notif)
+        {
+            var prims = primitives.Where(x => x.ErElement == notif.Object).ToList();
+            foreach (var pr in prims)
+            {
+                Remove(pr);
+            }
         }
 
         public Rectangle GetSize()
@@ -148,12 +184,14 @@ namespace ErEditor.ErSchemaClasses
             if (pr != null)
             {
                 primitives.Remove(_pr);
+                observers.Notify(new ObjectDeletedNotification<ErDiagramPrimitive>(_pr));
                 if(_pr is ErDiagramRectangle || _pr is ErDiagramDiamond)
                 {
                     var edges = primitives.FindAll(x => x is ErDiagramEdge).ConvertAll<ErDiagramEdge>(x=> x as ErDiagramEdge);
                     foreach (var item in edges.FindAll(x => (x.pr1 == _pr) || (x.pr2 == _pr)))
                     {
                         primitives.Remove(item);
+                        observers.Notify(new ObjectDeletedNotification<ErDiagramPrimitive>(item));
                     }
                 }
                 

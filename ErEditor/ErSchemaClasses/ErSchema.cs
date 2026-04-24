@@ -146,6 +146,11 @@ namespace ErEditor.ErSchemaClasses
                 case ObjectDeletedNotification<ErEntitySet> notifEntitySet:
                     this.Visit(notifEntitySet);
                     break;
+                case ObjectCreatedNotification<ErDiagram> notifDgr:
+                    var dgr = notifDgr.Object;
+                    EntitySetWatcher.Subscribe(dgr);
+                    RelationshipSetWatcher.Subscribe(dgr);
+                    break;
             }
         }
         public void Visit(ObjectDeletedNotification<ErValueSet> notification)
@@ -185,6 +190,38 @@ namespace ErEditor.ErSchemaClasses
                     {
                         role.EntitySet = ErEntitySet.None;
                     }
+                }
+            }
+        }
+
+        public void RemoveEntitySet(ErEntitySet es)
+        {
+            var removed = this.EntitySets.Remove(es);
+            if (removed) {
+                ErRole? role = null;
+                foreach(var rs in RelationshipSets.Where(x =>( role = x.Roles.FirstOrDefault(x => x.EntitySet == es) ) != null))
+                {
+                    if (role != null)
+                        rs.RemoveRole(role);
+                }
+                ErDiagramPrimitive? primitive = null;
+                foreach (var dgr in Diagrams.Where(x => (primitive = x.primitives.FirstOrDefault(x => x.ErElement == es)) != null))
+                {
+                    if (primitive != null)
+                        dgr.Remove(primitive);
+                }
+            }
+        }
+        public void RemoveRelationshipSet(ErRelationshipSet rs)
+        {
+            var removed = this.RelationshipSets.Remove(rs);
+            if (removed)
+            {
+                ErDiagramPrimitive? primitive = null;
+                foreach (var dgr in Diagrams.Where(x => (primitive = x.primitives.FirstOrDefault(x => x.ErElement == rs)) != null))
+                {
+                    if (primitive != null)
+                        dgr.Remove(primitive);
                 }
             }
         }

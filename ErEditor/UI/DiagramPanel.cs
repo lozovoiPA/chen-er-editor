@@ -10,7 +10,8 @@ using System.Windows.Forms;
 
 namespace ErEditor.UI
 {
-    public class DiagramPanel : Panel
+    public class DiagramPanel : Panel, IObserver,
+        IVisitor<ObjectDeletedNotification<ErDiagramPrimitive>>
     {
         private ErSchema? schema;
         private ErDiagram? diagram;
@@ -24,6 +25,8 @@ namespace ErEditor.UI
         bool isEdgeBeingDrawn = false;
         bool isMouseBeingHeld = false;
 
+        public ObserverBase observerLogic;
+
         public DiagramPanel()
         {
             ConsoleLog.Log("Started constructor", this);
@@ -31,6 +34,8 @@ namespace ErEditor.UI
             Initialize();
 
             this.DoubleBuffered = true;
+
+            observerLogic = new(this);
         }
 
         private void Initialize()
@@ -139,12 +144,16 @@ namespace ErEditor.UI
 
         public void OpenDiagram(ErSchema schema, ErDiagram diagram)
         {
+            if (this.diagram != null) { diagram.Unsubscribe(this); }
             this.schema = schema;
             this.diagram = diagram;
+            diagram.Subscribe(this);
             this.Invalidate();
         }
         public void CloseDiagram()
         {
+            if(diagram != null)
+                diagram.Unsubscribe(this);
             schema = null;
             diagram = null;
             this.Invalidate();
@@ -330,5 +339,14 @@ namespace ErEditor.UI
             }
         }
 
+        public void Visit(ObjectDeletedNotification<ErDiagramPrimitive> notification)
+        {
+            this.Invalidate();
+        }
+
+        public void Recieve(Notification notification)
+        {
+            ((IObserver)observerLogic).Recieve(notification);
+        }
     }
 }
