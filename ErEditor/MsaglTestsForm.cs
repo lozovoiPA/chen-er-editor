@@ -223,7 +223,7 @@ namespace ErEditor
             graph.Edges.Add(new Edge(patientDiagnosis, diagnosis) { Length = 3 });
 
             //var settings1 = new Microsoft.Msagl.Layout.MDS.MdsLayoutSettings();
-            var settings2 = new Microsoft.Msagl.Layout.Layered.SugiyamaLayoutSettings();
+            var settings2 = new Microsoft.Msagl.Layout.Incremental.FastIncrementalLayoutSettings();
             settings2.EdgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.StraightLine;
 
             //LayoutHelpers.CalculateLayout(graph, settings1, null);

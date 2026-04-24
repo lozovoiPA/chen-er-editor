@@ -66,6 +66,12 @@ namespace ErEditor
             Instance.groupBox2.Text = $"Диаграммер - {diagram.Name}";
             DiagramPanel.OpenDiagram(schema, diagram);
         }
+
+        public static void ExportDiagram(ErDiagram diagram)
+        {
+            DialogManager.ExportDiagram(diagram);
+        }
+
         public static void CloseProperties()
         {
             PropertiesPanel.CloseProperties();

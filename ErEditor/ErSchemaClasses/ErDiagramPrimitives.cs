@@ -82,12 +82,12 @@ namespace ErEditor.ErSchemaClasses
             Y = pr1.Y + margin1.Y;
             width = pr2.X + margin2.X;
             height = pr2.Y + margin2.Y;
-            g.SmoothingMode = SmoothingMode.HighQuality;
             g.DrawLine(new Pen(brush1), X, Y, width, height);
             brush1.Dispose();
         }
         public override bool Intersects(Point point)
         {
+
             if ((X < point.X) && (X + width > point.X) && (Y < point.Y) && (Y + height > point.Y))
             {
                 return true;
@@ -216,7 +216,7 @@ namespace ErEditor.ErSchemaClasses
                 foreach (var str in split_strings)
                 {
                     var size_t = g.MeasureString(str, font);
-                    g.FillRectangle(fillBrush, X + width / 2 - size_t.Width / 2 + 5, text_y + 2, size_t.Width - 2, size_t.Height-2);
+                    g.FillRectangle(fillBrush, X + width / 2 - size_t.Width / 2 + 2, text_y + 2, size_t.Width - 2, size_t.Height - 2);
                     g.DrawString(str, font, outlineBrush, 
                         X + width / 2 - size_t.Width / 2 + 3, 
                         text_y);

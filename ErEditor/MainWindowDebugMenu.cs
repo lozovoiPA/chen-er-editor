@@ -114,7 +114,7 @@ namespace ErEditor
                 ErSchema schema = navigatorTreeView1.Schemas[0];
 
                 // Db creation
-                string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\test_db2\\test_SQL.db";
+                string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\test_db2\\test_SQL2.db";
                 ConsoleLog.Log($"[1/2] Initializing ExportDbContext instance... (path to DB: {path})", this);
                 ExportDbContext dbcontext = new(path);
                 dbcontext.Database.EnsureDeleted();
@@ -151,15 +151,15 @@ namespace ErEditor
             }
         }
 
-        private void Debug_ExecuteDiagramGeneration(object? sender, EventArgs e)
+        public static void Debug_ExecuteDiagramGeneration(object? sender, EventArgs e)
         {
             if (MainWindow.Navigator.Schemas.Count > 0)
             {
-                ErSchema schema = navigatorTreeView1.Schemas[0];
+                ErSchema schema = MainWindow.Navigator.Schemas[0];
 
                 double w = 110;
                 double h = 40;
-                double l = 1;
+                double l = 40;
 
                 double ratio = 8;
 
@@ -172,13 +172,13 @@ namespace ErEditor
                 Dictionary<ErRole, Edge> roleEdges = new();
                 foreach(var es in schema.EntitySets)
                 {
-                    Node esNode = new Node(CurveFactory.CreateRectangle(w / ratio, h / ratio, new P()), es);
+                    Node esNode = new Node(CurveFactory.CreateRectangle(w, h, new P()), es);
                     entitySetNodes.Add(es, esNode);
                     graph.Nodes.Add(esNode);
                 }
                 foreach (var rs in schema.RelationshipSets)
                 {
-                    Node rsNode = new Node(CurveFactory.CreateDiamond(w / (ratio + 4), h / (ratio + 4), new P()), rs);
+                    Node rsNode = new Node(CurveFactory.CreateDiamond((w + 20) / 2, (h + 40) / 2, new P()), rs);
                     relationshipSetNodes.Add(rs, rsNode);
                     graph.Nodes.Add(rsNode);
                     var roleCounts = rs.Roles.Count;
@@ -227,9 +227,13 @@ namespace ErEditor
 
                 var settings1 = new Microsoft.Msagl.Layout.MDS.MdsLayoutSettings();
                 var settings2 = new Microsoft.Msagl.Layout.Incremental.FastIncrementalLayoutSettings();
+                settings1.ScaleX = 1;
+                settings1.ScaleY = 1;
                 settings1.EdgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.StraightLine;
+                settings1.EdgeRoutingSettings.Padding = 40;
                 settings2.EdgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.StraightLine;
-                
+                settings2.EdgeRoutingSettings.Padding = 40;
+
                 //settings2.LayerSeparation = 1;
                 //settings2.PackingMethod = PackingMethod.Compact;
                 settings2.LiftCrossEdges = true;
@@ -237,7 +241,6 @@ namespace ErEditor
                 LayoutHelpers.CalculateLayout(graph, settings1, null);
                 LayoutHelpers.CalculateLayout(graph, settings2, null);
                 MainWindow.MsaglGraph = graph;
-
 
 
                 graph.UpdateBoundingBox();
@@ -251,8 +254,11 @@ namespace ErEditor
                 double s_x = (cr.Width / (double)graph.Width);
                 double s_y = (cr.Height / (double)(graph.Height));
 
+                s_x = (110 / (double)graph.Nodes[0].Width);
+                s_y = (40 / (double)graph.Nodes[0].Height);
+
                 Console.WriteLine($"Sx {s_x} Sy {s_y}");
-                var s = Math.Min(s_x, s_y) * 0.8;
+                var s = Math.Min(s_x, s_y) * 0.9;
 
                 double g0 = (double)(graph.Left + graph.Right) / 2;
                 double g1 = (double)(graph.Top + graph.Bottom) / 2;
@@ -280,11 +286,13 @@ namespace ErEditor
                     if(entitySet != null)
                     {
                         diagram.AddRectangle(entitySet, point.X, point.Y - (int)node.Height, (int)node.Width, (int)node.Height);
+                        Console.WriteLine($"Rectangle dimensions: {node.Width}, {node.Height}");
                     }
                     ErRelationshipSet? relationshipSet = relationshipSetNodes.FirstOrDefault(x => x.Value == node).Key;
                     if (relationshipSet != null)
                     {
-                        diagram.AddDiamond(relationshipSet, point.X, point.Y - (int)node.Height, (int)node.Width, (int)node.Height);
+                        diagram.AddDiamond(relationshipSet, point.X, point.Y - (int)node.Height, (int)(node.Width), (int)(node.Height));
+                        Console.WriteLine($"Diamond dimensions: {node.Width}, {node.Height}");
                     }
                 }
                 foreach(Edge edge in graph.Edges)
@@ -292,8 +300,6 @@ namespace ErEditor
                     ErRole? role = roleEdges.FirstOrDefault(x => x.Value == edge).Key;
                     ErRelationshipSet? relationshipSet = schema.RelationshipSets.FirstOrDefault(x => x.Roles.Contains(role));
                     LineSegment? line = edge.Curve as LineSegment;
-                    Console.WriteLine($"{edge.Curve}");
-
 
                     if (role != null && relationshipSet != null && line != null)
                     {
@@ -318,7 +324,7 @@ namespace ErEditor
             }
         }
 
-        private System.Drawing.Point MsaglPointToDrawingPoint(P point)
+        public static System.Drawing.Point MsaglPointToDrawingPoint(P point)
         {
             return new System.Drawing.Point((int)point.X, (int)point.Y);
         }

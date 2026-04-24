@@ -147,14 +147,49 @@ namespace ErEditor.ErSchemaClasses
                     "ErSchemaFileManager");
                 return false;
             }
+
+            dbcontext.EntitySets
+                .Include(el => el.Attributes).ThenInclude(x => x.ValueSets);
+            dbcontext.RelationshipSets
+                .Include(el => el.Attributes).ThenInclude(x => x.ValueSets)
+                .Include(el => el.Roles)
+                .Include(el => el.Mappings).ThenInclude(x => x.MappingRoles);
+            dbcontext.Diagrams.Include(el => el.Primitives);
+
+            foreach (var vs in dbcontext.ValueSets)
+            {
+                SchemaRegistry.dbVsRegistryTemp.AddRetrieved(vs.Id, vs);
+            }
+            Console.WriteLine($"Vs count: {dbcontext.ValueSets.Count()}");
+            Console.WriteLine($"Es count: {dbcontext.EntitySets.Count()}");
+            Console.WriteLine($"Rs count: {dbcontext.RelationshipSets.Count()}");
+            foreach (var el in dbcontext.EntitySets.Include(el => el.Attributes).ThenInclude(el => el.ValueSets))
+            {
+                foreach(var attr in el.Attributes)
+                {
+                    SchemaRegistry.dbAttrRegistryTemp.AddRetrieved(attr.Id, attr);
+                    Console.WriteLine($"Added attr: {attr.Name} with vs: {attr.ValueSets.Count}");
+                }
+            }
+            foreach (var el in dbcontext.RelationshipSets.Include(el => el.Attributes))
+            {
+                foreach (var attr in el.Attributes)
+                {
+                    SchemaRegistry.dbAttrRegistryTemp.AddRetrieved(attr.Id, attr);
+                    Console.WriteLine($"Added attr: {attr.Name}");
+                }
+            }
+
             ConsoleLog.Log("[0/3] Initiating mapping to database.", this);
             var changes = SchemaRegistry.MakeChangedDbEntries();
             ConsoleLog.Log("[1/3] Entries in registry were created for database.", this);
-            dbcontext.UpdateRange(changes.Updated);
-            dbcontext.AddRange(changes.Created);
+
             dbcontext.RemoveRange(changes.Deleted);
+            dbcontext.AddRange(changes.Created);
+            dbcontext.UpdateRange(changes.Updated);
 
             dbcontext.SaveChanges();
+
             dbcontext.Dispose();
             ConsoleLog.Log("[2/3] Schema was saved to database.", this);
 

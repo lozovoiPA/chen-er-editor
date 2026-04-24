@@ -76,14 +76,65 @@ namespace ErEditor.UI
             createEdgeItem.Click += StartDrawingEdge_Handler;
             ToolStripMenuItem deletePrimitiveOnlyItem = new();
             deletePrimitiveOnlyItem.Text = "Убрать элемент";
+            deletePrimitiveOnlyItem.Click += DeletePrimitive_Handler;
             ToolStripMenuItem deleteErElementItem = new();
             deleteErElementItem.Text = "Удалить элемент";
+            deleteErElementItem.Click += DeleteElement_Handler;
 
             primitiveContextMenu.Items.AddRange([
                 createEdgeItem,
                 deletePrimitiveOnlyItem,
                 deleteErElementItem
                 ]);
+        }
+
+        private ErDiagramPrimitive? DeletePrimitive(int x, int y)
+        {
+            var pr = diagram.FindAt(x, y);
+            if (pr != null)
+            {
+                diagram.Remove(pr);
+            }
+            return pr;
+        }
+
+        private void DeletePrimitive_Handler(object? sender, EventArgs e)
+        {
+            if (diagram != null)
+            {
+                Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
+                DeletePrimitive(point.X, point.Y);
+                Invalidate();
+            }
+        }
+
+        private void DeleteElement_Handler(object? sender, EventArgs e)
+        {
+            if (diagram != null)
+            {
+                Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
+                var pr = DeletePrimitive(point.X, point.Y);
+                if(pr != null && schema != null)
+                {
+                    switch(pr)
+                    {
+                        case ErDiagramDiamond pr1:
+                            schema.RelationshipSets.Remove(pr1.ErElement);
+                            break;
+                        case ErDiagramRectangle pr2:
+                            schema.EntitySets.Remove(pr2.ErElement);
+                            break;
+                        case ErDiagramEdge pr3:
+                            var rs = schema.RelationshipSets.ToList().Find(x => x.Roles.Contains(pr3.ErElement));
+                            if(rs != null)
+                            {
+                                rs.RemoveRole(pr3.ErElement);
+                            }
+                            break;
+                    }
+                    Invalidate();
+                }
+            }
         }
 
         public void OpenDiagram(ErSchema schema, ErDiagram diagram)

@@ -49,8 +49,14 @@ namespace ErEditor.UI.NavigatorTreeClasses
                     this,
                     new Dictionary<string, EventHandler>() {
                         { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) },
-                        { "Удалить", new EventHandler(DeleteDiagram) }
+                        { "Удалить", new EventHandler(DeleteDiagram) },
+                        { "Экспортировать", new EventHandler(ExportDiagram_Handler) }
                     });
+            }
+
+            private void ExportDiagram_Handler(object? sender, EventArgs e)
+            {
+                DialogManager.ExportDiagram(diagram);
             }
 
             private void DeleteDiagram(object? sender, EventArgs e)

@@ -53,5 +53,34 @@ namespace ErEditor.UI
             }
             
         }
+
+        public static bool ExportDiagram(ErDiagram diagram)
+        {
+            SaveFileDialog sfd = new();
+            sfd.AddExtension = true;
+            sfd.Filter = "PNG Image|*.png|JPeg Image|*.jpg|Bitmap Image|*.bmp|Gif Image|*.gif";
+            sfd.DefaultExt = "png";
+            DialogResult dr = sfd.ShowDialog();
+            switch (dr)
+            {
+                case DialogResult.OK:
+                    var path = sfd.FileName;
+                    var size = diagram.GetSize();
+                    Bitmap bitmap = new Bitmap(size.Width, size.Height);
+                    Graphics g = Graphics.FromImage(bitmap);
+
+                    SolidBrush fillBrush = new SolidBrush(Color.White);
+                    g.FillRectangle(fillBrush, size);
+                    fillBrush.Dispose();
+
+                    diagram.Draw(g);
+                    g.Flush();
+                    bitmap.Save(path);
+
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
 }

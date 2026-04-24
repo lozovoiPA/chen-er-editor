@@ -3,9 +3,12 @@ using ErEditor.Infrastructure;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
+using System.Windows.Media.Media3D;
 
 namespace ErEditor.ErSchemaClasses
 {
@@ -27,6 +30,23 @@ namespace ErEditor.ErSchemaClasses
         {
             get { return name; }
             set { name = value; observers.Notify(new ObjectNameChangedNotification(this, name)); }
+        }
+
+        public Rectangle GetSize()
+        {
+            int minx = int.MaxValue, miny = int.MaxValue, maxx = 0, maxy = 0;
+            var shapes = primitives.Where(x => x is ErDiagramDiamond || x is ErDiagramRectangle).ToList();
+            foreach(var pr in shapes)
+            {
+                if(pr.X < minx) minx = pr.X;
+                if (pr.Y < miny) miny = pr.Y;
+                if((pr.X + pr.width) > maxx) maxx = pr.X + pr.width;
+                if ((pr.Y + pr.height) > maxy) maxy = pr.Y + pr.height;
+
+                Console.WriteLine($"Primitive {pr.Label}: {pr.X}, {pr.Y}, {pr.X + pr.width}, {pr.Y + pr.height}");
+            }
+            Console.WriteLine($"{maxx}, {maxy}");
+            return new Rectangle(0, 0, maxx - 0 + (minx), maxy - 0 + (miny));
         }
 
         public ErDiagramRectangle AddRectangle(ErEntitySet entitySet, int x, int y, int w = 100, int h = 30)
@@ -61,6 +81,18 @@ namespace ErEditor.ErSchemaClasses
             p1.Y -= pr1.Y;
             p2.X -= pr2.X;
             p2.Y -= pr2.Y;
+
+            if(pr1 is ErDiagramDiamond && pr2 is ErDiagramRectangle)
+            {
+                var p3 = p2;
+                var pr3 = pr2;
+                p2 = p1;
+                pr2 = pr1;
+
+                p1 = p3;
+                pr1 = pr3;
+            }
+
             ErDiagramEdge edge = new ErDiagramEdge(role, pr1, pr2, p1, p2);
             primitives.Add(edge);
 
@@ -90,6 +122,7 @@ namespace ErEditor.ErSchemaClasses
 
         public void Draw(Graphics g)
         {
+            g.SmoothingMode = SmoothingMode.HighQuality;
             var drawpr = primitives.OrderBy(x => x.Z).ToList();
             foreach (var primitive in drawpr)
             {
@@ -109,24 +142,23 @@ namespace ErEditor.ErSchemaClasses
             return null;
         }
 
-        /*
-        public void Remove(DiagramPrimitive _pr)
+        public void Remove(ErDiagramPrimitive _pr)
         {
-            DiagramPrimitive? pr = shapes.Find(x => x == _pr);
+            ErDiagramPrimitive? pr = primitives.Find(x => x == _pr);
             if (pr != null)
             {
-                shapes.Remove((DiagramShape)_pr);
-                foreach (var item in edges.FindAll(x => (x.pr1 == _pr) || (x.pr2 == _pr)))
+                primitives.Remove(_pr);
+                if(_pr is ErDiagramRectangle || _pr is ErDiagramDiamond)
                 {
-                    edges.Remove(item);
+                    var edges = primitives.FindAll(x => x is ErDiagramEdge).ConvertAll<ErDiagramEdge>(x=> x as ErDiagramEdge);
+                    foreach (var item in edges.FindAll(x => (x.pr1 == _pr) || (x.pr2 == _pr)))
+                    {
+                        primitives.Remove(item);
+                    }
                 }
-            }
-            else
-            {
-                edges.Remove((DiagramAssociation)_pr);
+                
             }
         }
-        */
 
         public override string ToString()
         {

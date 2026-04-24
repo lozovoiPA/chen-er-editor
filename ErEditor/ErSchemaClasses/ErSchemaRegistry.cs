@@ -103,7 +103,7 @@ namespace ErEditor.ErSchemaClasses
         {
             ErDiagram diagram = Schema.Diagrams.Add(dbDgr.Name ?? string.Empty);
             var primitives = PrimitiveRegistry.RetrieveDbEntryList(
-                dbDgr.Primitives.ToList(),
+                dbDgr.Primitives.Where(x => x.Type != "Edge").ToList().Concat(dbDgr.Primitives.Where(x => x.Type == "Edge").ToList()).ToList(),
                 dbPrimitive => CreatePrimitiveOnDiagram(diagram, dbPrimitive));
             return diagram;
         }
@@ -122,6 +122,7 @@ namespace ErEditor.ErSchemaClasses
                 ErValueSet vs = ValueSetRegistry.RetrieveDbEntry(dbVs, CreateValueSetOnSchema);
                 attr.valueSets.Add(vs);
             }
+            attr.valueSets.Reverse();
             return attr;
         }
         private ErRole CreateRoleOnSchema(ErRelationshipSet rs, DbRole dbRole)
@@ -166,6 +167,7 @@ namespace ErEditor.ErSchemaClasses
             {
                 primitiveForeignKeys.Add(primitive, diagram);
             }
+            Console.WriteLine($"Primitive: {primitive}, DbPrimitive: {dbPrimitive}");
             return primitive;
         }
         private ErMapping CreateMappingOnSchema(ErRelationshipSet rs, DbMapping dbMapping)
@@ -215,8 +217,8 @@ namespace ErEditor.ErSchemaClasses
 
             return dbRs;
         }
-
-        private Registry<DbValueSet> dbVsRegistryTemp = new(); 
+        public Registry<DbAttribute> dbAttrRegistryTemp = new();
+        public Registry<DbValueSet> dbVsRegistryTemp = new(); 
         public DbValueSet MakeDbValueSet(ErValueSet vs)
         {
             int id = TryToAssignId(vs, ValueSetRegistry);
@@ -236,7 +238,11 @@ namespace ErEditor.ErSchemaClasses
                     dbVsRegistryTemp.AddRetrieved(dbVs.Id, dbVs);
                 }
             }
-
+            else
+            {
+                dbVs.Name = vs.Name == "" ? null : vs.Name;
+                dbVs.BaseType = vs.BaseValueType;
+            }
             return dbVs;
         }
         public DbDiagram MakeDbDiagram(ErDiagram dgr)
@@ -248,9 +254,22 @@ namespace ErEditor.ErSchemaClasses
         }
         private DbAttribute? MakeDbAttribute(ErAttribute attr)
         {
-            DbAttribute dbAttr = new DbAttribute(attr.Name == "" ? null : attr.Name);
+            int attrid = TryToAssignId(attr, AttributeRegistry);
+            DbAttribute? dbAttr = dbAttrRegistryTemp.FindById(attrid);
 
-            int? id = null;
+            if(dbAttr == null)
+            {
+                Console.WriteLine("Attr not found");
+                dbAttr = new DbAttribute(attr.Name == "" ? null : attr.Name);
+            }
+            else
+            {
+                Console.WriteLine("Attr found");
+
+                //foreach(var vs in dbAttr.)
+            }
+
+                int? id = null;
             DbErElementWithAttributes? dbEl = null;
             if (!attributeForeignKeys.ContainsKey(attr))
             {
@@ -319,19 +338,21 @@ namespace ErEditor.ErSchemaClasses
             dbAttr.AllowedValues = attr.allowedValues;
             dbAttr.Id = TryToAssignId(attr, AttributeRegistry);
 
+            
             foreach (var valueSet in attr.valueSets)
             {
                 //DbAttributeDbValueSet pair = new();
                 (int? valueSetId, DbValueSet? dbValueSet) = FindForeignKeyConstraint<DbValueSet, ErValueSet>(valueSet, ValueSetRegistry);
-                if (dbValueSet != null)
-                {
-                    dbAttr.ValueSets.Add(dbValueSet);
-                }
-                else if (valueSetId != null)
+
+                if (valueSetId != null && dbValueSet == null)
                 {
                     dbValueSet = MakeDbValueSet(valueSet);
+                }
+                if (dbValueSet != null && !dbAttr.ValueSets.Contains(dbValueSet))
+                {
                     dbAttr.ValueSets.Add(dbValueSet);
                 }
+                break;
             }
 
             return dbAttr;
@@ -761,6 +782,9 @@ namespace ErEditor.ErSchemaClasses
             RoleRegistry.Flush();
             MappingRegistry.Flush();
             PrimitiveRegistry.Flush();
+
+            dbAttrRegistryTemp = new();
+            dbVsRegistryTemp = new();
         }
 
         // Распаковщик уведомлений от вотчеров к общим уведомлениям реестров (чтобы реестры не менять и у них у всех

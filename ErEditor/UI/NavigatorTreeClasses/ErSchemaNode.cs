@@ -61,12 +61,17 @@ namespace ErEditor.UI.NavigatorTreeClasses
             {
                 ImageIndex = 0;
                 SelectedImageIndex = 0;
-                UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) } });
+                UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { 
+                    { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) }
+                });
 
                 UIHelper.AddContextMenu(entitySetFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(AddEntitySet) } });
                 UIHelper.AddContextMenu(relationshipSetFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(AddRelationshipSet) } });
                 UIHelper.AddContextMenu(valueSetFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(AddValueSet) } });
-                UIHelper.AddContextMenu(diagramFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(AddDiagram) } });
+                UIHelper.AddContextMenu(diagramFolder, new Dictionary<string, EventHandler>() { 
+                    { "Создать", new EventHandler(AddDiagram) },
+                    { "Сгенерировать", new EventHandler(MainWindow.Debug_ExecuteDiagramGeneration) }
+                });
 
                 nodes.Add(entitySetFolder);
                 nodes.Add(relationshipSetFolder);
@@ -163,19 +168,22 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             private void AddDiagram(object? sender, EventArgs e)
             {
+                acceptNotifications = false;
                 ConsoleLog.Log("Adding new diagram in the navigator", this);
                 var newEl = schema.Diagrams.Add();
                 var newNode = AddDiagramNode(newEl);
 
                 diagramFolder.Expand();
                 parentTree.RenameNode(newNode);
+                acceptNotifications = true;
             }
 
-            public void Recieve(Notification notification)
+            public override void Recieve(Notification notification)
             {
-                observerLogic.Recieve(notification);
+                
                 if (acceptNotifications)
                 {
+                    observerLogic.Recieve(notification);
                     if (notification is ObjectCreatedNotification<ErEntitySet>)
                     {
                         ConsoleLog.Log($"Schema node {Name} received notification that new entity set was added ({((ObjectCreatedNotification<ErEntitySet>)notification).Object})");
