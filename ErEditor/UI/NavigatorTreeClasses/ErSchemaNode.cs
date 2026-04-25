@@ -70,7 +70,7 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 UIHelper.AddContextMenu(valueSetFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(AddValueSet) } });
                 UIHelper.AddContextMenu(diagramFolder, new Dictionary<string, EventHandler>() { 
                     { "Создать", new EventHandler(AddDiagram) },
-                    { "Сгенерировать", new EventHandler(MainWindow.Debug_ExecuteDiagramGeneration) }
+                    { "Сгенерировать", new EventHandler(GenerateDiagram_Handler) }
                 });
 
                 nodes.Add(entitySetFolder);
@@ -130,8 +130,14 @@ namespace ErEditor.UI.NavigatorTreeClasses
             private ErDiagramNode AddDiagramNode(ErDiagram dgr)
             {
                 var newNode = new ErDiagramNode(parentSchema, dgr, parentTree);
+                newNode.DisplayName = dgr.Name;
                 diagramFolder.Nodes.Add(newNode);
                 return newNode;
+            }
+
+            private void GenerateDiagram_Handler(object? sender, EventArgs e)
+            {
+                DialogManager.GenerateDiagram(schema);
             }
             private void AddEntitySet(object? sender, EventArgs e)
             {
@@ -211,7 +217,9 @@ namespace ErEditor.UI.NavigatorTreeClasses
             }
             public void Visit(ObjectCreatedNotification<ErDiagram> notif)
             {
-                AddDiagramNode(notif.Object);
+                var node = AddDiagramNode(notif.Object);
+                diagramFolder.Expand();
+                parentTree.RenameNode(node);
             }
             public void Visit(ObjectDeletedNotification<ErDiagram> notif)
             {

@@ -13,12 +13,35 @@ namespace ErEditor.ErSchemaClasses
 {
     public abstract class ErDiagramPrimitive : IObservable
     {
-        public int X;
-        public int Y;
+        private int x;
+        private int y;
+        private int width;
+        private int height;
+        
+
+        public int X
+        {
+            get { return x; }
+            set { x = value; observers.Notify(new ObjectUpdatedNotification<ErDiagramPrimitive>(this)); }
+        }
+
+        public int Y
+        {
+            get { return y; }
+            set { y = value; observers.Notify(new ObjectUpdatedNotification<ErDiagramPrimitive>(this)); }
+        }
         public int Z;
 
-        public int width;
-        public int height;
+        public int Width
+        {
+            get { return width; }
+            set { width = value; observers.Notify(new ObjectUpdatedNotification<ErDiagramPrimitive>(this)); }
+        }
+        public int Height
+        {
+            get { return height; }
+            set { height = value; observers.Notify(new ObjectUpdatedNotification<ErDiagramPrimitive>(this)); }
+        }
 
         protected string displayName;
 
@@ -41,6 +64,44 @@ namespace ErEditor.ErSchemaClasses
         {
             return observers.Unsubscribe(observer);
         }
+
+        protected virtual void DrawSplitLabel(Font font, Graphics g, SolidBrush fillBrush, SolidBrush outlineBrush)
+        {
+            SizeF size = g.MeasureString(this.Label, font);
+            if (size.Width >= 0.8 * Width)
+            {
+                var split_strings = Label.Split(' ');
+                double total_h = 0;
+                double max_w = 0;
+                foreach (var str in split_strings)
+                {
+                    var size_t = g.MeasureString(str, font);
+                    total_h += size_t.Height + 1;
+                    if (max_w < size_t.Width)
+                    {
+                        max_w = size_t.Width;
+                    }
+                }
+                int text_y = (int)(Y + Height / 2 - total_h / 2 + 1);
+
+                foreach (var str in split_strings)
+                {
+                    var size_t = g.MeasureString(str, font);
+                    g.FillRectangle(fillBrush, X + Width / 2 - size_t.Width / 2 + 2, text_y + 2, size_t.Width - 2, size_t.Height - 2);
+                    g.DrawString(str, font, outlineBrush,
+                        X + Width / 2 - size_t.Width / 2 + 3,
+                        text_y);
+                    text_y += 1 + (int)size_t.Height;
+                }
+
+            }
+            else
+            {
+                var size_t = g.MeasureString(Label, font);
+                g.FillRectangle(fillBrush, X + Width / 2 - size_t.Width / 2 + 2, Y + Height / 2 - size.Height / 2, size_t.Width - 2, size_t.Height - 2);
+                g.DrawString(this.Label, font, outlineBrush, X + Width / 2 - size.Width / 2 + 3, Y + Height / 2 - size.Height / 2);
+            }
+        }
     }
 
     public class ErDiagramEdge : ErDiagramPrimitive
@@ -60,7 +121,16 @@ namespace ErEditor.ErSchemaClasses
             this.margin1 = margin1;
             this.margin2 = margin2;
 
+            var start = GetStartPoint();
+            var end = GetEndPoint();
+            this.X = start.X;
+            this.Y = start.Y;
+            this.Width = end.X - start.X;
+            this.Height = end.Y - start.Y;
+
             this.role = role;
+
+            Console.WriteLine($"Edge for {role} finished constructor with {X}, {Y} and {Width}, {Height}");
 
             Z = -1;
         }
@@ -75,24 +145,96 @@ namespace ErEditor.ErSchemaClasses
             get { return role; }
         }
 
-        public override void Draw(Graphics g)
+        private void DrawLabel(Graphics g, Point start, Point end)
         {
-            SolidBrush brush1 = new SolidBrush(Color.Black);
-            X = pr1.X + margin1.X;
-            Y = pr1.Y + margin1.Y;
-            width = pr2.X + margin2.X;
-            height = pr2.Y + margin2.Y;
-            g.DrawLine(new Pen(brush1), X, Y, width, height);
-            brush1.Dispose();
+            if (!string.IsNullOrEmpty(Label))
+            {
+                Point midPoint = new Point(
+                    (start.X + end.X) / 2,
+                    (start.Y + end.Y) / 2
+                );
+
+                /*
+                using (Font font = new Font("Arial", 8))
+                using (Brush brush = new SolidBrush(Color.Black))
+                {
+                    SizeF textSize = g.MeasureString(Label, font);
+                    g.DrawString(Label, font, brush,
+                        midPoint.X - textSize.Width / 2,
+                        midPoint.Y - textSize.Height / 2);
+                }*/
+                Font font = new Font("Arial", 8);
+                SolidBrush brush = new SolidBrush(Color.White);
+                SolidBrush brush2 = new SolidBrush(Color.Black);
+                DrawSplitLabel(font, g, brush, brush2);
+            }
         }
+
+        private Point GetStartPoint()
+        {
+            return new Point(pr1.X + margin1.X, pr1.Y + margin1.Y);
+        }
+
+        private Point GetEndPoint()
+        {
+            return new Point(pr2.X + margin2.X, pr2.Y + margin2.Y);
+        }
+
         public override bool Intersects(Point point)
         {
+            Point start = GetStartPoint();
+            Point end = GetEndPoint();
 
-            if ((X < point.X) && (X + width > point.X) && (Y < point.Y) && (Y + height > point.Y))
+            return PointToLineDistance(point, start, end) <= 5;
+        }
+
+        private float PointToLineDistance(Point point, Point lineStart, Point lineEnd)
+        {
+            float dx = lineEnd.X - lineStart.X;
+            float dy = lineEnd.Y - lineStart.Y;
+            float lengthSquared = dx * dx + dy * dy;
+            if (lengthSquared == 0)
             {
-                return true;
+                float distToPoint = (float)Math.Sqrt(
+                    Math.Pow(point.X - lineStart.X, 2) +
+                    Math.Pow(point.Y - lineStart.Y, 2)
+                );
+                return distToPoint;
             }
-            return false;
+
+            float t = ((point.X - lineStart.X) * dx + (point.Y - lineStart.Y) * dy) / lengthSquared;
+            t = Math.Max(0, Math.Min(1, t));
+
+            float closestX = lineStart.X + t * dx;
+            float closestY = lineStart.Y + t * dy;
+
+            float distance = (float)Math.Sqrt(
+                Math.Pow(point.X - closestX, 2) +
+                Math.Pow(point.Y - closestY, 2)
+            );
+
+            return distance;
+        }
+
+        public override void Draw(Graphics g)
+        {
+            Point startPoint = GetStartPoint();
+            Point endPoint = GetEndPoint();
+            X = startPoint.X;
+            Y = startPoint.Y;
+            this.Width = endPoint.X - startPoint.X;
+            this.Height = endPoint.Y - startPoint.Y;
+
+            //var X_t = Math.Min(startPoint.X, endPoint.X);
+            //var Y_t = Math.Min(startPoint.Y, endPoint.Y);
+            //var width_t = Math.Abs(startPoint.X - endPoint.X);
+            //var height_t = Math.Abs(startPoint.Y - endPoint.Y);
+
+            using (Pen pen = new Pen(Color.Black))
+            {
+                g.DrawLine(pen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+            }
+            DrawLabel(g, startPoint, endPoint);
         }
     }
 
@@ -105,8 +247,8 @@ namespace ErEditor.ErSchemaClasses
             this.X = x;
             this.Y = y;
 
-            this.width = width;
-            this.height = height;
+            this.Width = width;
+            this.Height = height;
 
             this.entitySet = entitySet;
 
@@ -128,19 +270,19 @@ namespace ErEditor.ErSchemaClasses
             SolidBrush outlineBrush = new SolidBrush(Color.Black);
             SolidBrush fillBrush = new SolidBrush(Color.White);
 
-            g.DrawRectangle(new Pen(outlineBrush), X, Y, width, height);
-            g.FillRectangle(fillBrush, X, Y, width, height);
+            g.DrawRectangle(new Pen(outlineBrush), X, Y, Width, Height);
+            g.FillRectangle(fillBrush, X, Y, Width, Height);
 
             Font font = new Font(FontFamily.GenericSansSerif, 10);
             SizeF labelSize = g.MeasureString(this.Label, font);
-            g.DrawString(this.Label, new Font(FontFamily.GenericSansSerif, 10), outlineBrush, X + width / 2 - labelSize.Width / 2 + 3, Y + height / 2 - labelSize.Height / 2);
+            g.DrawString(this.Label, new Font(FontFamily.GenericSansSerif, 10), outlineBrush, X + Width / 2 - labelSize.Width / 2 + 3, Y + Height / 2 - labelSize.Height / 2);
 
             outlineBrush.Dispose();
             fillBrush.Dispose();
         }
         public override bool Intersects(Point point)
         {
-            if ((X < point.X) && (X + width > point.X) && (Y < point.Y) && (Y + height > point.Y))
+            if ((X < point.X) && (X + Width > point.X) && (Y < point.Y) && (Y + Height > point.Y))
             {
                 return true;
             }
@@ -156,8 +298,8 @@ namespace ErEditor.ErSchemaClasses
             X = x;
             Y = y;
 
-            base.width = width;
-            base.height = height;
+            base.Width = width;
+            base.Height = height;
 
             this.relationshipSet = relationshipSet;
 
@@ -181,11 +323,11 @@ namespace ErEditor.ErSchemaClasses
 
             Point[] points =
                 [
-                new Point(X + width / 2, Y),
-                new Point(X + width - 2, Y + height / 2),
-                new Point(X + width / 2, Y + height - 2),
-                new Point(X, Y + height / 2),
-                new Point(X + width / 2, Y)
+                new Point(X + Width / 2, Y),
+                new Point(X + Width - 2, Y + Height / 2),
+                new Point(X + Width / 2, Y + Height - 2),
+                new Point(X, Y + Height / 2),
+                new Point(X + Width / 2, Y)
                 ];
             byte[] point_types = [(byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line, (byte)PathPointType.Line];
             GraphicsPath line = new GraphicsPath(points, point_types);
@@ -196,38 +338,8 @@ namespace ErEditor.ErSchemaClasses
             g.FillRegion(fillBrush, shape);
 
             Font font = new Font(FontFamily.GenericSansSerif, 10);
-            SizeF size = g.MeasureString(this.Label, font);
-            if(size.Width >= 0.8 * width)
-            {
-                var split_strings = Label.Split(' ');
-                double total_h = 0;
-                double max_w = 0;
-                foreach(var str in split_strings)
-                {
-                    var size_t = g.MeasureString(str, font);
-                    total_h += size_t.Height + 1;
-                    if(max_w < size_t.Width)
-                    {
-                        max_w = size_t.Width;
-                    }
-                }
-                int text_y = (int)(Y + height / 2 - total_h / 2 + 1);
-
-                foreach (var str in split_strings)
-                {
-                    var size_t = g.MeasureString(str, font);
-                    g.FillRectangle(fillBrush, X + width / 2 - size_t.Width / 2 + 2, text_y + 2, size_t.Width - 2, size_t.Height - 2);
-                    g.DrawString(str, font, outlineBrush, 
-                        X + width / 2 - size_t.Width / 2 + 3, 
-                        text_y);
-                    text_y += 1 + (int)size_t.Height;
-                }
-                
-            }
-            else
-            {
-                g.DrawString(this.Label, font, outlineBrush, X + width / 2 - size.Width / 2 + 3, Y + height / 2 - size.Height / 2);
-            }
+            DrawSplitLabel(font, g, fillBrush, outlineBrush);
+            
             outlineBrush.Dispose();
             fillBrush.Dispose();
         }
@@ -241,7 +353,7 @@ namespace ErEditor.ErSchemaClasses
                 return true;
             }*/
 
-            if ((X < point.X) && (X + width > point.X) && (Y < point.Y) && (Y + height > point.Y))
+            if ((X < point.X) && (X + Width > point.X) && (Y < point.Y) && (Y + Height > point.Y))
             {
                 return true;
             }

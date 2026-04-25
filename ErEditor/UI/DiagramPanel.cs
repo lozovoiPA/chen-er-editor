@@ -24,6 +24,12 @@ namespace ErEditor.UI
         Rectangle selectedPrimitiveRegion = Rectangle.Empty;
         bool isEdgeBeingDrawn = false;
         bool isMouseBeingHeld = false;
+        Point dragOffset = new Point(0, 0);
+        Point viewPortOffset = new Point(0, 0);
+        Point diagramOffset = new Point(0, 0);
+
+        Rectangle diagramSize = new Rectangle(0, 0, 0, 0);
+        Point bitmapOffset = new Point(0, 0);
 
         public ObserverBase observerLogic;
 
@@ -33,6 +39,10 @@ namespace ErEditor.UI
             Console.WriteLine(this);
             Initialize();
 
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint |
+                 ControlStyles.UserPaint |
+                 ControlStyles.ResizeRedraw |
+                 ControlStyles.OptimizedDoubleBuffer, true);
             this.DoubleBuffered = true;
 
             observerLogic = new(this);
@@ -95,10 +105,10 @@ namespace ErEditor.UI
 
         private ErDiagramPrimitive? DeletePrimitive(int x, int y)
         {
-            var pr = diagram.FindAt(x, y);
+            var pr = diagram?.FindAt(x, y);
             if (pr != null)
             {
-                diagram.Remove(pr);
+                diagram?.Remove(pr);
             }
             return pr;
         }
@@ -108,7 +118,7 @@ namespace ErEditor.UI
             if (diagram != null)
             {
                 Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
-                DeletePrimitive(point.X, point.Y);
+                DeletePrimitive(point.X + viewPortOffset.X - bitmapOffset.X, point.Y + viewPortOffset.Y - bitmapOffset.Y);
                 Invalidate();
             }
         }
@@ -118,7 +128,7 @@ namespace ErEditor.UI
             if (diagram != null)
             {
                 Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
-                var pr = DeletePrimitive(point.X, point.Y);
+                var pr = DeletePrimitive(point.X + viewPortOffset.X - bitmapOffset.X, point.Y + viewPortOffset.Y - bitmapOffset.Y);
                 if(pr != null && schema != null)
                 {
                     switch(pr)
@@ -147,6 +157,10 @@ namespace ErEditor.UI
             if (this.diagram != null) { diagram.Unsubscribe(this); }
             this.schema = schema;
             this.diagram = diagram;
+            this.diagramSize = diagram.GetSize();
+            bitmapOffset = new Point(-diagramSize.X + 10, -diagramSize.Y + 10);
+
+
             diagram.Subscribe(this);
             this.Invalidate();
         }
@@ -156,23 +170,54 @@ namespace ErEditor.UI
                 diagram.Unsubscribe(this);
             schema = null;
             diagram = null;
+            diagramSize = Rectangle.Empty;
+            bitmapOffset = Point.Empty;
             this.Invalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
+            // base.OnPaint(e);
             if (diagram != null)
             {
-                if (isEdgeBeingDrawn) // links are drawn under the figures
+                var size = diagramSize = diagram.GetSize();
+                Bitmap bitmap = new Bitmap(size.Width + 20, size.Height + 20);
+                var g = Graphics.FromImage(bitmap);
+
+                bitmapOffset = new Point(-diagramSize.X + 10, -diagramSize.Y + 10);
+
+                g.TranslateTransform(bitmapOffset.X, bitmapOffset.Y);
+
+                g.Clear(this.BackColor);
+
+                if (isEdgeBeingDrawn)
                 {
-                    Console.WriteLine(selectedPrimitiveRegion);
-                    e.Graphics.DrawLine(new Pen(Color.Black), selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y, selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height);
+                    g.DrawLine(new Pen(Color.Black),
+                        selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y,
+                        selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height);
                 }
-                diagram.Draw(e.Graphics);
+
+                diagram.Draw(g);
+                g.Flush();
+
+                int sourceX = viewPortOffset.X;
+                int sourceY = viewPortOffset.Y;
+                int sourceWidth = Math.Min(bitmap.Width - sourceX, this.Width);
+                int sourceHeight = Math.Min(bitmap.Height - sourceY, this.Height);
+
+                e.Graphics.DrawImage(bitmap,
+                    new Rectangle(0, 0, sourceWidth, sourceHeight),
+                    new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight),
+                    GraphicsUnit.Pixel);
+                //e.Graphics.DrawImage(bitmap, -viewPortOffset.X, -viewPortOffset.Y);
+
+                g.Dispose();
+                bitmap.Dispose();
+            } else
+            {
+                e.Graphics.Clear(this.BackColor);
             }
         }
-        
 
         private void CreateEntitySet_Handler(object? sender, EventArgs e)
         {
@@ -180,7 +225,7 @@ namespace ErEditor.UI
             
             if(diagram != null && schema != null)
             {
-                ErDiagramRectangle pr = diagram.AddRectangle(schema.EntitySets.Add(), point.X, point.Y);
+                ErDiagramRectangle pr = diagram.AddRectangle(schema.EntitySets.Add(), point.X + viewPortOffset.X - bitmapOffset.X, point.Y + viewPortOffset.Y - bitmapOffset.Y);
                 selectedPrimitive = pr;
                 Invalidate();
                 RenamePrimitive(pr);
@@ -193,7 +238,7 @@ namespace ErEditor.UI
 
             if (diagram != null && schema != null)
             {
-                ErDiagramDiamond pr = diagram.AddDiamond(schema.RelationshipSets.Add(), point.X, point.Y);
+                ErDiagramDiamond pr = diagram.AddDiamond(schema.RelationshipSets.Add(), point.X + viewPortOffset.X - bitmapOffset.X, point.Y + viewPortOffset.Y - bitmapOffset.Y);
                 selectedPrimitive = pr;
                 Invalidate();
                 RenamePrimitive(pr);
@@ -205,7 +250,7 @@ namespace ErEditor.UI
             isEdgeBeingDrawn = true;
             Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
             Console.WriteLine(point);
-            selectedPrimitiveRegion = new Rectangle(point.X, point.Y, point.X, point.Y);
+            selectedPrimitiveRegion = new Rectangle(point.X + viewPortOffset.X - bitmapOffset.X, point.Y + viewPortOffset.Y - bitmapOffset.Y, point.X + viewPortOffset.X - bitmapOffset.X, point.Y + viewPortOffset.Y - bitmapOffset.Y);
         }
 
         private void DiagramPanel_MouseDown(object? sender, MouseEventArgs e)
@@ -217,7 +262,7 @@ namespace ErEditor.UI
                     this.EndRenameActivity();
                 }
                 isMouseBeingHeld = false;
-                ErDiagramPrimitive? clickedPrimitive = diagram.FindAt(e.X, e.Y);
+                ErDiagramPrimitive? clickedPrimitive = diagram.FindAt(e.X + viewPortOffset.X - bitmapOffset.X, e.Y + viewPortOffset.Y - bitmapOffset.Y);
                 if (e.Button == MouseButtons.Right)
                 {
                     if (clickedPrimitive == null)
@@ -232,13 +277,19 @@ namespace ErEditor.UI
                 }
                 else if (e.Button == MouseButtons.Left)
                 {
+                    if (!isEdgeBeingDrawn) // we are not currently drawing a link so we can start holding
+                    {
+                        isMouseBeingHeld = true;
+                        dragOffset = e.Location;
+                    }
+
                     if (clickedPrimitive != null)
                     {
                         if (!isEdgeBeingDrawn) // we are not currently drawing a link so we can start holding
                         {
                             isMouseBeingHeld = true;
                             selectedPrimitive = clickedPrimitive;
-                            selectedPrimitiveRegion = new Rectangle(clickedPrimitive.X, clickedPrimitive.Y, e.X - clickedPrimitive.X, e.Y - clickedPrimitive.Y);
+                            selectedPrimitiveRegion = new Rectangle(clickedPrimitive.X + viewPortOffset.X - bitmapOffset.X, clickedPrimitive.Y + viewPortOffset.Y - bitmapOffset.Y, e.X - clickedPrimitive.X + viewPortOffset.X - bitmapOffset.X, e.Y - clickedPrimitive.Y + viewPortOffset.Y - bitmapOffset.Y);
                         }
                         else
                         {
@@ -263,6 +314,10 @@ namespace ErEditor.UI
                         isEdgeBeingDrawn = false;
                         Invalidate();
                     }
+                    else
+                    {
+                        selectedPrimitive = null;
+                    }
                 }
             }
         }
@@ -270,8 +325,9 @@ namespace ErEditor.UI
         {
             if (diagram != null)
             {
-                Point point = new Point(e.X, e.Y);
+                Point point = new Point(e.X + viewPortOffset.X - bitmapOffset.X, e.Y + viewPortOffset.Y - bitmapOffset.Y);
                 Console.WriteLine(point);
+                Console.WriteLine(viewPortOffset);
                 ErDiagramPrimitive? pr = diagram.FindAt(point.X, point.Y);
                 if (pr != null)
                 {
@@ -284,17 +340,31 @@ namespace ErEditor.UI
         {
             if (diagram != null)
             {
-                if (isMouseBeingHeld && selectedPrimitive != null)
+                if (isMouseBeingHeld)
                 {
-                    selectedPrimitive.X = e.X - selectedPrimitiveRegion.Width;
-                    selectedPrimitive.Y = e.Y - selectedPrimitiveRegion.Height;
+                    if (selectedPrimitive != null)
+                    {
+                        selectedPrimitive.X = e.X - selectedPrimitiveRegion.Width + viewPortOffset.X - bitmapOffset.X;
+                        selectedPrimitive.Y = e.Y - selectedPrimitiveRegion.Height + viewPortOffset.Y - bitmapOffset.Y;
+                    }
+                    else
+                    {
+                        Point newLocation = PointToClient(
+                            this.PointToScreen(new Point(
+                                diagramOffset.X + e.X - dragOffset.X,
+                                diagramOffset.Y + e.Y - dragOffset.Y
+                            ))
+                        );
 
+                        this.viewPortOffset = newLocation;
+                        Console.WriteLine($"dragging mouse: {-viewPortOffset.X}, {-viewPortOffset.Y}");
+                    }
                     Invalidate();
                 }
                 else if (isEdgeBeingDrawn)
                 {
-                    selectedPrimitiveRegion.Width = e.X;
-                    selectedPrimitiveRegion.Height = e.Y;
+                    selectedPrimitiveRegion.Width = e.X + viewPortOffset.X - bitmapOffset.X;
+                    selectedPrimitiveRegion.Height = e.Y + viewPortOffset.Y - bitmapOffset.Y;
 
                     Invalidate();
                 }
@@ -305,14 +375,16 @@ namespace ErEditor.UI
             if (diagram != null)
             {
                 isMouseBeingHeld = false;
+                diagramOffset = viewPortOffset;
+                //selectedPrimitive = null;
             }
         }
 
         private void RenamePrimitive(ErDiagramPrimitive pr)
         {
             isMouseBeingHeld = false;
-            selectedPrimitiveRenameTextBox.Left = (int)(pr.X + pr.width * 0.5);
-            selectedPrimitiveRenameTextBox.Top = (int)(pr.Y + pr.height * 0.5);
+            selectedPrimitiveRenameTextBox.Left = (int)(pr.X + pr.Width * 0.5 - viewPortOffset.X + bitmapOffset.X);
+            selectedPrimitiveRenameTextBox.Top = (int)(pr.Y + pr.Height * 0.5 - viewPortOffset.Y + bitmapOffset.Y);
             selectedPrimitiveRenameTextBox.Text = pr.Label;
 
             selectedPrimitiveRenameTextBox.Visible = true;

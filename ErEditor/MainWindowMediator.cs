@@ -41,7 +41,7 @@ namespace ErEditor
                 return Instance.elementPropertiesPanel1;
             }
         }
-        private static DiagramPanel DiagramPanel
+        public static DiagramPanel DiagramPanel
         {
             get
             {

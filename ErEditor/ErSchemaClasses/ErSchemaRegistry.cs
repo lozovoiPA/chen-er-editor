@@ -158,9 +158,10 @@ namespace ErEditor.ErSchemaClasses
                         {
                             return CreateRoleOnSchema(roleRelationshipSet, dbRole);
                         });
+                    Console.WriteLine($"Added edge for {role.Name} at {dbPrimitive.X}, {dbPrimitive.Y} and {dbPrimitive.width}, {dbPrimitive.height}");
                     primitive = diagram.AddEdge(role, roleRelationshipSet,
                         new Point(dbPrimitive.X, dbPrimitive.Y), 
-                        new Point(dbPrimitive.width, dbPrimitive.height));
+                        new Point(dbPrimitive.X + dbPrimitive.width, dbPrimitive.Y + dbPrimitive.height));
                     break;
             }
             if(primitive != null)
@@ -543,6 +544,7 @@ namespace ErEditor.ErSchemaClasses
             }
 
             DbPrimitive? dbPrimitive = null;
+
             switch (primitive)
             {
                 case ErDiagramRectangle rect:
@@ -557,10 +559,12 @@ namespace ErEditor.ErSchemaClasses
                     if(entitySetId != null)
                     {
                         dbRect.ElementWithAttributesId = (int)entitySetId;
+                        Console.WriteLine($"Found es with id {entitySetId}");
                     }
                     else
                     {
                         dbRect.ElementWithAttributes = dbEntitySet!;
+                        Console.WriteLine($"Found es with no id");
                     }
                     dbPrimitive = dbRect;
                     dbPrimitive.Type = "Rectangle";
@@ -604,16 +608,20 @@ namespace ErEditor.ErSchemaClasses
                     }
                     dbPrimitive = dbEdge;
                     dbPrimitive.Type = "Edge";
+                    Console.WriteLine($"Edge for {edge.ErElement.Name} saved with {edge.X}, {edge.Y} and {edge.Width}, {edge.Height}");
                     break;
 
             }
             if(dbPrimitive == null)
             {
                 return null;
+            } else
+            {
+                dbPrimitive.Id = TryToAssignId(primitive, PrimitiveRegistry);
             }
 
             // через рефлексию такое можно закодить... ну или хотя бы через макрос
-            if(diagramId != null)
+            if (diagramId != null)
             {
                 dbPrimitive.DiagramId = (int)diagramId;
             }
@@ -624,8 +632,9 @@ namespace ErEditor.ErSchemaClasses
 
             dbPrimitive.X = primitive.X;
             dbPrimitive.Y = primitive.Y;
-            dbPrimitive.width = primitive.width;
-            dbPrimitive.height = primitive.height;
+            dbPrimitive.width = primitive.Width;
+            dbPrimitive.height = primitive.Height;
+
 
             return dbPrimitive;
         }

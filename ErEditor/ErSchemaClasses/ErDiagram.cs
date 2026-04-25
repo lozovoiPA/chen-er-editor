@@ -70,22 +70,23 @@ namespace ErEditor.ErSchemaClasses
 
         public Rectangle GetSize()
         {
-            int minx = int.MaxValue, miny = int.MaxValue, maxx = 0, maxy = 0;
+            int minx = int.MaxValue, miny = int.MaxValue, maxx = int.MinValue, maxy = int.MinValue;
             var shapes = primitives.Where(x => x is ErDiagramDiamond || x is ErDiagramRectangle).ToList();
             foreach(var pr in shapes)
             {
                 if(pr.X < minx) minx = pr.X;
                 if (pr.Y < miny) miny = pr.Y;
-                if((pr.X + pr.width) > maxx) maxx = pr.X + pr.width;
-                if ((pr.Y + pr.height) > maxy) maxy = pr.Y + pr.height;
+                if((pr.X + pr.Width) > maxx) maxx = pr.X + pr.Width;
+                if ((pr.Y + pr.Height) > maxy) maxy = pr.Y + pr.Height;
 
-                Console.WriteLine($"Primitive {pr.Label}: {pr.X}, {pr.Y}, {pr.X + pr.width}, {pr.Y + pr.height}");
+                Console.WriteLine($"Primitive {pr.Label}: {pr.X}, {pr.Y}, {pr.X + pr.Width}, {pr.Y + pr.Height}");
             }
-            Console.WriteLine($"{maxx}, {maxy}");
-            return new Rectangle(0, 0, maxx - 0 + (minx), maxy - 0 + (miny));
+            Console.WriteLine($"{minx}, {miny}, {maxx}, {maxy}");
+            Console.WriteLine($"{maxx - minx}, {maxy - miny}");
+            return new Rectangle(minx, miny, maxx - minx, maxy - miny);
         }
 
-        public ErDiagramRectangle AddRectangle(ErEntitySet entitySet, int x, int y, int w = 100, int h = 30)
+        public ErDiagramRectangle AddRectangle(ErEntitySet entitySet, int x, int y, int w = 99, int h = 36)
         {
             ErDiagramRectangle primitive = new ErDiagramRectangle(entitySet, x, y, w, h);
             primitives.Add(primitive);
@@ -93,7 +94,7 @@ namespace ErEditor.ErSchemaClasses
             observers.Notify(new ObjectAddedNotification<ErDiagram, ErDiagramPrimitive>(this, primitive));
             return primitive;
         }
-        public ErDiagramDiamond AddDiamond(ErRelationshipSet relationshipSet, int x, int y, int w = 120, int h = 40)
+        public ErDiagramDiamond AddDiamond(ErRelationshipSet relationshipSet, int x, int y, int w = 117, int h = 72)
         {
             ErDiagramDiamond primitive = new ErDiagramDiamond(relationshipSet, x, y, w, h);
             primitives.Add(primitive);

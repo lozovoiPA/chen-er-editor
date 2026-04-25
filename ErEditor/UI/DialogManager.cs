@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,6 +55,13 @@ namespace ErEditor.UI
             
         }
 
+        public static ErDiagram GenerateDiagram(ErSchema schema)
+        {
+            ErDiagram diagram = ErSchemaFileManager.GenerateDiagram(schema, MainWindow.DiagramPanel.ClientRectangle);
+            MainWindow.OpenDiagram(schema, diagram);
+            return diagram;
+        }
+
         public static bool ExportDiagram(ErDiagram diagram)
         {
             SaveFileDialog sfd = new();
@@ -66,13 +74,13 @@ namespace ErEditor.UI
                 case DialogResult.OK:
                     var path = sfd.FileName;
                     var size = diagram.GetSize();
-                    Bitmap bitmap = new Bitmap(size.Width, size.Height);
+                    Console.WriteLine($"{size.X}, {size.Y}, {size.Width}, {size.Height}");
+                    Bitmap bitmap = new Bitmap(size.Width + 20, size.Height + 20);
+
                     Graphics g = Graphics.FromImage(bitmap);
+                    g.TranslateTransform(-size.X + 10, -size.Y + 10);
 
-                    SolidBrush fillBrush = new SolidBrush(Color.White);
-                    g.FillRectangle(fillBrush, size);
-                    fillBrush.Dispose();
-
+                    g.Clear(Color.White);
                     diagram.Draw(g);
                     g.Flush();
                     bitmap.Save(path);

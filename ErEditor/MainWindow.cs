@@ -53,7 +53,10 @@ namespace ErEditor
             var schemas = navigatorTreeView1.Schemas;
             if (schemas.Count > 0)
             {
-                ErSchemaFileManager.SaveSchema(schemas[0]);
+                foreach (var schema in schemas)
+                {
+                    ErSchemaFileManager.SaveSchema(schemas[0]);
+                }
             }
         }
         private void openSchemaToolStripMenuItem_Click(object sender, EventArgs e)
