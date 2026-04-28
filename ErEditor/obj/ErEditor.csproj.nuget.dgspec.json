@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\04 STUDIES IN TSU\\4 курс 1 семестр\\НИР\\NewErEditor\\ErEditor\\ErEditor\\ErEditor.csproj": {}
+    "D:\\Personal Work\\Visual Studio Projects\\ChenErEditor\\ErEditor\\ErEditor.csproj": {}
   },
   "projects": {
-    "D:\\04 STUDIES IN TSU\\4 курс 1 семестр\\НИР\\NewErEditor\\ErEditor\\ErEditor\\ErEditor.csproj": {
+    "D:\\Personal Work\\Visual Studio Projects\\ChenErEditor\\ErEditor\\ErEditor.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\04 STUDIES IN TSU\\4 курс 1 семестр\\НИР\\NewErEditor\\ErEditor\\ErEditor\\ErEditor.csproj",
+        "projectUniqueName": "D:\\Personal Work\\Visual Studio Projects\\ChenErEditor\\ErEditor\\ErEditor.csproj",
         "projectName": "ErEditor",
-        "projectPath": "D:\\04 STUDIES IN TSU\\4 курс 1 семестр\\НИР\\NewErEditor\\ErEditor\\ErEditor\\ErEditor.csproj",
+        "projectPath": "D:\\Personal Work\\Visual Studio Projects\\ChenErEditor\\ErEditor\\ErEditor.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "D:\\04 STUDIES IN TSU\\4 курс 1 семестр\\НИР\\NewErEditor\\ErEditor\\ErEditor\\obj\\",
+        "outputPath": "D:\\Personal Work\\Visual Studio Projects\\ChenErEditor\\ErEditor\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -28,7 +28,8 @@
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0-windows7.0": {
+          "net8.0-windows": {
+            "framework": "net8.0-windows7.0",
             "targetAlias": "net8.0-windows",
             "projectReferences": {}
           }
@@ -43,10 +44,11 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
-        "net8.0-windows7.0": {
+        "net8.0-windows": {
+          "framework": "net8.0-windows7.0",
           "targetAlias": "net8.0-windows",
           "dependencies": {
             "FontAwesome.Sharp": {
@@ -97,7 +99,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.312/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

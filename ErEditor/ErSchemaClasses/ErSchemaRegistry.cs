@@ -253,6 +253,8 @@ namespace ErEditor.ErSchemaClasses
 
             return dbDgr;
         }
+
+        public ErDbContext? dbcontext = null; 
         private DbAttribute? MakeDbAttribute(ErAttribute attr)
         {
             int attrid = TryToAssignId(attr, AttributeRegistry);
@@ -267,10 +269,31 @@ namespace ErEditor.ErSchemaClasses
             {
                 Console.WriteLine("Attr found");
 
-                //foreach(var vs in dbAttr.)
+                if(dbcontext != null)
+                {
+                    dbcontext.Remove(dbAttr);
+                    dbcontext.SaveChanges();
+                    dbcontext.Add(dbAttr);
+                    dbcontext.SaveChanges();
+                }
+
+                var copyvs = dbAttr.ValueSets.ToList();
+                foreach (var vs in copyvs)
+                {
+                    Console.WriteLine($"\t Has vs: {vs.Id} {vs.Name}");
+                    vs.Attributes.Remove(dbAttr);
+                    dbAttr.ValueSets.Remove(vs);
+                }
+                if (dbcontext != null)
+                {
+                    dbcontext.Update(dbAttr);
+                    int i = dbcontext.SaveChanges();
+                    Console.WriteLine($"Written {i} entries");
+                }
+
             }
 
-                int? id = null;
+            int? id = null;
             DbErElementWithAttributes? dbEl = null;
             if (!attributeForeignKeys.ContainsKey(attr))
             {
@@ -345,17 +368,18 @@ namespace ErEditor.ErSchemaClasses
                 //DbAttributeDbValueSet pair = new();
                 (int? valueSetId, DbValueSet? dbValueSet) = FindForeignKeyConstraint<DbValueSet, ErValueSet>(valueSet, ValueSetRegistry);
 
-                if (valueSetId != null && dbValueSet == null)
+                if (valueSetId != null && dbValueSet == null && dbAttr.ValueSets.FirstOrDefault(x => x.Id == valueSetId) == default)
                 {
+                    Console.WriteLine($"Trying to create value set with ID: {valueSetId}");
                     dbValueSet = MakeDbValueSet(valueSet);
                 }
                 if (dbValueSet != null && !dbAttr.ValueSets.Contains(dbValueSet))
                 {
+                    Console.WriteLine($"Trying to add value set with ID: {dbValueSet.Id}");
                     dbAttr.ValueSets.Add(dbValueSet);
                 }
                 break;
             }
-
             return dbAttr;
         }
         private DbRole? MakeDbRole(ErRole role)

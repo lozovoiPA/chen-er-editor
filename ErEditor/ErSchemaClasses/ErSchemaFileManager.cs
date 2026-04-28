@@ -170,7 +170,7 @@ namespace ErEditor.ErSchemaClasses
                 }
                 dbcontext.Entry(el).State = EntityState.Detached;
             }
-            foreach (var el in dbcontext.RelationshipSets.Include(el => el.Attributes))
+            foreach (var el in dbcontext.RelationshipSets.Include(el => el.Attributes).ThenInclude(el => el.ValueSets))
             {
                 foreach (var attr in el.Attributes)
                 {
@@ -179,6 +179,7 @@ namespace ErEditor.ErSchemaClasses
                 }
                 dbcontext.Entry(el).State = EntityState.Detached;
             }
+            SchemaRegistry.dbcontext = dbcontext;
 
 
             ConsoleLog.Log("[0/3] Initiating mapping to database.", this);
@@ -189,7 +190,16 @@ namespace ErEditor.ErSchemaClasses
             dbcontext.AddRange(changes.Created);
             dbcontext.UpdateRange(changes.Updated);
 
-            dbcontext.SaveChanges();
+            try
+            {
+                dbcontext.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Exception in DB: {e}");
+                MessageBox.Show("Ошибка при сохранении схемы. Схема не была сохранена (попробуйте закрыть и заново открыть приложение)", "Ошибка");
+            }
+            
 
             dbcontext.Dispose();
             ConsoleLog.Log("[2/3] Schema was saved to database.", this);
