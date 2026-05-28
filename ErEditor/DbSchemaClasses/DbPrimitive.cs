@@ -30,16 +30,33 @@ namespace ErEditor.DbSchemaClasses
 
     public class DbRectangle : DbShape
     {
-        public new virtual DbEntitySet Element { get; set; } = null!;
+        public new virtual DbEntitySet Element { 
+            get => (DbEntitySet)base.Element; 
+            set => base.Element = value is DbEntitySet entitySet
+            ? entitySet
+            : throw new ArgumentException("DbRectangle requires DbEntitySet element");
+        }
     }
 
     public class DbDiamond : DbShape
     {
-        public new virtual DbRelationshipSet Element { get; set; } = null!;
+        public new virtual DbRelationshipSet Element
+        {
+            get => (DbRelationshipSet)base.Element;
+            set => base.Element = value is DbRelationshipSet relSet
+            ? relSet
+            : throw new ArgumentException("DbDiamond requires DbRelationshipSet element");
+        }
     }
 
     public class DbEdge : DbPrimitive
     {
-        public new virtual DbRole Element { get; set; } = null!;
+        public new virtual DbRole Element
+        {
+            get => (DbRole)base.Element;
+            set => base.Element = value is DbRole role
+            ? role
+            : throw new ArgumentException("DbEdge requires DbRole element");
+        }
     }
 }

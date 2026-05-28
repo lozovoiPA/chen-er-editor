@@ -141,9 +141,13 @@ namespace ErEditor.ErSchemaClasses
         private ErDiagramPrimitive? CreatePrimitiveOnDiagram(ErDiagram diagram, DbPrimitive dbPrimitive)
         {
             ErDiagramPrimitive? primitive = null;
+
+            Console.WriteLine($"retrieved db primitive info:\n\tId - {dbPrimitive.Id};\n\tElement - {dbPrimitive.Element} (Id - {dbPrimitive.ElementId})");
+
             switch (dbPrimitive)
             {
                 case DbRectangle dbRect:
+                    Console.WriteLine($"retrieved CONCRETE db primitive info:\n\tId - {dbRect?.Id};\n\tElement - {dbRect?.Element} (Id - {dbRect?.ElementId})");
                     var entitySet = EntitySetRegistry.RetrieveDbEntry(dbRect.Element, CreateEntitySetOnSchema);
                     primitive = diagram.AddRectangle(entitySet, dbPrimitive.X, dbPrimitive.Y, dbPrimitive.width, dbPrimitive.height);
                     break;
@@ -202,8 +206,6 @@ namespace ErEditor.ErSchemaClasses
         {
             return registry.FindId(el) ?? default;
         }
-        // Старые попытки как-то хранить ограничения внешних ключей... Ничего не понимаю, как их адекватно поддерживать.
-        // Пока использую методы выше целиком для маппинга всего вместе. 
         public DbEntitySet MakeDbEntitySet(ErEntitySet es)
         {
             DbEntitySet dbEs = new DbEntitySet(es.Name == "" ? null : es.Name);
@@ -579,19 +581,17 @@ namespace ErEditor.ErSchemaClasses
                         ConsoleLog.Log("can't find entity set for primitive");
                         return null;
                     }
-                    DbRectangle dbRect = new DbRectangle();
+                    dbPrimitive = new DbRectangle();
                     if(entitySetId != null)
                     {
-                        dbRect.ElementId = (int)entitySetId;
+                        dbPrimitive.ElementId = (int)entitySetId;
                         Console.WriteLine($"Found es with id {entitySetId}");
                     }
                     else
                     {
-                        dbRect.Element = dbEntitySet!;
-                        Console.WriteLine($"Found es with no id");
+                        dbPrimitive.Element = dbEntitySet!;
+                        Console.WriteLine($"Found es with no id: {dbEntitySet?.Name}");
                     }
-                    dbPrimitive = dbRect;
-                    dbPrimitive.Type = "Rectangle";
                     break;
                 case ErDiagramDiamond diamond:
                     (int? relationshipSetId, DbRelationshipSet? dbRelationshipSet)
@@ -601,17 +601,15 @@ namespace ErEditor.ErSchemaClasses
                         ConsoleLog.Log("can't find rel set for primitive");
                         return null;
                     }
-                    DbDiamond dbDiamond = new DbDiamond();
+                    dbPrimitive = new DbDiamond();
                     if (relationshipSetId != null)
                     {
-                        dbDiamond.ElementId = (int)relationshipSetId;
+                        dbPrimitive.ElementId = (int)relationshipSetId;
                     }
                     else
                     {
-                        dbDiamond.Element = dbRelationshipSet!;
+                        dbPrimitive.Element = dbRelationshipSet!;
                     }
-                    dbPrimitive = dbDiamond;
-                    dbPrimitive.Type = "Diamond";
                     break;
                 case ErDiagramEdge edge:
                     (int? roleId, DbRole? dbRole)
@@ -621,17 +619,15 @@ namespace ErEditor.ErSchemaClasses
                         ConsoleLog.Log("can't find role for primitive");
                         return null;
                     }
-                    DbEdge dbEdge = new DbEdge();
+                    dbPrimitive = new DbEdge();
                     if (roleId != null)
                     {
-                        dbEdge.ElementId = (int)roleId;
+                        dbPrimitive.ElementId = (int)roleId;
                     }
                     else
                     {
-                        dbEdge.Element = dbRole!;
+                        dbPrimitive.Element = dbRole!;
                     }
-                    dbPrimitive = dbEdge;
-                    dbPrimitive.Type = "Edge";
                     Console.WriteLine($"Edge for {edge.ErElement.Name} saved with {edge.X}, {edge.Y} and {edge.Width}, {edge.Height}");
                     break;
 
@@ -659,6 +655,8 @@ namespace ErEditor.ErSchemaClasses
             dbPrimitive.width = primitive.Width;
             dbPrimitive.height = primitive.Height;
 
+
+            Console.WriteLine($"Made db primitive: \nis element null? :{dbPrimitive.Element == null}\nelement name: {dbPrimitive.Element?.Name}");
 
             return dbPrimitive;
         }

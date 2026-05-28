@@ -32,7 +32,8 @@ namespace ErEditor.DbSchemaClasses
         {
             optionsBuilder
                 .UseSqlite("Data Source=" + dbFullPath)
-                .EnableSensitiveDataLogging();
+                .EnableSensitiveDataLogging()
+                .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +50,9 @@ namespace ErEditor.DbSchemaClasses
             modelBuilder.Entity<DbErElement>().UseTptMappingStrategy();
 
             modelBuilder.Entity<DbErElementWithAttributes>().ToTable("ElementsWithAttributes");
+
+            modelBuilder.Entity<DbEntitySet>().ToTable("EntitySets");
+            modelBuilder.Entity<DbRelationshipSet>().ToTable("RelationshipSets");
 
             modelBuilder.Entity<DbValueSet>()
                 .HasMany(d => d.Attributes)

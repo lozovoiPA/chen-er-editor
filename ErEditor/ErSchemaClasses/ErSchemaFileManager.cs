@@ -1,5 +1,6 @@
 ﻿using ErEditor.DbSchemaClasses;
 using ErEditor.Infrastructure;
+using FontAwesome.Sharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Msagl.Core.Geometry.Curves;
 using Microsoft.Msagl.Core.Layout;
@@ -186,9 +187,35 @@ namespace ErEditor.ErSchemaClasses
             var changes = SchemaRegistry.MakeChangedDbEntries();
             ConsoleLog.Log("[1/3] Entries in registry were created for database.", this);
 
+            
             dbcontext.RemoveRange(changes.Deleted);
             dbcontext.AddRange(changes.Created);
             dbcontext.UpdateRange(changes.Updated);
+            
+
+            /* // individual checks for entity types
+            foreach (var entity in changes.Deleted)
+            {
+                //var entityType = entity.GetType();
+                dbcontext.Remove(entity);
+            }
+            foreach (var entity in changes.Created)
+            {
+                var concreteType = entity.GetType();
+                //Console.WriteLine($"Adding entity of type: {concreteType.Name}");
+
+                // Force EF to see the concrete type
+                dbcontext.Entry(entity).State = EntityState.Added;
+            }
+            foreach (var entity in changes.Updated)
+            {
+                //var entityType = entity.GetType();
+                dbcontext.Update(entity);
+            }*/
+            var debugView = dbcontext.ChangeTracker.DebugView.LongView;
+            Console.WriteLine("Db changes (EF Core):\n" + debugView);
+
+
 
             try
             {
@@ -197,7 +224,7 @@ namespace ErEditor.ErSchemaClasses
             catch (Exception e)
             {
                 Console.WriteLine($"Exception in DB: {e}");
-                MessageBox.Show("Ошибка при сохранении схемы. Схема не была сохранена (попробуйте закрыть и заново открыть приложение)", "Ошибка");
+                MessageBox.Show("Ошибка при сохранении схемы. Схема не была сохранена.", "Ошибка");
             }
             
 
