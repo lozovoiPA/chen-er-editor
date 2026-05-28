@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace ErEditor.DbSchemaClasses
 {
-    [Table("Attributes")]
     public class DbAttribute : DbErElement
     {
         public int ErElementWithAttributesId { get; set; }
@@ -29,7 +28,6 @@ namespace ErEditor.DbSchemaClasses
         }
     }
 
-    [Table("Roles")]
     public class DbRole : DbErElement
     {
         //[Key, Column(Order = 0)]
@@ -47,7 +45,6 @@ namespace ErEditor.DbSchemaClasses
         }
     }
 
-    [Table("Mappings")]
     public class DbMapping : DbErElement
     {
         public int RelationshipSetId { get; set; }

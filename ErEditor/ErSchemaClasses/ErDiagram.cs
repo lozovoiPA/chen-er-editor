@@ -26,6 +26,8 @@ namespace ErEditor.ErSchemaClasses
         private readonly ObservableBase observers = new();
         public bool BlockNotifying { get => observers.BlockNotifying; set => observers.BlockNotifying = value; }
 
+        public Rectangle referenceSize = new Rectangle();
+
         public ErDiagram() { observerLogic = new(this); }
         public ErDiagram(string name)
         {
@@ -81,8 +83,16 @@ namespace ErEditor.ErSchemaClasses
 
                 Console.WriteLine($"Primitive {pr.Label}: {pr.X}, {pr.Y}, {pr.X + pr.Width}, {pr.Y + pr.Height}");
             }
+            minx = (minx == int.MaxValue) ? referenceSize.X : minx;
+            maxx = (maxx == int.MinValue) ? referenceSize.Right : maxx;
+            miny = (miny == int.MaxValue) ? referenceSize.Y : miny;
+            maxy = (maxy == int.MinValue) ? referenceSize.Bottom : maxy;
+
             Console.WriteLine($"{minx}, {miny}, {maxx}, {maxy}");
             Console.WriteLine($"{maxx - minx}, {maxy - miny}");
+
+
+
             return new Rectangle(minx, miny, maxx - minx, maxy - miny);
         }
 

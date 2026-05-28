@@ -1,6 +1,7 @@
 ﻿using ErEditor.ErSchemaClasses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Msagl.Core.Layout;
+using Microsoft.Msagl.Routing.ConstrainedDelaunayTriangulation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,15 @@ namespace ErEditor.DbSchemaClasses
 {
     public class ErDbContext : DbContext
     {
-        public DbSet<DbErElementWithAttributes> ErElementsWithAttributes { get; set; }
+        public DbSet<DbErElement> Elements { get; set; }
         public DbSet<DbEntitySet> EntitySets { get; set; }
         public DbSet<DbRelationshipSet> RelationshipSets { get; set; }
         public DbSet<DbValueSet> ValueSets { get; set; }
+        public DbSet<DbAttribute> Attributes { get; set; }
+        public DbSet<DbRole> Roles { get; set; }
+        public DbSet<DbMapping> Mappings { get; set; }
         public DbSet<DbDiagram> Diagrams { get; set; }
+
         private readonly string dbFullPath = "";
 
         public ErDbContext(string dbFullPath)
@@ -31,10 +36,24 @@ namespace ErEditor.DbSchemaClasses
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<DbErElementWithAttributes>()
+            /*
+            modelBuilder.Entity<DbErElement>()
                 .HasDiscriminator<string>("Element Type")
                 .HasValue<DbEntitySet>("Entity Set")
-                .HasValue<DbRelationshipSet>("Relationship Set");
+                .HasValue<DbRelationshipSet>("Relationship Set")
+                .HasValue<DbValueSet>("Value Set")
+                .HasValue<DbAttribute>("Attribute")
+                .HasValue<DbRole>("Role")
+                .HasValue<DbMapping>("Mapping");
+            */
+            modelBuilder.Entity<DbErElement>().UseTptMappingStrategy();
+
+            modelBuilder.Entity<DbErElementWithAttributes>().ToTable("ElementsWithAttributes");
+
+            modelBuilder.Entity<DbValueSet>()
+                .HasMany(d => d.Attributes)
+                .WithMany(o => o.ValueSets)
+                .UsingEntity(j => j.ToTable("AttributeValueSet"));
 
             modelBuilder.Entity<DbAttribute>()
                 .Property(attribute => attribute.IsKey)

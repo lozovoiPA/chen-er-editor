@@ -37,7 +37,7 @@ namespace ErEditor
         {
             InitializeComponent();
 
-            filePathTextBox.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\test_db2";
+            filePathTextBox.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\test_db3";
         }
 
         private void createButton_Click(object sender, EventArgs e)

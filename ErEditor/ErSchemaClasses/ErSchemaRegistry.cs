@@ -144,16 +144,16 @@ namespace ErEditor.ErSchemaClasses
             switch (dbPrimitive)
             {
                 case DbRectangle dbRect:
-                    var entitySet = EntitySetRegistry.RetrieveDbEntry(dbRect.ElementWithAttributes, CreateEntitySetOnSchema);
+                    var entitySet = EntitySetRegistry.RetrieveDbEntry(dbRect.Element, CreateEntitySetOnSchema);
                     primitive = diagram.AddRectangle(entitySet, dbPrimitive.X, dbPrimitive.Y, dbPrimitive.width, dbPrimitive.height);
                     break;
                 case DbDiamond dbDiamond:
-                    var relationshipSet = RelationshipSetRegistry.RetrieveDbEntry(dbDiamond.ElementWithAttributes, CreateRelationshipSetOnSchema);
+                    var relationshipSet = RelationshipSetRegistry.RetrieveDbEntry(dbDiamond.Element, CreateRelationshipSetOnSchema);
                     primitive = diagram.AddDiamond(relationshipSet, dbPrimitive.X, dbPrimitive.Y, dbPrimitive.width, dbPrimitive.height);
                     break;
                 case DbEdge dbEdge:
-                    var roleRelationshipSet = RelationshipSetRegistry.RetrieveDbEntry(dbEdge.Role.RelationshipSet, CreateRelationshipSetOnSchema);
-                    var role = RoleRegistry.RetrieveDbEntry(dbEdge.Role, 
+                    var roleRelationshipSet = RelationshipSetRegistry.RetrieveDbEntry(dbEdge.Element.RelationshipSet, CreateRelationshipSetOnSchema);
+                    var role = RoleRegistry.RetrieveDbEntry(dbEdge.Element, 
                         dbRole => 
                         {
                             return CreateRoleOnSchema(roleRelationshipSet, dbRole);
@@ -582,12 +582,12 @@ namespace ErEditor.ErSchemaClasses
                     DbRectangle dbRect = new DbRectangle();
                     if(entitySetId != null)
                     {
-                        dbRect.ElementWithAttributesId = (int)entitySetId;
+                        dbRect.ElementId = (int)entitySetId;
                         Console.WriteLine($"Found es with id {entitySetId}");
                     }
                     else
                     {
-                        dbRect.ElementWithAttributes = dbEntitySet!;
+                        dbRect.Element = dbEntitySet!;
                         Console.WriteLine($"Found es with no id");
                     }
                     dbPrimitive = dbRect;
@@ -604,11 +604,11 @@ namespace ErEditor.ErSchemaClasses
                     DbDiamond dbDiamond = new DbDiamond();
                     if (relationshipSetId != null)
                     {
-                        dbDiamond.ElementWithAttributesId = (int)relationshipSetId;
+                        dbDiamond.ElementId = (int)relationshipSetId;
                     }
                     else
                     {
-                        dbDiamond.ElementWithAttributes = dbRelationshipSet!;
+                        dbDiamond.Element = dbRelationshipSet!;
                     }
                     dbPrimitive = dbDiamond;
                     dbPrimitive.Type = "Diamond";
@@ -624,11 +624,11 @@ namespace ErEditor.ErSchemaClasses
                     DbEdge dbEdge = new DbEdge();
                     if (roleId != null)
                     {
-                        dbEdge.RoleId = (int)roleId;
+                        dbEdge.ElementId = (int)roleId;
                     }
                     else
                     {
-                        dbEdge.Role = dbRole!;
+                        dbEdge.Element = dbRole!;
                     }
                     dbPrimitive = dbEdge;
                     dbPrimitive.Type = "Edge";

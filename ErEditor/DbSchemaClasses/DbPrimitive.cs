@@ -18,26 +18,28 @@ namespace ErEditor.DbSchemaClasses
         public int DiagramId { get; set; }
         public virtual DbDiagram Diagram { get; set; } = null!;
 
+        public int ElementId { get; set; }
+        public virtual DbErElement Element { get; set; } = null!;
+
     }
 
     public abstract class DbShape : DbPrimitive
     {
-        public int ElementWithAttributesId { get; set; }
+
     }
 
     public class DbRectangle : DbShape
     {
-        public virtual DbEntitySet ElementWithAttributes { get; set; } = null!;
+        public new virtual DbEntitySet Element { get; set; } = null!;
     }
 
     public class DbDiamond : DbShape
     {
-        public virtual DbRelationshipSet ElementWithAttributes { get; set; } = null!;
+        public new virtual DbRelationshipSet Element { get; set; } = null!;
     }
 
     public class DbEdge : DbPrimitive
     {
-        public int RoleId { get; set; }
-        public virtual DbRole Role { get; set; } = null!;
+        public new virtual DbRole Element { get; set; } = null!;
     }
 }
