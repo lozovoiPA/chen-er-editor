@@ -442,6 +442,11 @@ namespace ErEditor.ErSchemaClasses
             graph.Transform(matrix);
             graph.UpdateBoundingBox();
 
+            PlaneTransformation matrix2 = new(1, 0, -graph.Left, 0, 1, -graph.Bottom);
+
+            graph.Transform(matrix2);
+            graph.UpdateBoundingBox();
+
             return graph;
         }
 

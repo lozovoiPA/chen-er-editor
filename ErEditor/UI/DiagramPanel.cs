@@ -103,55 +103,6 @@ namespace ErEditor.UI
                 ]);
         }
 
-        private ErDiagramPrimitive? DeletePrimitive(int x, int y)
-        {
-            var pr = diagram?.FindAt(x, y);
-            if (pr != null)
-            {
-                diagram?.Remove(pr);
-            }
-            return pr;
-        }
-
-        private void DeletePrimitive_Handler(object? sender, EventArgs e)
-        {
-            if (diagram != null)
-            {
-                Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
-                DeletePrimitive(point.X + viewPortOffset.X - bitmapOffset.X, point.Y + viewPortOffset.Y - bitmapOffset.Y);
-                Invalidate();
-            }
-        }
-
-        private void DeleteElement_Handler(object? sender, EventArgs e)
-        {
-            if (diagram != null)
-            {
-                Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
-                var pr = DeletePrimitive(point.X + viewPortOffset.X - bitmapOffset.X, point.Y + viewPortOffset.Y - bitmapOffset.Y);
-                if(pr != null && schema != null)
-                {
-                    switch(pr)
-                    {
-                        case ErDiagramDiamond pr1:
-                            schema.RelationshipSets.Remove(pr1.ErElement);
-                            break;
-                        case ErDiagramRectangle pr2:
-                            schema.EntitySets.Remove(pr2.ErElement);
-                            break;
-                        case ErDiagramEdge pr3:
-                            var rs = schema.RelationshipSets.ToList().Find(x => x.Roles.Contains(pr3.ErElement));
-                            if(rs != null)
-                            {
-                                rs.RemoveRole(pr3.ErElement);
-                            }
-                            break;
-                    }
-                    Invalidate();
-                }
-            }
-        }
-
         public void OpenDiagram(ErSchema schema, ErDiagram diagram)
         {
             if (this.diagram != null) { diagram.Unsubscribe(this); }
@@ -161,6 +112,14 @@ namespace ErEditor.UI
             diagram.referenceSize = new Rectangle(0, 0, this.Width, this.Height);
             this.diagramSize = diagram.GetSize();
             bitmapOffset = new Point(-diagramSize.X + 10, -diagramSize.Y + 10);
+
+            selectedPrimitiveRegion = Rectangle.Empty;
+            isEdgeBeingDrawn = false;
+            isMouseBeingHeld = false;
+            dragOffset = new Point(0, 0);
+            viewPortOffset = new Point(0, 0);
+            diagramOffset = new Point(0, 0);
+
 
             diagram.Subscribe(this);
             this.Invalidate();
@@ -191,14 +150,17 @@ namespace ErEditor.UI
 
                 g.Clear(this.BackColor);
 
+                diagram.Draw(g);
+
                 if (isEdgeBeingDrawn)
                 {
                     g.DrawLine(new Pen(Color.Black),
-                        selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y,
-                        selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height);
+                        GetOnScreenPoint(selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y),
+                        GetOnScreenPoint(selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height));
+
+                    Console.WriteLine($"Drawing edge from {selectedPrimitiveRegion.X}, {selectedPrimitiveRegion.Y} to {selectedPrimitiveRegion.Width}, {selectedPrimitiveRegion.Height}");
                 }
 
-                diagram.Draw(g);
                 g.Flush();
 
                 int sourceX = Math.Max(0, -bitmapOffset.X - viewPortOffset.X);
@@ -237,9 +199,19 @@ namespace ErEditor.UI
             }
         }
 
+        private Point GetOnScreenPoint(int x, int y)
+        {
+            return new Point(x + viewPortOffset.X, y + viewPortOffset.Y);
+        }
+
+        private Point GetDiagramPoint(int x, int y)
+        {
+            return new Point(x - viewPortOffset.X, y - viewPortOffset.Y);
+        }
+
         private void CreateEntitySet_Handler(object? sender, EventArgs e)
         {
-            Point point = PointToClient(new Point(panelContextMenu.Bounds.X + viewPortOffset.X, panelContextMenu.Bounds.Y + viewPortOffset.Y));
+            Point point = PointToClient(GetOnScreenPoint(panelContextMenu.Bounds.X, panelContextMenu.Bounds.Y));
             
             if(diagram != null && schema != null)
             {
@@ -252,8 +224,7 @@ namespace ErEditor.UI
         }
         private void CreateRelationshipSet_Handler(object? sender, EventArgs e)
         {
-            ConsoleLog.Log("New relationship set creation (diagram) handler was called", this);
-            Point point = PointToClient(new Point(panelContextMenu.Bounds.X - viewPortOffset.X, panelContextMenu.Bounds.Y - viewPortOffset.Y));
+            Point point = PointToClient(GetOnScreenPoint(panelContextMenu.Bounds.X, panelContextMenu.Bounds.Y));
 
             if (diagram != null && schema != null)
             {
@@ -267,10 +238,61 @@ namespace ErEditor.UI
         private void StartDrawingEdge_Handler(object? sender, EventArgs e)
         {
             isEdgeBeingDrawn = true;
-            Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X - viewPortOffset.X, primitiveContextMenu.Bounds.Y - viewPortOffset.Y));
-            Console.WriteLine(point);
+            Point point = PointToClient(new Point(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
+
+            Console.WriteLine($"started drawing edge at: {point}");
             selectedPrimitiveRegion = new Rectangle(point.X, point.Y, point.X, point.Y);
         }
+
+        private ErDiagramPrimitive? DeletePrimitive(int x, int y)
+        {
+            var pr = diagram?.FindAt(x, y);
+            if (pr != null)
+            {
+                diagram?.Remove(pr);
+            }
+            return pr;
+        }
+
+        private void DeletePrimitive_Handler(object? sender, EventArgs e)
+        {
+            if (diagram != null)
+            {
+                Point point = PointToClient(GetOnScreenPoint(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
+                DeletePrimitive(point.X, point.Y);
+                Invalidate();
+            }
+        }
+
+        private void DeleteElement_Handler(object? sender, EventArgs e)
+        {
+            if (diagram != null)
+            {
+                Point point = PointToClient(GetOnScreenPoint(primitiveContextMenu.Bounds.X, primitiveContextMenu.Bounds.Y));
+                var pr = DeletePrimitive(point.X, point.Y);
+                if (pr != null && schema != null)
+                {
+                    switch (pr)
+                    {
+                        case ErDiagramDiamond pr1:
+                            schema.RelationshipSets.Remove(pr1.ErElement);
+                            break;
+                        case ErDiagramRectangle pr2:
+                            schema.EntitySets.Remove(pr2.ErElement);
+                            break;
+                        case ErDiagramEdge pr3:
+                            var rs = schema.RelationshipSets.ToList().Find(x => x.Roles.Contains(pr3.ErElement));
+                            if (rs != null)
+                            {
+                                rs.RemoveRole(pr3.ErElement);
+                            }
+                            break;
+                    }
+                    Invalidate();
+                }
+            }
+        }
+
 
         private void DiagramPanel_MouseDown(object? sender, MouseEventArgs e)
         {
@@ -281,7 +303,8 @@ namespace ErEditor.UI
                     this.EndRenameActivity();
                 }
                 isMouseBeingHeld = false;
-                ErDiagramPrimitive? clickedPrimitive = diagram.FindAt(e.X - viewPortOffset.X, e.Y - viewPortOffset.Y);
+                Point point = GetOnScreenPoint(e.X, e.Y);
+                ErDiagramPrimitive? clickedPrimitive = diagram.FindAt(point.X, point.Y);
                 if (e.Button == MouseButtons.Right)
                 {
                     if (clickedPrimitive == null)
@@ -308,7 +331,10 @@ namespace ErEditor.UI
                         {
                             isMouseBeingHeld = true;
                             selectedPrimitive = clickedPrimitive;
-                            selectedPrimitiveRegion = new Rectangle(clickedPrimitive.X - viewPortOffset.X, clickedPrimitive.Y - viewPortOffset.Y, e.X - clickedPrimitive.X - viewPortOffset.X, e.Y - clickedPrimitive.Y - viewPortOffset.Y);
+
+                            Point point1 = PointToClient(GetOnScreenPoint(clickedPrimitive.X, clickedPrimitive.Y));
+                            Point point2 = PointToClient(GetOnScreenPoint(e.X - clickedPrimitive.X, e.Y - clickedPrimitive.Y));
+                            selectedPrimitiveRegion = new Rectangle(point1.X, point1.Y, point2.X, point2.Y);
                         }
                         else
                         {
@@ -320,8 +346,8 @@ namespace ErEditor.UI
                             {
                                 ErRole role = relationshipSet.AddRole(entitySet, "", true);
                                 diagram.AddEdge(role, selectedPrimitive!, clickedPrimitive, 
-                                    new Point(selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y), 
-                                    new Point(selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height));
+                                    GetOnScreenPoint(selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y), 
+                                    GetOnScreenPoint(selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height));
                             }
 
                             isEdgeBeingDrawn = false;
@@ -344,7 +370,7 @@ namespace ErEditor.UI
         {
             if (diagram != null)
             {
-                Point point = new Point(e.X - viewPortOffset.X, e.Y - viewPortOffset.Y);
+                Point point = GetOnScreenPoint(e.X, e.Y);
                 Console.WriteLine($"Double clicked at: {point}");
                 Console.WriteLine($"Viewport offset: {viewPortOffset}");
                 ErDiagramPrimitive? pr = diagram.FindAt(point.X, point.Y);
@@ -363,8 +389,10 @@ namespace ErEditor.UI
                 {
                     if (selectedPrimitive != null)
                     {
-                        selectedPrimitive.X = e.X - selectedPrimitiveRegion.Width - viewPortOffset.X;
-                        selectedPrimitive.Y = e.Y - selectedPrimitiveRegion.Height - viewPortOffset.Y;
+                        Point point = PointToClient(GetOnScreenPoint(e.X - selectedPrimitiveRegion.Width, e.Y - selectedPrimitiveRegion.Height));
+
+                        selectedPrimitive.X = point.X;
+                        selectedPrimitive.Y = point.Y;
                     }
                     else
                     {
@@ -382,8 +410,9 @@ namespace ErEditor.UI
                 }
                 else if (isEdgeBeingDrawn)
                 {
-                    selectedPrimitiveRegion.Width = e.X - viewPortOffset.X;
-                    selectedPrimitiveRegion.Height = e.Y - viewPortOffset.Y;
+                    Point point = new Point(e.X, e.Y);
+                    selectedPrimitiveRegion.Width = point.X;
+                    selectedPrimitiveRegion.Height = point.Y;
 
                     Invalidate();
                 }
@@ -402,10 +431,12 @@ namespace ErEditor.UI
         private void RenamePrimitive(ErDiagramPrimitive pr)
         {
             isMouseBeingHeld = false;
-            selectedPrimitiveRenameTextBox.Left = (int)(pr.X + pr.Width * 0.5 - viewPortOffset.X + bitmapOffset.X);
-            selectedPrimitiveRenameTextBox.Top = (int)(pr.Y + pr.Height * 0.5 - viewPortOffset.Y + bitmapOffset.Y);
 
-            Console.WriteLine($"Renaming at: {(int)(pr.X + pr.Width * 0.5 - viewPortOffset.X + bitmapOffset.X)}, {(int)(pr.Y + pr.Height * 0.5 - viewPortOffset.Y + bitmapOffset.Y)}");
+            Point point = GetDiagramPoint((int)(pr.X + pr.Width * 0.5), (int)(pr.Y + pr.Height * 0.5));
+            selectedPrimitiveRenameTextBox.Left = point.X;
+            selectedPrimitiveRenameTextBox.Top = point.Y;
+
+            Console.WriteLine($"Renaming at: {point.X}, {point.Y}");
             selectedPrimitiveRenameTextBox.Text = pr.Label;
 
             selectedPrimitiveRenameTextBox.Visible = true;
