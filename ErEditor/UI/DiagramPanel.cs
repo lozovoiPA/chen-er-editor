@@ -141,7 +141,8 @@ namespace ErEditor.UI
             if (diagram != null)
             {
                 var size = diagramSize = diagram.GetSize();
-                Bitmap bitmap = new Bitmap(size.Width + 20, size.Height + 20);
+                // Bitmap bitmap = new Bitmap(size.Width + 20, size.Height + 20);
+                Bitmap bitmap = new Bitmap(this.Width + 20, this.Height + 20);
                 var g = Graphics.FromImage(bitmap);
 
                 bitmapOffset = new Point(-diagramSize.X + 10, -diagramSize.Y + 10);
@@ -149,8 +150,6 @@ namespace ErEditor.UI
                 g.TranslateTransform(bitmapOffset.X, bitmapOffset.Y);
 
                 g.Clear(this.BackColor);
-
-                diagram.Draw(g);
 
                 if (isEdgeBeingDrawn)
                 {
@@ -160,6 +159,8 @@ namespace ErEditor.UI
 
                     Console.WriteLine($"Drawing edge from {selectedPrimitiveRegion.X}, {selectedPrimitiveRegion.Y} to {selectedPrimitiveRegion.Width}, {selectedPrimitiveRegion.Height}");
                 }
+
+                diagram.Draw(g);
 
                 g.Flush();
 
@@ -173,14 +174,20 @@ namespace ErEditor.UI
                 if (!(sourceX >= this.Width || sourceY >= this.Height))
                 {
                     e.Graphics.DrawImage(bitmap,
-                    new Rectangle(
-                        sourceX,
-                        sourceY,
-                        sourceWidth,
-                        sourceHeight
-                        ),
-                    new Rectangle(Math.Max(0, bitmapOffset.X + viewPortOffset.X), Math.Max(0, bitmapOffset.Y + viewPortOffset.Y), sourceWidth, sourceHeight),
-                    GraphicsUnit.Pixel);
+                        new Rectangle(
+                            sourceX,
+                            sourceY,
+                            sourceWidth,
+                            sourceHeight
+                            ),
+                        new Rectangle(
+                            Math.Max(0, bitmapOffset.X + viewPortOffset.X), 
+                            Math.Max(0, bitmapOffset.Y + viewPortOffset.Y), 
+                            sourceWidth, 
+                            sourceHeight
+                            ),
+                        GraphicsUnit.Pixel
+                    );
 
                     Console.WriteLine($"Drawing area (source): {sourceX}, {sourceY}, {sourceWidth}, {sourceHeight}");
                 }
@@ -344,7 +351,7 @@ namespace ErEditor.UI
                                 ?? (clickedPrimitive as ErDiagramRectangle)?.ErElement;
                             if(relationshipSet != null && entitySet != null)
                             {
-                                ErRole role = relationshipSet.AddRole(entitySet, "", true);
+                                ErRole role = relationshipSet.AddRole(entitySet, entitySet.Name, true);
                                 diagram.AddEdge(role, selectedPrimitive!, clickedPrimitive, 
                                     GetOnScreenPoint(selectedPrimitiveRegion.X, selectedPrimitiveRegion.Y), 
                                     GetOnScreenPoint(selectedPrimitiveRegion.Width, selectedPrimitiveRegion.Height));

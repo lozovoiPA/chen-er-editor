@@ -62,7 +62,8 @@ namespace ErEditor.UI.NavigatorTreeClasses
                 ImageIndex = 0;
                 SelectedImageIndex = 0;
                 UIHelper.AddContextMenu(this, new Dictionary<string, EventHandler>() { 
-                    { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) }
+                    { "Переименовать", new EventHandler(parentTree.RenameSelectedNode) },
+                    { "Транслировать", new EventHandler(TranslateSchema_Handler) }
                 });
 
                 UIHelper.AddContextMenu(entitySetFolder, new Dictionary<string, EventHandler>() { { "Создать", new EventHandler(AddEntitySet) } });
@@ -138,6 +139,10 @@ namespace ErEditor.UI.NavigatorTreeClasses
             private void GenerateDiagram_Handler(object? sender, EventArgs e)
             {
                 DialogManager.GenerateDiagram(schema);
+            }
+            private void TranslateSchema_Handler(object? sender, EventArgs e)
+            {
+                DialogManager.TranslateSchema(schema);
             }
             private void AddEntitySet(object? sender, EventArgs e)
             {

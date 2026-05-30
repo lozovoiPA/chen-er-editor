@@ -14,6 +14,7 @@ namespace ErEditor
     {
         private void InitializeDebugMenu()
         {
+            /*
             ToolStripMenuItem debugDropDown = new("Дебаг");
 
             ToolStripMenuItem showSchemaObjectItem = new("Показать схему в оперативной памяти");
@@ -36,6 +37,7 @@ namespace ErEditor
                 executeDiagramGeneration
                 ]);
             menuStrip1.Items.Add(debugDropDown);
+            */
         }
 
         private void Debug_ShowSchema(object? sender, EventArgs e)

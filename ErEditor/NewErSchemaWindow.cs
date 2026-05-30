@@ -37,11 +37,14 @@ namespace ErEditor
         {
             InitializeComponent();
 
-            filePathTextBox.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\test_db3";
+            filePathTextBox.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         }
 
         private void createButton_Click(object sender, EventArgs e)
         {
+            var path = folderBrowserDialog1.SelectedPath;
+
+
             DialogResult = DialogResult.OK;
         }
 
